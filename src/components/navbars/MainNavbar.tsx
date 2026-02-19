@@ -16,17 +16,27 @@ import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import PlaceIcon from "@mui/icons-material/Place";
 import icon2 from "../../assets/icons/icon2.png";
 
 interface MainNavbarProps {
   isAuthPage?: boolean;
+  variant?: "main" | "vendor";
 }
 
-const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
+const MainNavbar = ({ isAuthPage, variant = "main" }: MainNavbarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileMenuOpen = Boolean(anchorEl);
+
+  const isVendor = variant === "vendor";
+
+const colors = {
+  appBarBg: "#ffffff",
+  border: "#E5E7EB",
+  vendorBlue: "#0077B6",
+  vendorBlueDark: "#005a8d",
+};
+
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -206,11 +216,13 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
 
             {/* List Your Property Button */}
             <Button
-              onClick={() => navigate("/listings/new")}
+              onClick={() =>
+                navigate(isVendor ? "/vendor/listings/new" : "/listings/new")
+              }
               sx={{
                 backgroundColor: "#ffffff",
-                color: "#0077B6",
-                border: "1.6px solid #0077B6",
+                color: isVendor ? colors.vendorBlue : "linear-gradient(to bottom, #0077b6, #005a8d)",
+                border: `1.6px solid ${isVendor ? colors.vendorBlue : "#0077B6"}`,
                 px: 2,
                 py: 1,
                 borderRadius: "12px",
@@ -223,26 +235,21 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  backgroundColor: "#5eb0dc",
+                  backgroundColor: isVendor ? colors.vendorBlue : colors.vendorBlueDark,
                   color: "#ffffff",
                   boxShadow: "0px 4px 12px rgba(0,119,182,0.30)",
                 },
               }}
             >
               <AddIcon sx={{ fontSize: "1rem" }} />
-              <Box
-                component="span"
-                sx={{ display: { xs: "none", sm: "inline" } }}
-              >
-                List your property
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                {isVendor ? "Create Listing" : "List your property"}
               </Box>
-              <Box
-                component="span"
-                sx={{ display: { xs: "inline", sm: "none" } }}
-              >
-                List
+              <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+                {isVendor ? "Create" : "List"}
               </Box>
             </Button>
+
             {/* Sign Up Link */}
             {isAuthPage ? (
               <Typography
@@ -252,7 +259,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                   color: "#374151",
                   textDecoration: "none",
                   fontSize: "0.9rem",
-                  "&:hover": { color: "#2563EB" },
+                  "&:hover": { color: colors.vendorBlue },
                   transition: "color 0.2s ease",
                 }}
               >
@@ -267,7 +274,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                   textDecoration: "none",
                   fontSize: "0.9rem",
                   display: { xs: "none", sm: "block" },
-                  "&:hover": { color: "#2563EB" },
+                  "&:hover": { color: colors.vendorBlue },
                   transition: "color 0.2s ease",
                 }}
               >

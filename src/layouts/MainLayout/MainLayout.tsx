@@ -2,12 +2,11 @@
 import { Box } from "@mui/material";
 import MainNavbar from "../../components/navbars/MainNavbar";
 import MainFooter from "../../components/footer/MainFooter";
+import { Outlet } from "react-router-dom";
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
 
-const MainLayout = ({ children }: MainLayoutProps) => {
+
+const MainLayout = () => {
   return (
     <Box
       sx={{
@@ -26,7 +25,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           flexGrow: 1,
         }}
       >
-        {children}
+        <Outlet />
       </Box>
 
       {/* Footer */}

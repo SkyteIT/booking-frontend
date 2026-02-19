@@ -1,14 +1,11 @@
 // src/App.tsx
 import { BrowserRouter } from "react-router-dom";
-import MainLayout from "./layouts/MainLayout/MainLayout";
-import LandingPage from "./pages/public/LandingPage";
+import AppRouter from "./routes/AppRouter";
 
 function App() {
   return (
     <BrowserRouter>
-      <MainLayout>
-        <LandingPage />
-      </MainLayout>
+      <AppRouter />
     </BrowserRouter>
   );
 }
