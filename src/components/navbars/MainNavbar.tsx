@@ -1,22 +1,12 @@
 // src/components/navbars/MainNavbar.tsx
 import { useState } from "react";
 import {
-  AppBar,
-  Toolbar,
-  Box,
-  Button,
-  IconButton,
-  Typography,
-  Container,
-  Menu,
-  MenuItem,
-  Divider,
+  AppBar,Toolbar,Box,Button,IconButton,Typography,Container,Menu, MenuItem,Divider,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import PlaceIcon from "@mui/icons-material/Place";
 import icon2 from "../../assets/icons/icon2.png";
 
 interface MainNavbarProps {
@@ -261,7 +251,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
             ) : (
               <Typography
                 component={Link}
-                to="/register"
+                to="/Login"
                 sx={{
                   color: "#374151",
                   textDecoration: "none",
