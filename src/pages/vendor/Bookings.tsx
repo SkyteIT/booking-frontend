@@ -1,22 +1,35 @@
 import { Box, Card, CardContent, Pagination, Stack, Typography } from "@mui/material";
 import { useVendorBookings } from "../../hooks/useVendorBookings";
 import BookingsTable from "../../components/vendor/bookings/BookingTables";
+import { useMemo, useState, useEffect } from "react";
+import BookingsStatusTabs, { type BookingStatusFilter } from "../../components/vendor/bookings/BookingStatusTabs";
+import BookingsToolbar from "../../components/vendor/bookings/BookingToolbar";
 
 export default function Bookings() {
-  //  For interim — later this comes from auth context
   const vendorId = "11111111-1111-1111-1111-111111111111";
-
-  const {
-    data,
-    loading,
-    error,
-    page,
-    setPage,
-    pageCount,
-  } = useVendorBookings({
+  const [statusFilter, setStatusFilter] = useState<BookingStatusFilter>("All");
+  const [search, setSearch] = useState("");
+  const { data, loading, error, page, setPage, pageCount } = useVendorBookings({
     vendorId,
     initialPageSize: 8,
   });
+  
+  useEffect(() => {
+  // if current page is greater than the available pages, bring it back
+  setPage((p) => Math.min(p, pageCount));
+  }, [pageCount, setPage]);
+  
+
+  // If hook returns BookingRow[]
+  const rows = data ?? [];
+
+  //  hook returns PageResult<BookingRow>
+  // const rows = data?.items ?? [];
+
+  const filteredRows = useMemo(() => {
+    if (statusFilter === "All") return rows;
+    return rows.filter((r) => r.bookingStatus === statusFilter);
+  }, [rows, statusFilter]);
 
   return (
     <Stack spacing={3}>
@@ -32,6 +45,15 @@ export default function Bookings() {
 
       {/* Table Card */}
       <Card sx={{ borderRadius: 3 }}>
+        {/* Tabs row */}
+        <BookingsStatusTabs value={statusFilter} onChange={setStatusFilter} />
+        <BookingsToolbar
+            search={search}
+            onSearchChange={setSearch}
+            onDateRangeClick={() => console.log("open date range")}
+            onFiltersClick={() => console.log("open filters")}
+        />
+
         <CardContent>
           {/* Error state */}
           {error ? (
@@ -40,7 +62,7 @@ export default function Bookings() {
             </Typography>
           ) : (
             <BookingsTable
-              rows={loading ? [] : data}
+              rows={loading ? [] : filteredRows}
               emptyText={loading ? "Loading bookings..." : "No bookings found."}
             />
           )}
@@ -56,13 +78,9 @@ export default function Bookings() {
               showFirstButton
               showLastButton
               sx={{
-                "& .MuiPaginationItem-root": {
-                  color: "#0077b6",
-                },
-                "& .Mui-selected": {
-                  backgroundColor: "#0077B6",
-                  color: "#fff",
-                },
+                "& .MuiPaginationItem-root": { color: "#0077b6" },
+                "& .Mui-selected": { background: "#0077b6",
+                   color: "#fff" },
               }}
             />
           </Box>
