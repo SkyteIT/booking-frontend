@@ -1,5 +1,6 @@
 // src/components/sections/landing/FeaturedSection.tsx
 import { Box, Container, Typography, Grid, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import ListingCard from "../../cards/ListingCard";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
@@ -67,9 +68,10 @@ const listings = [
 ];
 
 const FeaturedSection = () => {
+  const navigate = useNavigate();
+
   const handleViewAll = () => {
-    console.log("Navigate to all listings");
-    // Later: navigate('/listings')
+    navigate("/search");
   };
 
   return (
