@@ -8,10 +8,25 @@ import StatCard from "../../components/vendor/dashboard/StatCard";
 import RevenueOverviewCard from "../../components/vendor/dashboard/RevenueOverviewCard";
 import RecentActivityCard from "../../components/vendor/dashboard/RecentActivityCard";
 import UpcomingBookingsCard from "../../components/vendor/dashboard/UpcomingBookingsCard";
-import { type BookingRow } from "../../components/vendor/bookings/BookingTables";
+
 import type { ActivityItem } from "../../components/vendor/dashboard/types";
 
+import { useVendorBookings } from "../../hooks/useVendorBookings";
+
 export default function Dashboard() {
+  // For interim — later this comes from auth context
+  const vendorId = "11111111-1111-1111-1111-111111111111";
+  const {
+    data,
+    loading,
+    error,
+  } = useVendorBookings({
+    vendorId,
+    initialPageSize: 5,
+  });
+
+
+
   const stats = [
     { title: "Total Revenue", value: "$12,450", icon: <MonetizationOnOutlinedIcon />, helperText: "↑ +12.5%" },
     { title: "Active Bookings", value: "24", icon: <EventAvailableOutlinedIcon />, helperText: "↑ +3" },
@@ -25,12 +40,7 @@ export default function Dashboard() {
     { id: "a3", title: "Payment received: $299.00", time: "2 hours ago" },
   ];
 
-  const bookings: BookingRow[] = [
-    { id: "BK-1234", item: "Tesla Model 3", customer: { name: "John Smith", email: "john@example.com" }, dates: "Feb 10, 2026", status: "Confirmed", amount: "$299" },
-    { id: "BK-1235", item: "Canon EOS R5", customer: { name: "Sarah Johnson", email: "sarah@example.com" }, dates: "Feb 11, 2026", status: "Pending", amount: "$150" },
-    { id: "BK-1236", item: "Beach House Villa", customer: { name: "Mike Chen", email: "mike@example.com" }, dates: "Feb 12, 2026", status: "Confirmed", amount: "$1,200" },
-    { id: "BK-1237", item: "DJ Equipment Set", customer: { name: "Emma Davis", email: "emma@example.com" }, dates: "Feb 14, 2026", status: "Confirmed", amount: "$450" },
-  ];
+
 
   return (
     <Stack spacing={3}>
@@ -60,7 +70,13 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      <UpcomingBookingsCard rows={bookings.slice(0, 4)} />
+      <UpcomingBookingsCard
+         rows={data?.slice(0, 4) || []} 
+         loading={loading}
+         error={error}
+         
+         />
     </Stack>
   );
 }
+

@@ -1,9 +1,10 @@
 import {Box,Card,CardContent,Link as MuiLink,Stack,Typography } from "@mui/material";
-import BookingsTable, { type BookingRow } from "../bookings/BookingTables";
+import BookingsTable from "../bookings/BookingTables";
 import { Link as RouterLink } from "react-router-dom";
+import type { VendorBookingDto } from "../bookings/BookingTypes";
 
 type Props = {
-  rows: BookingRow[];
+  rows: VendorBookingDto[]; // For simplicity, using any[] — ideally this should be a typed array of booking objects
   loading?: boolean;
   error?: string | null;
 };
@@ -39,7 +40,7 @@ export default function UpcomingBookingsCard({ rows, loading = false, error = nu
           </Typography>
         ) : (
           <Box sx={{ overflowX: "auto" }}>
-            <BookingsTable rows={rows} showLocation={false} showEmail={false}  />
+            <BookingsTable rows={rows} />
           </Box>
         )}
       </CardContent>
