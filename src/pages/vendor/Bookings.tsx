@@ -4,7 +4,6 @@ import BookingsTable from "../../components/vendor/bookings/BookingTables";
 import { useMemo, useState, useEffect } from "react";
 import BookingsStatusTabs, { type BookingStatusFilter } from "../../components/vendor/bookings/BookingStatusTabs";
 import BookingsToolbar from "../../components/vendor/bookings/BookingToolbar";
-
 export default function Bookings() {
   const vendorId = "11111111-1111-1111-1111-111111111111";
   const [statusFilter, setStatusFilter] = useState<BookingStatusFilter>("All");
@@ -79,8 +78,7 @@ export default function Bookings() {
               showLastButton
               sx={{
                 "& .MuiPaginationItem-root": { color: "#0077b6" },
-                "& .Mui-selected": { background: "#0077b6",
-                   color: "#fff" },
+                "& .MuiPaginationItem-root.Mui-selected": { backgroundColor: "#0077b6", color: "#fff" },
               }}
             />
           </Box>

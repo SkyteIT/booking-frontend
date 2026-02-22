@@ -6,6 +6,7 @@ import VendorLayout from "../layouts/VendorLayout/VendorLayout";
 import Listings from "../pages/vendor/Listings";
 import Bookings from "../pages/vendor/Bookings";
 import Dashboard from "../pages/vendor/Dashboard";
+import Availability from "../pages/vendor/Availability";
 
 function AppRouter() {
   return (
@@ -21,6 +22,7 @@ function AppRouter() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="listings" element={<Listings />} />
+        <Route path="availability" element={<Availability />} />
       </Route>
     </Routes>
   );
