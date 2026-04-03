@@ -58,7 +58,7 @@ const socialLinks = [
 const contactInfo = [
   {
     icon: <EmailIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "support@listigo.com",
+    text: "support@UBE.com",
   },
   {
     icon: <PhoneIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
@@ -338,7 +338,7 @@ const MainFooter = () => {
             variant="body2"
             sx={{ color: "#64748B", fontSize: "0.8rem" }}
           >
-            © {new Date().getFullYear()} ListiGo. All rights reserved.
+            © {new Date().getFullYear()} UBE. All rights reserved.
           </Typography>
           <Box sx={{ display: "flex", gap: 3 }}>
             {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(

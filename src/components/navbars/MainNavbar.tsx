@@ -81,7 +81,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                overflow: "hidden", // clips image to fit inside border
+                overflow: "hidden",
               }}
             >
               <Box
@@ -91,7 +91,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 sx={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover", // fills the entire box
+                  objectFit: "cover",
                 }}
               />
             </Box>
@@ -185,7 +185,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 >
                   <MenuItem
                     component={Link}
-                    to="/settings"
+                    to="/dashboard"
                     onClick={handleProfileClose}
                   >
                     Account
@@ -205,7 +205,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
 
             {/* List Your Property Button */}
             <Button
-              onClick={() => navigate("/vendor/dashboard")}
+              onClick={() => navigate("/vendor/businessinfo")}
               sx={{
                 backgroundColor: "#ffffff",
                 color: "#0077B6",
@@ -242,6 +242,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 List
               </Box>
             </Button>
+
             {/* Sign Up Link */}
             {isAuthPage ? (
               <Typography
@@ -260,7 +261,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
             ) : (
               <Typography
                 component={Link}
-                to="/register"
+                to="/Login"
                 sx={{
                   color: "#374151",
                   textDecoration: "none",
@@ -270,7 +271,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                   transition: "color 0.2s ease",
                 }}
               >
-                Sign up
+                Sign in
               </Typography>
             )}
           </Box>
