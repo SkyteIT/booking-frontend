@@ -20,12 +20,23 @@ import icon2 from "../../assets/icons/icon2.png";
 
 interface MainNavbarProps {
   isAuthPage?: boolean;
+  variant?: "main" | "vendor";
 }
 
-const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
+const MainNavbar = ({ isAuthPage, variant = "main" }: MainNavbarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileMenuOpen = Boolean(anchorEl);
+
+  const isVendor = variant === "vendor";
+
+const colors = {
+  appBarBg: "#ffffff",
+  border: "#E5E7EB",
+  vendorBlue: "#0077B6",
+  vendorBlueDark: "#005a8d",
+};
+
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -64,7 +75,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
           {/* Left — Logo */}
           <Box
             component={Link}
-            to="/"
+            to={isVendor ? "/vendor/dashboard" : "/"}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -81,7 +92,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                overflow: "hidden",
+                overflow: "hidden", // clips image to fit inside border
               }}
             >
               <Box
@@ -91,7 +102,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 sx={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover",
+                  objectFit: "cover", // fills the entire box
                 }}
               />
             </Box>
@@ -126,6 +137,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
               <>
                 <IconButton
                   onClick={handleProfileClick}
+
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -185,7 +197,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 >
                   <MenuItem
                     component={Link}
-                    to="/dashboard"
+                    to="/settings"
                     onClick={handleProfileClose}
                   >
                     Account
@@ -205,11 +217,13 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
 
             {/* List Your Property Button */}
             <Button
-              onClick={() => navigate("/vendor/businessinfo")}
+              onClick={() =>
+                navigate(isVendor ? "/vendor/listings/":"/vendor/dashboard")
+              }
               sx={{
                 backgroundColor: "#ffffff",
-                color: "#0077B6",
-                border: "1.6px solid #0077B6",
+                color: isVendor ? colors.vendorBlue : "linear-gradient(to bottom, #0077b6, #005a8d)",
+                border: `1.6px solid ${isVendor ? colors.vendorBlue : "#0077B6"}`,
                 px: 2,
                 py: 1,
                 borderRadius: "12px",
@@ -222,57 +236,53 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  backgroundColor: "#5eb0dc",
+                  backgroundColor: isVendor ? colors.vendorBlue : colors.vendorBlueDark,
                   color: "#ffffff",
                   boxShadow: "0px 4px 12px rgba(0,119,182,0.30)",
                 },
               }}
             >
               <AddIcon sx={{ fontSize: "1rem" }} />
-              <Box
-                component="span"
-                sx={{ display: { xs: "none", sm: "inline" } }}
-              >
-                List your property
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                {isVendor ? "Create Listing" : "List your property"}
               </Box>
-              <Box
-                component="span"
-                sx={{ display: { xs: "inline", sm: "none" } }}
-              >
-                List
+              <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+                {isVendor ? "Create" : "List"}
               </Box>
             </Button>
 
-            {/* Sign Up Link */}
-            {isAuthPage ? (
-              <Typography
-                component={Link}
-                to="/register"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  "&:hover": { color: "#2563EB" },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign up
-              </Typography>
-            ) : (
-              <Typography
-                component={Link}
-                to="/Login"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  display: { xs: "none", sm: "block" },
-                  "&:hover": { color: "#2563EB" },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign in
-              </Typography>
+            {/* Sign Up Link */}{/* only show on main navbar, and hide on vendor dashboard for better UX*/}
+            {!isVendor && (
+              isAuthPage ? (
+                <Typography
+                  component={Link}
+                  to="/register"
+                  sx={{
+                    color: "#374151",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    "&:hover": { color: colors.vendorBlue },
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  Sign up
+                </Typography>
+              ) : (
+                <Typography
+                  component={Link}
+                  to="/register"
+                  sx={{
+                    color: "#374151",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    display: { xs: "none", sm: "block" },
+                    "&:hover": { color: colors.vendorBlue },
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  Sign up
+                </Typography>
+              )
             )}
           </Box>
         </Toolbar>

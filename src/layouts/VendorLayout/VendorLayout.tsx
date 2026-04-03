@@ -1,29 +1,35 @@
-import { Box } from "@mui/material";
-import VendorSidebar from "../../components/navbars/VendorSidebar";
-import MainNavbar from "../../components/navbars/MainNavbar";
+import { Outlet } from "react-router-dom";
+import { Box, Container } from "@mui/material";
+import VendorSidebar from "../../components/vendor/VendorSidebar";
 import MainFooter from "../../components/footer/MainFooter";
+import MainNavbar from "../../components/navbars/MainNavbar";
 
-interface VendorLayoutProps {
-    children: React.ReactNode;
-}
 
-const VendorLayout = ({ children }: VendorLayoutProps) => {
-    return (
-        <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            <MainNavbar />
+export default function VendorLayout() {
+  return (
+    <Box sx={{ minHeight: "100vh", bgcolor: "secondary.main" }}>
+      <MainNavbar variant="vendor" />
 
-            <Box sx={{ display: "flex", flexGrow: 1 }}>
-                <VendorSidebar />
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", lg: "260px 1fr" },
+            gap: 3,
+            alignItems: "start",
+          }}
+        >
+          {/* Sticky gradient sidebar */}
+          <VendorSidebar />
 
-                <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", backgroundColor: "#F8FAFC" }}>
-                    <Box component="main" sx={{ flexGrow: 1 }}>
-                        {children}
-                    </Box>
-                    <MainFooter />
-                </Box>
-            </Box>
+          {/* Main page area */}
+          <Box sx={{ pb: { xs: 9, lg: 0 } }}>
+            <Outlet />
+          </Box>
         </Box>
-    );
-};
+      </Container>
 
-export default VendorLayout;
+      <MainFooter />
+    </Box>
+  );
+}

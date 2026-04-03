@@ -11,7 +11,6 @@ import {
   Button,
   InputAdornment,
 } from "@mui/material";
-//import PlaceIcon from "@mui/icons-material/Place";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import InstagramIcon from "@mui/icons-material/Instagram";
@@ -21,7 +20,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SendIcon from "@mui/icons-material/Send";
-import icon2 from "../../assets/icons/icon2.png";
+import icon from "../../assets/icons/icon2.png";
 
 const footerLinks = {
   Company: [
@@ -58,15 +57,15 @@ const socialLinks = [
 const contactInfo = [
   {
     icon: <EmailIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "support@UBE.com",
+    text: "support@ube.com",
   },
   {
     icon: <PhoneIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "+1 (555) 123-4567",
+    text: "+94 123 456 789",
   },
   {
     icon: <LocationOnIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "123 Main Street, New York, USA",
+    text: "123 Main Street, Colombo, Sri Lanka",
   },
 ];
 
@@ -94,29 +93,19 @@ const MainFooter = () => {
                 mb: 2.5,
               }}
             >
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "8px",
-                  backgroundColor: "#ffffff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <img src={icon2} alt="UBE Logo" width="30" height="38" />
+              <Box>
+                <img src={icon} alt="UBE" style={{ width: 40, height: 40}} />
               </Box>
               <Typography
                 variant="h6"
                 sx={{
                   fontWeight: 700,
                   fontSize: "1.2rem",
-                  color: "#ffffff",
+                  color: "#0077b6",
                   letterSpacing: "-0.02em",
                 }}
               >
-                UBE
+                  UBE
               </Typography>
             </Box>
 
@@ -174,7 +163,7 @@ const MainFooter = () => {
                     height: 36,
                     transition: "all 0.2s ease",
                     "&:hover": {
-                      backgroundColor: "#2563EB",
+                      backgroundColor: "#0077b6",
                       color: "#ffffff",
                       transform: "translateY(-2px)",
                     },
@@ -291,7 +280,7 @@ const MainFooter = () => {
                       borderColor: "rgba(255,255,255,0.25)",
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: "#2563EB",
+                      borderColor: "#0077b6",
                     },
                   },
                   "& input::placeholder": {
@@ -305,14 +294,14 @@ const MainFooter = () => {
                 endIcon={<SendIcon sx={{ fontSize: "1rem" }} />}
                 fullWidth
                 sx={{
-                  backgroundColor: "#2563EB",
+                  backgroundColor: "#0077b6",
                   color: "#ffffff",
                   fontWeight: 600,
                   fontSize: "0.875rem",
                   py: 1.1,
                   borderRadius: "8px",
                   "&:hover": {
-                    backgroundColor: "#1D4ED8",
+                    backgroundColor: "#0077a8",
                   },
                 }}
               >
