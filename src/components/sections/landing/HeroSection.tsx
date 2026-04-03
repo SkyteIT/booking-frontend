@@ -15,12 +15,46 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import PeopleIcon from "@mui/icons-material/People";
 import StarIcon from "@mui/icons-material/Star";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
   const [search, setSearch] = useState("");
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const hasValue = [search, location, date, guests].some(
+      (value) => value.trim().length > 0,
+    );
+
+    if (!hasValue) {
+      return;
+    }
+
+    const params = new URLSearchParams();
+
+    if (search.trim()) {
+      params.set("q", search.trim());
+    }
+    if (location.trim()) {
+      params.set("location", location.trim());
+    }
+    if (date.trim()) {
+      params.set("date", date.trim());
+    }
+    if (guests.trim()) {
+      params.set("guests", guests.trim());
+    }
+
+    navigate({
+      pathname: "/search",
+      search: params.toString(),
+    });
+  };
 
   return (
     <Box
@@ -73,6 +107,8 @@ const HeroSection = () => {
 
               {/* Search Card */}
               <Paper
+                component="form"
+                onSubmit={handleSubmit}
                 elevation={0}
                 sx={{
                   backgroundColor: "#ffffff",
@@ -208,6 +244,7 @@ const HeroSection = () => {
 
                 {/* Search Button */}
                 <Button
+                  type="submit"
                   variant="contained"
                   fullWidth
                   startIcon={<SearchIcon />}

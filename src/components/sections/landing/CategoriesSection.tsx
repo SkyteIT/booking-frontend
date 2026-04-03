@@ -1,5 +1,6 @@
 // src/components/sections/landing/CategoriesSection.tsx
 import { Box, Container, Typography, Grid } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import CategoryCard from "../../cards/CategoryCard";
 
 const categories = [
@@ -42,9 +43,13 @@ const categories = [
 ];
 
 const CategoriesSection = () => {
+  const navigate = useNavigate();
+
   const handleCategoryClick = (label: string) => {
-    console.log(`Navigating to category: ${label}`);
-    // Later: navigate(`/listings?category=${label}`)
+    navigate({
+      pathname: "/search",
+      search: new URLSearchParams({ category: label }).toString(),
+    });
   };
 
   return (
