@@ -11,7 +11,7 @@ import {
   Button,
   InputAdornment,
 } from "@mui/material";
-import PlaceIcon from "@mui/icons-material/Place";
+//import PlaceIcon from "@mui/icons-material/Place";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import InstagramIcon from "@mui/icons-material/Instagram";
@@ -21,6 +21,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SendIcon from "@mui/icons-material/Send";
+import icon2 from "../../assets/icons/icon2.png";
 
 const footerLinks = {
   Company: [
@@ -98,13 +99,13 @@ const MainFooter = () => {
                   width: 36,
                   height: 36,
                   borderRadius: "8px",
-                  backgroundColor: "#2563EB",
+                  backgroundColor: "#ffffff",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <PlaceIcon sx={{ color: "#ffffff", fontSize: "1.2rem" }} />
+                <img src={icon2} alt="UBE Logo" width="30" height="38" />
               </Box>
               <Typography
                 variant="h6"
@@ -115,7 +116,7 @@ const MainFooter = () => {
                   letterSpacing: "-0.02em",
                 }}
               >
-                ListiGo
+                UBE
               </Typography>
             </Box>
 

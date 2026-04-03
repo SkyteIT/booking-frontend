@@ -1,4 +1,6 @@
 // src/components/cards/ListingCard.tsx
+// Added useNavigate — clicking a card routes to /listing/:id
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -13,6 +15,7 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 interface ListingCardProps {
+  id?: number;
   image: string;
   title: string;
   category: string;
@@ -20,9 +23,11 @@ interface ListingCardProps {
   rating: number;
   location: string;
   badge?: "Featured" | "Popular" | "New";
+  onClick?: () => void;
 }
 
 const ListingCard = ({
+  id,
   image,
   title,
   category,
@@ -30,9 +35,21 @@ const ListingCard = ({
   rating,
   location,
   badge,
+  onClick,
 }: ListingCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (id !== undefined) {
+      navigate(`/listing/${id}`);
+    }
+  };
+
   return (
     <Card
+      onClick={handleClick}
       sx={{
         height: "100%",
         display: "flex",
@@ -41,6 +58,12 @@ const ListingCard = ({
         overflow: "hidden",
         border: "1px solid",
         borderColor: "divider",
+        cursor: "pointer",
+        transition: "all 0.3s ease",
+        "&:hover": {
+          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+          transform: "translateY(-4px)",
+        },
       }}
     >
       {/* Image Container */}
@@ -195,7 +218,7 @@ const ListingCard = ({
             fontWeight: 600,
           }}
         >
-          Book Now
+          View
         </Button>
       </CardActions>
     </Card>

@@ -205,7 +205,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
 
             {/* List Your Property Button */}
             <Button
-              onClick={() => navigate("/listings/new")}
+              onClick={() => navigate("/vendor/dashboard")}
               sx={{
                 backgroundColor: "#ffffff",
                 color: "#0077B6",

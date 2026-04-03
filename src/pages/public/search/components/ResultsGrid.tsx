@@ -15,6 +15,7 @@ const ResultsGrid = ({ listings }: ResultsGridProps) => {
         {listings.map((listing) => (
           <Grid key={listing.id} size={{ xs: 12, sm: 6 }}>
             <ListingCard
+              id={listing.id}
               image={listing.image}
               title={listing.title}
               category={listing.category}
