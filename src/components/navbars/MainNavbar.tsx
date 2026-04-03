@@ -75,7 +75,7 @@ const colors = {
           {/* Left — Logo */}
           <Box
             component={Link}
-            to="/"
+            to={isVendor ? "/vendor/dashboard" : "/"}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -137,6 +137,7 @@ const colors = {
               <>
                 <IconButton
                   onClick={handleProfileClick}
+
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -217,7 +218,7 @@ const colors = {
             {/* List Your Property Button */}
             <Button
               onClick={() =>
-                navigate(isVendor ? "/vendor/listings/new" : "/listings/new")
+                navigate(isVendor ? "/vendor/listings/":"/vendor/dashboard")
               }
               sx={{
                 backgroundColor: "#ffffff",
@@ -250,36 +251,38 @@ const colors = {
               </Box>
             </Button>
 
-            {/* Sign Up Link */}
-            {isAuthPage ? (
-              <Typography
-                component={Link}
-                to="/register"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  "&:hover": { color: colors.vendorBlue },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign up
-              </Typography>
-            ) : (
-              <Typography
-                component={Link}
-                to="/register"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  display: { xs: "none", sm: "block" },
-                  "&:hover": { color: colors.vendorBlue },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign up
-              </Typography>
+            {/* Sign Up Link */}{/* only show on main navbar, and hide on vendor dashboard for better UX*/}
+            {!isVendor && (
+              isAuthPage ? (
+                <Typography
+                  component={Link}
+                  to="/register"
+                  sx={{
+                    color: "#374151",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    "&:hover": { color: colors.vendorBlue },
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  Sign up
+                </Typography>
+              ) : (
+                <Typography
+                  component={Link}
+                  to="/register"
+                  sx={{
+                    color: "#374151",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    display: { xs: "none", sm: "block" },
+                    "&:hover": { color: colors.vendorBlue },
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  Sign up
+                </Typography>
+              )
             )}
           </Box>
         </Toolbar>

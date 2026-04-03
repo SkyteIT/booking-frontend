@@ -23,7 +23,7 @@ export default function Bookings() {
   const rows = data ?? [];
 
   //  hook returns PageResult<BookingRow>
-  // const rows = data?.items ?? [];
+ 
 
   const filteredRows = useMemo(() => {
     if (statusFilter === "All") return rows;

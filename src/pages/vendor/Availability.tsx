@@ -6,7 +6,7 @@ import ListingSelector from "../../components/vendor/Availability/ListingSelecto
 import AvailabilityToolbar from "../../components/vendor/Availability/AvailabilityToolbar";
 import AvailabilityLegend from "../../components/vendor/Availability/Availabilitystatus";
 import AvailabilityMonthGrid from "../../components/vendor/Availability/AvailabilityMonthGrid";
-
+import Instruction from "../../components/vendor/Availability/Instruction";
 
 import type { ListingCard } from "../../components/vendor/Availability/type";
 
@@ -96,7 +96,7 @@ export default function Availability() {
         </CardContent>
       </Card>
 
-      {/* Upcoming bookings mini-card */}
+        <Instruction />
       
     </Stack>
   );
