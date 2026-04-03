@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { Snackbar, Alert } from "@mui/material";
 
 interface RegisterFormData {
   name: string;
@@ -22,66 +23,77 @@ function Register(): JSX.Element {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Replace current entry in history so back arrow skips previous pages
     window.history.replaceState(null, "", "/register");
 
     const handlePopState = () => {
-      // Redirect to Landing page whenever back arrow is clicked
       navigate("/", { replace: true });
     };
 
     window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [navigate]);
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [formData, setFormData] = useState<RegisterFormData>({
     name: "",
     email: "",
     password: "",
     confirmPassword: ""
   });
-
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const validate = (): RegisterErrors => {
     const newErrors: RegisterErrors = {};
-    if (!formData.name) newErrors.name = "Full name is required";
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
+    const name = formData.name.trim();
+    const email = formData.email.trim();
+    const password = formData.password.trim();
+    const confirmPassword = formData.confirmPassword.trim();
+
+    if (!name) newErrors.name = "Full name is required";
+    else if (name.length < 3) newErrors.name = "Name must be at least 3 characters";
+
+    if (!email) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
+      newErrors.email = "Enter a valid email address";
+
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password))
+      newErrors.password = "Password must contain uppercase, lowercase and a number";
+
+    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+
     return newErrors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    if (loading) return;
+
     const validationErrors = validate();
     setErrors(validationErrors);
+
     if (Object.keys(validationErrors).length === 0) {
       setLoading(true);
+
       setTimeout(() => {
         setLoading(false);
-        alert("Registration Successful ✅");
+        setSuccessSnackbar(true);
+
+        // Redirect to landing page after 1.5s
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 1500);
       }, 1500);
     }
   };
@@ -94,7 +106,8 @@ function Register(): JSX.Element {
           Please fill in the details to create your account.
         </p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
+          {/* Full Name */}
           <div className="input-group">
             <label>Full Name</label>
             <input
@@ -108,6 +121,7 @@ function Register(): JSX.Element {
             {errors.name && <p className="error-text">{errors.name}</p>}
           </div>
 
+          {/* Email */}
           <div className="input-group">
             <label>Email Address</label>
             <input
@@ -121,39 +135,50 @@ function Register(): JSX.Element {
             {errors.email && <p className="error-text">{errors.email}</p>}
           </div>
 
-          <div className="input-group">
+          {/* Password */}
+          <div className="input-group password-group">
             <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? "input-error" : ""}
-            />
+            <div className="password-wrapper styled">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                className={errors.password ? "input-error" : ""}
+              />
+              <span className="eye-icon" onClick={() => setShowPassword(prev => !prev)}>
+                {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+              </span>
+            </div>
             {errors.password && <p className="error-text">{errors.password}</p>}
           </div>
 
-          <div className="input-group">
+          {/* Confirm Password */}
+          <div className="input-group password-group">
             <label>Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={errors.confirmPassword ? "input-error" : ""}
-            />
+            <div className="password-wrapper styled">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={errors.confirmPassword ? "input-error" : ""}
+              />
+              <span
+                className="eye-icon"
+                onClick={() => setShowConfirmPassword(prev => !prev)}
+              >
+                {showConfirmPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+              </span>
+            </div>
             {errors.confirmPassword && (
               <p className="error-text">{errors.confirmPassword}</p>
             )}
           </div>
 
-          <button
-            type="submit"
-            className="primary-btn"
-            disabled={loading}
-          >
+          <button type="submit" className="primary-btn" disabled={loading}>
             {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
@@ -164,6 +189,18 @@ function Register(): JSX.Element {
             Sign in
           </Link>
         </p>
+
+        {/* ✅ Success Snackbar */}
+        <Snackbar
+          open={successSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setSuccessSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="success" sx={{ width: "100%" }}>
+            Registration Successful!
+          </Alert>
+        </Snackbar>
       </div>
     </AuthLayout>
   );

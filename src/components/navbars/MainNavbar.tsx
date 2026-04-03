@@ -150,89 +150,84 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 </IconButton>
 
                 {/* Profile Menu */}
-                <Menu
-                  anchorEl={anchorEl}
-                  open={profileMenuOpen}
-                  onClose={handleProfileClose}
-                  transformOrigin={{ horizontal: "right", vertical: "top" }}
-                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                  PaperProps={{
-                    elevation: 0,
-                    sx: {
-                      width: 192,
-                      mt: 1,
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "8px",
-                      boxShadow: "0px 4px 16px rgba(0,0,0,0.08)",
-                      "& .MuiMenuItem-root": {
-                        fontSize: "0.9rem",
-                        color: "#374151",
-                        px: 2,
-                        py: 1,
-                        "&:hover": { backgroundColor: "#F9FAFB" },
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem
-                    component={Link}
-                    to="/settings"
-                    onClick={handleProfileClose}
-                  >
-                    Account
-                  </MenuItem>
-                  <MenuItem
-                    component={Link}
-                    to="/settings"
-                    onClick={handleProfileClose}
-                  >
-                    Settings
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                </Menu>
+<Menu
+  anchorEl={anchorEl}
+  open={profileMenuOpen}
+  onClose={handleProfileClose}
+  transformOrigin={{ horizontal: "right", vertical: "top" }}
+  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+  PaperProps={{
+    elevation: 0,
+    sx: {
+      width: 192,
+      mt: 1,
+      border: "1px solid #E5E7EB",
+      borderRadius: "8px",
+      boxShadow: "0px 4px 16px rgba(0,0,0,0.08)",
+      "& .MuiMenuItem-root": {
+        fontSize: "0.9rem",
+        color: "#374151",
+        px: 2,
+        py: 1,
+        "&:hover": { backgroundColor: "#F9FAFB" },
+      },
+    },
+  }}
+>
+  <MenuItem
+    component={Link}
+    to="/dashboard"       // User Dashboard route
+    onClick={handleProfileClose}
+  >
+    Account
+  </MenuItem>
+  <MenuItem
+    component={Link}
+    to="/settings"
+    onClick={handleProfileClose}
+  >
+    Settings
+  </MenuItem>
+  <Divider />
+  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+</Menu>
               </>
             )}
 
             {/* List Your Property Button */}
             <Button
-              onClick={() => navigate("/listings/new")}
-              sx={{
-                backgroundColor: "#ffffff",
-                color: "#0077B6",
-                border: "1.6px solid #0077B6",
-                px: 2,
-                py: 1,
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                textTransform: "none",
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  backgroundColor: "#5eb0dc",
-                  color: "#ffffff",
-                  boxShadow: "0px 4px 12px rgba(0,119,182,0.30)",
-                },
-              }}
-            >
-              <AddIcon sx={{ fontSize: "1rem" }} />
-              <Box
-                component="span"
-                sx={{ display: { xs: "none", sm: "inline" } }}
-              >
-                List your property
-              </Box>
-              <Box
-                component="span"
-                sx={{ display: { xs: "inline", sm: "none" } }}
-              >
-                List
-              </Box>
-            </Button>
+  onClick={() => navigate("/vendor/businessinfo")}   // ✅ updated path
+  sx={{
+    backgroundColor: "#ffffff",
+    color: "#0077B6",
+    border: "1.6px solid #0077B6",
+    px: 2,
+    py: 1,
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    fontSize: "0.9rem",
+    fontWeight: 500,
+    textTransform: "none",
+    boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      backgroundColor: "#5eb0dc",
+      color: "#ffffff",
+      boxShadow: "0px 4px 12px rgba(0,119,182,0.30)",
+    },
+  }}
+>
+  <AddIcon sx={{ fontSize: "1rem" }} />
+  <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+    List your property
+  </Box>
+  <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+    List
+  </Box>
+</Button>
+
             {/* Sign Up Link */}
             {isAuthPage ? (
               <Typography
@@ -261,7 +256,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                   transition: "color 0.2s ease",
                 }}
               >
-                Sign up
+                Sign in
               </Typography>
             )}
           </Box>

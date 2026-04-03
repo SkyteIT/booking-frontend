@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
+import { Snackbar, Alert } from "@mui/material";
 
 interface LoginFormData {
   email: string;
@@ -17,44 +17,44 @@ interface LoginErrors {
 }
 
 function Login(): JSX.Element {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState<boolean>(false);
-
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: ""
   });
-
   const [errors, setErrors] = useState<LoginErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const validate = (): LoginErrors => {
     const newErrors: LoginErrors = {};
+    const email = formData.email.trim();
+    const password = formData.password.trim();
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
+    if (!email) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
+      newErrors.email = "Enter a valid email address";
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 8)
       newErrors.password = "Password must be at least 8 characters";
-    }
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password))
+      newErrors.password =
+        "Password must contain uppercase, lowercase and a number";
 
     return newErrors;
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    if (loading) return;
 
     const validationErrors = validate();
     setErrors(validationErrors);
@@ -64,7 +64,12 @@ function Login(): JSX.Element {
 
       setTimeout(() => {
         setLoading(false);
-        alert("Login Successful ✅");
+        setSuccessSnackbar(true);
+
+        // Redirect to landing page after 1.5s
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 1500);
       }, 1500);
     }
   };
@@ -77,7 +82,7 @@ function Login(): JSX.Element {
           Please enter your details to sign in to your account.
         </p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="input-group">
             <label>Email Address</label>
             <input
@@ -109,7 +114,9 @@ function Login(): JSX.Element {
                 {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
               </span>
             </div>
-            {errors.password && <p className="error-text">{errors.password}</p>}
+            {errors.password && (
+              <p className="error-text">{errors.password}</p>
+            )}
           </div>
 
           <div className="forgot center">
@@ -134,17 +141,28 @@ function Login(): JSX.Element {
         </div>
 
         <button className="google-btn">
-  <FcGoogle size={20} /> {/* icon before text */}
-  Continue with Google
-</button>
+          <FcGoogle size={20} />
+          Continue with Google
+        </button>
 
-<p className="bottom-text">
-  Don’t have an account?{" "}
-  <Link to="/register" className="bold-link">
-    Sign Up
-  </Link>
-</p>
+        <p className="bottom-text">
+          Don’t have an account?{" "}
+          <Link to="/register" className="bold-link">
+            Sign Up
+          </Link>
+        </p>
 
+        {/* ✅ Success Snackbar */}
+        <Snackbar
+          open={successSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setSuccessSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="success" sx={{ width: "100%" }}>
+            Login Successful!
+          </Alert>
+        </Snackbar>
       </div>
     </AuthLayout>
   );
