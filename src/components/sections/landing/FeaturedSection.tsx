@@ -10,6 +10,7 @@ const listings = [
     title: "Grand Plaza Hotel & Spa",
     category: "Hotel",
     price: "$120/night",
+    priceNumber: 120,
     rating: 4.8,
     location: "New York, USA",
     badge: "Featured" as const,
@@ -20,6 +21,7 @@ const listings = [
     title: "Ocean View Restaurant",
     category: "Restaurant",
     price: "$45/person",
+    priceNumber: 45,
     rating: 4.6,
     location: "Miami, USA",
     badge: "Popular" as const,
@@ -30,6 +32,7 @@ const listings = [
     title: "Safari Adventure Tour",
     category: "Activity",
     price: "$89/person",
+    priceNumber: 89,
     rating: 4.9,
     location: "Nairobi, Kenya",
     badge: "New" as const,
@@ -40,6 +43,7 @@ const listings = [
     title: "BMW 5 Series Rental",
     category: "Car Rental",
     price: "$95/day",
+    priceNumber: 95,
     rating: 4.7,
     location: "Los Angeles, USA",
     badge: "Featured" as const,
@@ -50,6 +54,7 @@ const listings = [
     title: "Downtown Luxury Apartment",
     category: "Apartment",
     price: "$150/night",
+    priceNumber: 150,
     rating: 4.5,
     location: "Chicago, USA",
     badge: "Popular" as const,
@@ -60,6 +65,7 @@ const listings = [
     title: "Jazz Night Live Event",
     category: "Event",
     price: "$35/ticket",
+    priceNumber: 35,
     rating: 4.8,
     location: "New Orleans, USA",
     badge: "New" as const,
@@ -163,10 +169,12 @@ const FeaturedSection = () => {
           {listings.map((listing) => (
             <Grid key={listing.id} size={{ xs: 12, sm: 6, md: 4 }}>
               <ListingCard
+                id={listing.id}
                 image={listing.image}
                 title={listing.title}
                 category={listing.category}
                 price={listing.price}
+                priceNumber={listing.priceNumber}
                 rating={listing.rating}
                 location={listing.location}
                 badge={listing.badge}

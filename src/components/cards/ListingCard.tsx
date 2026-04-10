@@ -14,17 +14,39 @@ import {
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
+import { useCart } from "../../components/cart/app/contexts/CartContext";
+import type { BookingItem } from "../../components/cart/app/contexts/CartContext";
+
 interface ListingCardProps {
   id?: number;
   image: string;
   title: string;
+  description?: string;
   category: string;
   price: string;
+  priceNumber?: number;
   rating: number;
   location: string;
   badge?: "Featured" | "Popular" | "New";
   onClick?: () => void;
 }
+
+
+
+
+const getCategoryForCart = (cat: string) => {
+  const map: Record<string, string> = {
+    'hotel': 'hotel',
+    'car rental': 'car',
+    'restaurant': 'restaurant',
+    'activity': 'activity',
+    'event': 'event',
+    'apartment': 'apartment',
+  };
+  return map[cat.toLowerCase()] || 'other';
+};
+
+
 
 const ListingCard = ({
   id,
@@ -32,12 +54,15 @@ const ListingCard = ({
   title,
   category,
   price,
+  priceNumber = 0,
   rating,
   location,
   badge,
   onClick,
 }: ListingCardProps) => {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+
 
   const handleClick = () => {
     if (onClick) {
@@ -46,6 +71,31 @@ const ListingCard = ({
       navigate(`/listing/${id}`);
     }
   };
+
+
+
+
+   const handleBookNow = (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent card click when clicking Book Now
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+    const item: BookingItem = {
+      id:String(id),
+      name: title,
+      category: getCategoryForCart(category) as any,
+      price: priceNumber,
+      priceUnit: "per night",
+      description: "",
+      image,
+      location,
+    };
+
+    addToCart(item, 1, today, tomorrow);
+    alert(`${title} added to cart!`);
+  };
+
+
 
   return (
     <Card
@@ -210,6 +260,7 @@ const ListingCard = ({
         <Button
           variant="contained"
           size="small"
+          onClick={handleBookNow}
           sx={{
             borderRadius: "8px",
             px: 2,
@@ -218,7 +269,7 @@ const ListingCard = ({
             fontWeight: 600,
           }}
         >
-          View
+          Book Now
         </Button>
       </CardActions>
     </Card>

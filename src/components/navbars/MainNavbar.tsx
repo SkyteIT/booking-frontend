@@ -11,6 +11,7 @@ import {
   Menu,
   MenuItem,
   Divider,
+  Badge,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
@@ -18,12 +19,17 @@ import PersonIcon from "@mui/icons-material/Person";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import icon2 from "../../assets/icons/icon2.png";
 
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+
+
 interface MainNavbarProps {
   isAuthPage?: boolean;
   variant?: "main" | "vendor";
+  cartItemCount?: number;
 }
 
-const MainNavbar = ({ isAuthPage, variant = "main" }: MainNavbarProps) => {
+const MainNavbar = ({ isAuthPage, cartItemCount = 0, variant = "main" }: MainNavbarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileMenuOpen = Boolean(anchorEl);
@@ -132,6 +138,28 @@ const colors = {
 
           {/* Right — Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+
+
+  {/* Cart Button — MOVED TO FIRST */}
+  {!isVendor && (
+    <IconButton
+      onClick={() => navigate("/cart")}
+      sx={{ borderRadius: "8px", px: 1, py: 0.75, "&:hover": { backgroundColor: "#F9FAFB" } }}
+    >
+      <Badge
+        badgeContent={cartItemCount}
+        color="primary"
+        sx={{ "& .MuiBadge-badge": { backgroundColor: "#0077B6", color: "#ffffff", fontSize: "0.65rem", minWidth: 18, height: 18 } }}
+      >
+        <ShoppingCartIcon sx={{ fontSize: "1.3rem", color: "#4B5563" }} />
+      </Badge>
+    </IconButton>
+  )}
+
+
+
+
+
             {/* Profile Dropdown */}
             {!isAuthPage && (
               <>
@@ -148,6 +176,10 @@ const colors = {
                     "&:hover": { backgroundColor: "#F9FAFB" },
                   }}
                 >
+
+
+
+                  
                   <Box
                     sx={{
                       width: 32,
