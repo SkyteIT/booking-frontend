@@ -115,7 +115,7 @@ const MainFooter = () => {
                   letterSpacing: "-0.02em",
                 }}
               >
-                ListiGo
+                UBE
               </Typography>
             </Box>
 

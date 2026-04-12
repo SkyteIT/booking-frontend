@@ -270,7 +270,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                   transition: "color 0.2s ease",
                 }}
               >
-                Sign up
+                Sign in
               </Typography>
             )}
           </Box>
