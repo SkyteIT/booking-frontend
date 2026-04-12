@@ -148,4 +148,5 @@ export const MOCK_LISTINGS: Listing[] = [
     isAvailable: true,
   },
   
+  
 ];

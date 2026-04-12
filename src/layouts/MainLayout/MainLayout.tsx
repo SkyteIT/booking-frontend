@@ -28,8 +28,7 @@ const MainLayout = () => {
         <Outlet />
       </Box>
 
-      {/* Footer */}
-      <MainFooter />
+       <MainFooter />
     </Box>
   );
 };
