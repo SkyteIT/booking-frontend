@@ -11,19 +11,17 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import {
-  type UseFormRegister,
-  type Control,
-  useFieldArray,
-} from "react-hook-form";
+import { useFieldArray, Controller } from "react-hook-form";
+import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
+import type { ListingFormData } from "../../../../utils/types";
 
 interface EventFieldsProps {
-  register: UseFormRegister<any>;
-  control: Control<any>;
-  errors: any;
+  register: UseFormRegister<ListingFormData>;
+  control: Control<ListingFormData>;
+  errors: FieldErrors<ListingFormData>;
 }
 
-const EventFields = ({ register, control, errors }: EventFieldsProps) => {
+const EventFields = ({ register, control }: EventFieldsProps) => {
   const { fields } = useFieldArray({
     control,
     name: "ticketTypes",
@@ -45,31 +43,27 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
           fullWidth
           label="Event Type"
           placeholder="e.g., Concert, Workshop"
-          {...register("eventType", { required: "Event type is required" })}
-          error={!!errors.eventType}
-          helperText={errors.eventType?.message}
+          {...register("eventType")}
         />
         <TextField
           fullWidth
           label="Venue Name"
           placeholder="e.g., Madison Square Garden"
-          {...register("venueName", { required: "Venue name is required" })}
-          error={!!errors.venueName}
-          helperText={errors.venueName?.message}
+          {...register("venueName")}
         />
         <TextField
           fullWidth
           type="date"
           label="Event Date"
           InputLabelProps={{ shrink: true }}
-          {...register("eventDate", { required: true })}
+          {...register("eventDate")}
         />
         <TextField
           fullWidth
           type="time"
           label="Event Time"
           InputLabelProps={{ shrink: true }}
-          {...register("eventTime", { required: true })}
+          {...register("eventTime")}
         />
       </Box>
 
@@ -77,12 +71,13 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
         fullWidth
         label="Venue Address"
         sx={{ mb: 4 }}
-        {...register("venueAddress", { required: true })}
+        {...register("venueAddress")}
       />
 
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
         Ticket Types
       </Typography>
+
       <TableContainer
         component={Paper}
         variant="outlined"
@@ -96,33 +91,36 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
               <TableCell sx={{ fontWeight: 600 }}>Price ($)</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {fields.map((field: any, index: number) => (
+            {fields.map((field, index) => (
               <TableRow key={field.id}>
                 <TableCell>
                   <TextField
                     size="small"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.type`)}
+                    {...register(`ticketTypes.${index}.type` as const)}
                   />
                 </TableCell>
+
                 <TableCell>
                   <TextField
                     size="small"
                     type="number"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.quantity`)}
+                    {...register(`ticketTypes.${index}.quantity` as const)}
                   />
                 </TableCell>
+
                 <TableCell>
                   <TextField
                     size="small"
                     type="number"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.price`)}
+                    {...register(`ticketTypes.${index}.price` as const)}
                   />
                 </TableCell>
               </TableRow>

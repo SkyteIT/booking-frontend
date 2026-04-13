@@ -1,0 +1,26 @@
+[33m6c4315a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/VendorListingCreation[m[33m, [m[1;31morigin/feature/VendorListingCreation[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{0}: checkout: moving from feature/product-view to feature/VendorListingCreation
+[33mee1e04f[m[33m ([m[1;31morigin/feature/product-view[m[33m, [m[1;32mfeature/product-view[m[33m)[m HEAD@{1}: checkout: moving from feature/VendorListingCreation to feature/product-view
+[33m6c4315a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/VendorListingCreation[m[33m, [m[1;31morigin/feature/VendorListingCreation[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{2}: reset: moving to HEAD
+[33m6c4315a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/VendorListingCreation[m[33m, [m[1;31morigin/feature/VendorListingCreation[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{3}: checkout: moving from develop to feature/VendorListingCreation
+[33m6c4315a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/VendorListingCreation[m[33m, [m[1;31morigin/feature/VendorListingCreation[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{4}: pull origin develop: Fast-forward
+[33m96da93f[m HEAD@{5}: checkout: moving from main to develop
+[33mf3886bd[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{6}: checkout: moving from develop to main
+[33m96da93f[m HEAD@{7}: checkout: moving from main to develop
+[33mf3886bd[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{8}: pull origin main: Fast-forward
+[33m6a2f50f[m HEAD@{9}: checkout: moving from develop to main
+[33m96da93f[m HEAD@{10}: commit (merge): Resolve merge conflicts and updated Main UI + Ligin feature
+[33mee1e04f[m[33m ([m[1;31morigin/feature/product-view[m[33m, [m[1;32mfeature/product-view[m[33m)[m HEAD@{11}: merge origin/feature/product-view: Fast-forward
+[33m4a3bb18[m[33m ([m[1;31morigin/feature/theme-development[m[33m, [m[1;32mfeature/theme-development[m[33m)[m HEAD@{12}: checkout: moving from feature/product-view to develop
+[33mee1e04f[m[33m ([m[1;31morigin/feature/product-view[m[33m, [m[1;32mfeature/product-view[m[33m)[m HEAD@{13}: commit: Vendor product view
+[33m7c7fb6b[m[33m ([m[1;31morigin/feature/search-filter[m[33m)[m HEAD@{14}: merge origin/feature/search-filter: Fast-forward
+[33m4a3bb18[m[33m ([m[1;31morigin/feature/theme-development[m[33m, [m[1;32mfeature/theme-development[m[33m)[m HEAD@{15}: checkout: moving from develop to feature/product-view
+[33m4a3bb18[m[33m ([m[1;31morigin/feature/theme-development[m[33m, [m[1;32mfeature/theme-development[m[33m)[m HEAD@{16}: checkout: moving from feature/theme-development to develop
+[33m4a3bb18[m[33m ([m[1;31morigin/feature/theme-development[m[33m, [m[1;32mfeature/theme-development[m[33m)[m HEAD@{17}: checkout: moving from develop to feature/theme-development
+[33m4a3bb18[m[33m ([m[1;31morigin/feature/theme-development[m[33m, [m[1;32mfeature/theme-development[m[33m)[m HEAD@{18}: merge feature/theme-development: Fast-forward
+[33m6a2f50f[m HEAD@{19}: checkout: moving from feature/theme-development to develop
+[33m4a3bb18[m[33m ([m[1;31morigin/feature/theme-development[m[33m, [m[1;32mfeature/theme-development[m[33m)[m HEAD@{20}: commit: Implement hero section gradient background
+[33m6a2f50f[m HEAD@{21}: checkout: moving from develop to feature/theme-development
+[33m6a2f50f[m HEAD@{22}: checkout: moving from main to develop
+[33m6a2f50f[m HEAD@{23}: commit: Add base folder structure with placeholders
+[33m6b50daf[m HEAD@{24}: Branch: renamed refs/heads/main to refs/heads/main
+[33m6b50daf[m HEAD@{26}: commit (initial): Initial commit
