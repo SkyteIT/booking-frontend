@@ -9,11 +9,11 @@ function getListingCount(categoryName: string) {
 }
 
 export const categories: Category[] = [
-  { id: 1, name: "Hotels", listings: getListingCount("Hotels"), status: true, icon: "/assets/icons/hotel.png" },
-  { id: 2, name: "Car Rentals", listings: getListingCount("Car Rentals"), status: true, icon: "/assets/icons/car.png" },
-  { id: 3, name: "Activities", listings: getListingCount("Activities"), status: true, icon: "/assets/icons/activity.png" },
-  { id: 4, name: "Restaurants", listings: getListingCount("Restaurants"), status: true, icon: "/assets/icons/restaurant.png" },
-  { id: 5, name: "Event Tickets", listings: getListingCount("Events"), status: false, icon: "/assets/icons/event.png" },
+  { id: 1, name: "Hotels", listings: getListingCount("Hotels"), status: true, icon: "" },
+  { id: 2, name: "Car Rentals", listings: getListingCount("Car Rentals"), status: true, icon: "" },
+  { id: 3, name: "Activities", listings: getListingCount("Activities"), status: true, icon: "" },
+  { id: 4, name: "Restaurants", listings: getListingCount("Restaurants"), status: true, icon: "" },
+  { id: 5, name: "Event Tickets", listings: getListingCount("Events"), status: false, icon: "" },
 ];
 
 export const banners: Banner[] = [
