@@ -1,5 +1,5 @@
 // src/components/navbars/MainNavbar.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -27,6 +27,9 @@ const MainNavbar = ({ isAuthPage, variant = "main" }: MainNavbarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileMenuOpen = Boolean(anchorEl);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() =>
+    Boolean(localStorage.getItem("authToken"))
+  );
 
   const isVendor = variant === "vendor";
 
@@ -47,9 +50,21 @@ const colors = {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    setIsAuthenticated(false);
     handleProfileClose();
     navigate("/login");
   };
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      setIsAuthenticated(Boolean(localStorage.getItem("authToken")));
+    };
+
+    syncAuthState();
+    window.addEventListener("storage", syncAuthState);
+    return () => window.removeEventListener("storage", syncAuthState);
+  }, []);
 
   return (
     <AppBar
@@ -132,8 +147,32 @@ const colors = {
 
           {/* Right — Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {!isVendor && !isAuthPage && !isAuthenticated && (
+              <Button
+                component={Link}
+                to="/login"
+                sx={{
+                  backgroundColor: "#ffffff",
+                  color: colors.vendorBlue,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "12px",
+                  border: `1.6px solid ${colors.vendorBlue}`,
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 119, 182, 0.06)",
+                    borderColor: colors.vendorBlueDark,
+                    color: colors.vendorBlueDark,
+                  },
+                }}
+              >
+                Sign in
+              </Button>
+            )}
+
             {/* Profile Dropdown */}
-            {!isAuthPage && (
+            {!isAuthPage && isAuthenticated && (
               <>
                 <IconButton
                   onClick={handleProfileClick}
@@ -197,7 +236,7 @@ const colors = {
                 >
                   <MenuItem
                     component={Link}
-                    to="/settings"
+                    to="/customer/dashboard"
                     onClick={handleProfileClose}
                   >
                     Account
@@ -251,39 +290,6 @@ const colors = {
               </Box>
             </Button>
 
-            {/* Sign Up Link */}{/* only show on main navbar, and hide on vendor dashboard for better UX*/}
-            {!isVendor && (
-              isAuthPage ? (
-                <Typography
-                  component={Link}
-                  to="/register"
-                  sx={{
-                    color: "#374151",
-                    textDecoration: "none",
-                    fontSize: "0.9rem",
-                    "&:hover": { color: colors.vendorBlue },
-                    transition: "color 0.2s ease",
-                  }}
-                >
-                  Sign up
-                </Typography>
-              ) : (
-                <Typography
-                  component={Link}
-                  to="/register"
-                  sx={{
-                    color: "#374151",
-                    textDecoration: "none",
-                    fontSize: "0.9rem",
-                    display: { xs: "none", sm: "block" },
-                    "&:hover": { color: colors.vendorBlue },
-                    transition: "color 0.2s ease",
-                  }}
-                >
-                  Sign up
-                </Typography>
-              )
-            )}
           </Box>
         </Toolbar>
       </Container>

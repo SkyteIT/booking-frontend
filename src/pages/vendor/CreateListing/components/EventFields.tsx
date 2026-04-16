@@ -16,10 +16,11 @@ import {
   type Control,
   useFieldArray,
 } from "react-hook-form";
+import type { ListingFormData } from "../../../../utils/types";
 
 interface EventFieldsProps {
-  register: UseFormRegister<any>;
-  control: Control<any>;
+  register: UseFormRegister<ListingFormData>;
+  control: Control<ListingFormData>;
   errors: any;
 }
 

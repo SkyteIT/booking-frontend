@@ -2,10 +2,11 @@
 import { Box, TextField, Typography, Card, CardContent } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control } from "react-hook-form";
+import type { ListingFormData } from "../../../../utils/types";
 
 interface CarRentalFieldsProps {
-  register: UseFormRegister<any>;
-  control: Control<any>;
+  register: UseFormRegister<ListingFormData>;
+  control: Control<ListingFormData>;
   errors: any;
 }
 

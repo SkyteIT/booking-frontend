@@ -30,7 +30,7 @@ export function useVendorBookings({
 
   useEffect(() => {
     let cancelled = false;
-
+g
     async function fetchBookings() {
       try {
         setLoading(true);

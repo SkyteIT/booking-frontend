@@ -2,9 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { FcGoogle } from "react-icons/fc";
 import { Snackbar, Alert } from "@mui/material";
+import GoogleIcon from "@mui/icons-material/Google";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 interface LoginFormData {
   email: string;
@@ -63,6 +64,7 @@ function Login(): JSX.Element {
       setLoading(true);
 
       setTimeout(() => {
+        localStorage.setItem("authToken", "demo-auth-token");
         setLoading(false);
         setSuccessSnackbar(true);
 
@@ -111,7 +113,7 @@ function Login(): JSX.Element {
                 className="eye-icon"
                 onClick={() => setShowPassword(prev => !prev)}
               >
-                {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+                {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
               </span>
             </div>
             {errors.password && (
@@ -141,7 +143,7 @@ function Login(): JSX.Element {
         </div>
 
         <button className="google-btn">
-          <FcGoogle size={20} />
+          <GoogleIcon sx={{ fontSize: 20 }} />
           Continue with Google
         </button>
 

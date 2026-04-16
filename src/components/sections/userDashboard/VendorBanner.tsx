@@ -34,7 +34,7 @@ const VendorBanner = () => {
 
           <Button
             variant="contained"
-            onClick={() => navigate("/vendor/VendorDashboard")}
+            onClick={() => navigate("/vendor/dashboard")}
             sx={{
               backgroundColor: "white",
               color: "#1976d2",

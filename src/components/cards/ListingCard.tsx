@@ -43,7 +43,7 @@ const ListingCard = ({
     if (onClick) {
       onClick();
     } else if (id !== undefined) {
-      navigate(`/listing/${id}`);
+      navigate(`/view-product/${id}`);
     }
   };
 

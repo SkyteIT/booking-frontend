@@ -4,10 +4,11 @@ import type { UseFormRegister, Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import InfoIcon from "@mui/icons-material/Info";
+import type { ListingFormData } from "../../../../utils/types";
 
 interface BaseFieldsProps {
-    register: UseFormRegister<any>;
-    control: Control<any>;
+    register: UseFormRegister<ListingFormData>;
+    control: Control<ListingFormData>;
     errors: any;
 }
 
