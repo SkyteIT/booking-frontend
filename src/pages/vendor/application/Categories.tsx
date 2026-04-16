@@ -7,11 +7,35 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { useVendorApplication } from "../../../context/VendorApplicationContext";
 import "./application.css";
 
 const Categories = (): JSX.Element => {
   const navigate = useNavigate();
 
+  // ✅ correct context usage
+  const { data, setData } = useVendorApplication();
+
+  const selectedCategories: string[] = data.categories;
+
+  const [error, setError] = useState<string>("");
+
+  // --- BACK BUTTON HANDLER ---
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    const handleBack = (event: PopStateEvent) => {
+      event.preventDefault();
+      navigate("/", { replace: true });
+    };
+
+    window.addEventListener("popstate", handleBack);
+
+    return () =>
+      window.removeEventListener("popstate", handleBack);
+  }, [navigate]);
+
+  // --- CATEGORY LIST ---
   const categories = [
     "Vehicles",
     "Equipment",
@@ -23,36 +47,28 @@ const Categories = (): JSX.Element => {
     "Other"
   ];
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [error, setError] = useState<string>("");
-  
-
-  // --- BACK BUTTON HANDLER ---
-  useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-
-    const handleBack = (event: PopStateEvent) => {
-      event.preventDefault();
-      navigate("/", { replace: true }); // Always go to landing page
-    };
-
-    window.addEventListener("popstate", handleBack);
-    return () => window.removeEventListener("popstate", handleBack);
-  }, [navigate]);
-  // --- END BACK BUTTON HANDLER ---
-
+  // --- HANDLE SELECT ---
   const handleSelect = (category: string) => {
+    let updated: string[];
+
     if (selectedCategories.includes(category)) {
-      setSelectedCategories(
-        selectedCategories.filter((item) => item !== category)
+      updated = selectedCategories.filter(
+        (item) => item !== category
       );
     } else {
-      setSelectedCategories([...selectedCategories, category]);
+      updated = [...selectedCategories, category];
     }
+
+    // ✅ save to global context
+    setData(prev => ({
+      ...prev,
+      categories: updated
+    }));
 
     if (error) setError("");
   };
 
+  // --- CONTINUE ---
   const handleContinue = () => {
     if (selectedCategories.length === 0) {
       setError("Please select at least one category");
@@ -70,7 +86,10 @@ const Categories = (): JSX.Element => {
             Service Categories
           </Typography>
 
-          <Typography className="category-description" sx={{ mb: 4 }}>
+          <Typography
+            className="category-description"
+            sx={{ mb: 4 }}
+          >
             Select the categories that best describe your offerings.
           </Typography>
 
@@ -86,7 +105,9 @@ const Categories = (): JSX.Element => {
               <Box
                 key={cat}
                 className={`category-box ${
-                  selectedCategories.includes(cat) ? "selected" : ""
+                  selectedCategories.includes(cat)
+                    ? "selected"
+                    : ""
                 }`}
                 onClick={() => handleSelect(cat)}
                 sx={{ cursor: "pointer" }}
@@ -105,10 +126,13 @@ const Categories = (): JSX.Element => {
           <Box className="vendor-actions" sx={{ mt: 3 }}>
             <Button
               className="back"
-              onClick={() => navigate("/vendor/contactinfo")}
+              onClick={() =>
+                navigate("/vendor/contactinfo")
+              }
             >
               Back
             </Button>
+
             <Button
               className="continue"
               onClick={handleContinue}

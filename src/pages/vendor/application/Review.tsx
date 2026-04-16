@@ -12,64 +12,87 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { useVendorApplication } from "../../../context/VendorApplicationContext";
 import "./application.css";
 
 const Review = () => {
   const navigate = useNavigate();
+
+  // ✅ correct context usage
+  const { data, resetApplication } = useVendorApplication();
+
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const handleSubmit = () => {
-    // Clear application data if needed
-    localStorage.removeItem("businessInfo");
-    localStorage.removeItem("contactInfo");
-    localStorage.removeItem("categories");
-    localStorage.removeItem("documents");
-    localStorage.removeItem("review");
+  const handleSubmit = async () => {
+    try {
+      // TODO: send full payload to backend
+      // await api.post("/vendor/submit", data);
 
-    // Show success message
-    setOpenSnackbar(true);
+      // ✅ reset EVERYTHING after submit
+      resetApplication();
 
-    // ❌ Do NOT navigate anywhere
+      setOpenSnackbar(true);
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
     <ApplicationLayout activeStep={4}>
       <Container className="vendor-container">
         <Box className="vendor-form-card">
-          {/* Title */}
+
           <Typography className="vendor-title">
             Review & Submit
           </Typography>
 
-          {/* Summary Box */}
+          {/* SUMMARY */}
           <Box className="vendor-summary">
+
             <div className="summary-item">
               <span className="summary-label">Business Name</span>
-              <span className="summary-value">Acme Rentals LLC</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Contact Email</span>
-              <span className="summary-value">contact@acmerentals.com</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Categories</span>
               <span className="summary-value">
-                Vehicles, Equipment, Tools & Machinery
+                {data.businessInfo.businessName || "-"}
               </span>
             </div>
 
             <div className="summary-item">
-              <span className="summary-label">Documents Uploaded</span>
+              <span className="summary-label">Business Type</span>
               <span className="summary-value">
-                3 of 3 required documents
+                {data.businessInfo.businessType || "-"}
               </span>
             </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Tax ID</span>
+              <span className="summary-value">
+                {data.businessInfo.taxId || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Website</span>
+              <span className="summary-value">
+                {data.businessInfo.website || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Address</span>
+              <span className="summary-value">
+                {data.businessInfo.address || "-"}
+              </span>
+            </div>
+
           </Box>
 
-          {/* Agreement Box */}
+          {/* AGREEMENT */}
           <Box className="agreement-box">
             <FormControlLabel
               control={
@@ -88,7 +111,7 @@ const Review = () => {
             />
           </Box>
 
-          {/* Buttons */}
+          {/* BUTTONS */}
           <Box className="vendor-actions">
             <Button
               className="back"
@@ -105,9 +128,10 @@ const Review = () => {
               Submit Application
             </Button>
           </Box>
+
         </Box>
 
-        {/* Success Snackbar */}
+        {/* SUCCESS */}
         <Snackbar
           open={openSnackbar}
           autoHideDuration={2000}
@@ -118,6 +142,7 @@ const Review = () => {
             Submitted Successfully!
           </Alert>
         </Snackbar>
+
       </Container>
     </ApplicationLayout>
   );
