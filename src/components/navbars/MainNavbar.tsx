@@ -314,8 +314,29 @@ const colors = {
                 >
                   Sign up
                 </Typography>
+
+
+
               )
             )}
+
+
+                        {/* Admin Button */}
+           <IconButton
+            onClick={() => navigate("/admin/users")}
+              sx={{
+            borderRadius: "8px",
+            px: 1,
+            py: 0.75,
+            "&:hover": { backgroundColor: "#F9FAFB" },
+            }}
+            title="Admin Panel"
+            >
+              <AdminPanelSettingsIcon sx={{ fontSize: "1.3rem", color: "#4B5563" }} />
+            </IconButton>
+
+
+            
           </Box>
         </Toolbar>
       </Container>
