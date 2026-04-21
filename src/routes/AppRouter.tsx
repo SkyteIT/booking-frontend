@@ -28,7 +28,10 @@ function AppRouter() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/search" element={<SearchResultsPage />} />
         <Route path="/view-product/:id" element={<ViewProduct />} />
+        <Route path="/listing/:id" element={<ViewProduct />} />
       </Route>
+
+      <Route path="/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

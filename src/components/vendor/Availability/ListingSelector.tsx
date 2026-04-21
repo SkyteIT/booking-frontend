@@ -1,19 +1,37 @@
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
-import type { ListingCard } from "./type";
 
 type Props = {
-  listings: ListingCard[];
-  value: string; // selected listingId
-  onChange: (listingId: string) => void;
+  listings: {
+    id: string;
+    name: string;
+    bookedCount: number;
+    blockedCount: number;
+  }[];
+
+  selectedListingId: string | null;
+  onSelectListing: (id: string) => void;
 };
 
-export default function ListingSelector({ listings, value, onChange }: Props) {
+export default function ListingSelector({
+  listings,
+  selectedListingId,
+  onSelectListing,
+}: Props) {
   return (
     <Box>
-      <Typography variant="body2" sx={{ fontWeight: 700, mb: 1 }}>
+      {/* Title */}
+      <Typography
+        sx={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#6B7280",
+          mb: 1.5,
+        }}
+      >
         Select Listing
       </Typography>
 
+      {/* Grid */}
       <Box
         sx={{
           display: "grid",
@@ -22,33 +40,56 @@ export default function ListingSelector({ listings, value, onChange }: Props) {
         }}
       >
         {listings.map((l) => {
-          const selected = l.id === value;
+          const selected = l.id === selectedListingId;
 
           return (
             <ButtonBase
               key={l.id}
-              onClick={() => onChange(l.id)}
-              sx={(t) => ({
-                textAlign: "left",
+              onClick={() => onSelectListing(l.id)}
+              sx={{
                 width: "100%",
-                borderRadius: 2,
+                borderRadius: 3,
                 p: 2,
-                border: "2px solid",
-                borderColor: selected ? t.palette.primary.main : t.palette.divider,
-                bgcolor: selected ? "rgba(37,99,235,0.06)" : "#fff",
-                boxShadow: selected ? "0px 6px 16px rgba(0,0,0,0.08)" : "none",
-                transition: "all .15s ease",
+                textAlign: "left",
+
+                border: "1px solid",
+                borderColor: selected ? "#0077b6" : "#E5E7EB",
+                backgroundColor: selected ? "#F9FAFB" : "#fff",
+                boxShadow: selected ? "0 6px 20px rgba(0,0,0,0.05)" : "none",
+
+                transition: "all 0.2s ease",
+
                 "&:hover": {
-                  borderColor: t.palette.primary.main,
-                  bgcolor: "rgba(37,99,235,0.04)",
+                  borderColor: "#0077b6",
+                  backgroundColor: "#F9FAFB",
+                  transform: "scale(1.01)",
+                  
                 },
-              })}
+              }}
             >
               <Stack spacing={0.5}>
-                <Typography sx={{ fontWeight: 700 }}>{l.name}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {l.bookedCount} booked • {l.blockedCount} blocked
+                
+                {/* Listing Name */}
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: "#111827",
+                  }}
+                >
+                  {l.name}
                 </Typography>
+
+                {/* Meta Info */}
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: "#6B7280",
+                  }}
+                >
+                  {l.bookedCount} booked · {l.blockedCount} blocked
+                </Typography>
+
               </Stack>
             </ButtonBase>
           );

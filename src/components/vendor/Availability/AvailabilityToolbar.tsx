@@ -1,29 +1,15 @@
-import {
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  Typography,
-} from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ClearIcon from "@mui/icons-material/Clear";
+import { Box, Typography, Button, Stack } from "@mui/material";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 
 type Props = {
   monthDate: Date;
   onPrevMonth: () => void;
   onNextMonth: () => void;
-
   selectedCount: number;
-
   onBlock: () => void;
   onUnblock: () => void;
   onClear: () => void;
 };
-
-function formatMonthYear(d: Date) {
-  return d.toLocaleString(undefined, { month: "long", year: "numeric" });
-}
 
 export default function AvailabilityToolbar({
   monthDate,
@@ -34,90 +20,93 @@ export default function AvailabilityToolbar({
   onUnblock,
   onClear,
 }: Props) {
+  const monthLabel = monthDate.toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <Stack
-      direction={{ xs: "column", lg: "row" }}
-      spacing={2}
-      alignItems={{ xs: "stretch", lg: "center" }}
-      justifyContent="space-between"
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        py: 1,
+      }}
     >
-      {/* Month controls */}
+      {/* LEFT: Month navigation */}
       <Stack direction="row" spacing={1} alignItems="center">
-        <IconButton
+        <Button
           onClick={onPrevMonth}
-          sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2 }}
+          sx={{ minWidth: 32, color: "#6B7280" }}
         >
-          <ChevronLeftIcon />
-        </IconButton>
+          <ChevronLeftRoundedIcon fontSize="small" />
+        </Button>
 
-        <Box
-          sx={{
-            px: 2,
-            py: 1,
-            minWidth: 180,
-            textAlign: "center",
-            fontWeight: 800,
-            borderRadius: 2,
-          }}
-        >
-          <Typography sx={{ fontWeight: 800 }}>
-            {formatMonthYear(monthDate)}
-          </Typography>
-        </Box>
+        <Typography fontWeight={600}>{monthLabel}</Typography>
 
-        <IconButton
+        <Button
           onClick={onNextMonth}
-          sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2 }}
+          sx={{ minWidth: 32, color: "#6B7280" }}
         >
-          <ChevronRightIcon />
-        </IconButton>
+          <ChevronLeftRoundedIcon fontSize="small" sx={{ transform: "rotate(180deg)" }} />
+        </Button>
       </Stack>
 
-      {/* Actions */}
-      {selectedCount > 0 ? (
-        <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
-          <Button
-            variant="contained"
-            onClick={onBlock}
+      {/* RIGHT: Actions */}
+      <Stack direction="row" spacing={1} alignItems="center">
+        
+        {selectedCount > 0 && (
+          <Typography
             sx={{
-              bgcolor: "#DC2626",
-              "&:hover": { bgcolor: "#B91C1C" },
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 800,
+              fontSize: 13,
+              color: "#6B7280",
             }}
           >
-            Block {selectedCount} Date{selectedCount > 1 ? "s" : ""}
-          </Button>
+            {selectedCount} selected
+          </Typography>
+        )}
 
-          <Button
-            variant="contained"
-            onClick={onUnblock}
-            sx={{
-              bgcolor: "#16A34A",
-              "&:hover": { bgcolor: "#15803D" },
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 800,
-            }}
-          >
-            Unblock {selectedCount} Date{selectedCount > 1 ? "s" : ""}
-          </Button>
+        <Button
+          onClick={onClear}
+          sx={{
+            textTransform: "none",
+            color: "#6B7280",
+          }}
+        >
+          Clear
+        </Button>
 
-          <Button
-            variant="outlined"
-            onClick={onClear}
-            startIcon={<ClearIcon />}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 800,
-            }}
-          >
-            Clear
-          </Button>
-        </Stack>
-      ) : null}
-    </Stack>
+        <Button
+          onClick={onBlock}
+          sx={{
+            textTransform: "none",
+            borderRadius: 2,
+            px: 2,
+            backgroundColor: "#DC2626",
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: "#ac1919",
+            },
+          }}
+        >
+          Block
+        </Button>
+
+        <Button
+          onClick={onUnblock}
+          sx={{
+            textTransform: "none",
+            borderRadius: 2,
+            px: 2,
+            border: "1px solid #E5E7EB",
+            color:"#0077b6",
+          }}
+        >
+          Unblock
+        </Button>
+
+      </Stack>
+    </Box>
   );
 }

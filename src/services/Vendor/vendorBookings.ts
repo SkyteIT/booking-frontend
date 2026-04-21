@@ -1,6 +1,6 @@
 
 import type { VendorBookingDto, PageResult } from "../../components/vendor/bookings/BookingTypes";
-import api from "../../services/Vendor/api";
+import api from "../api";
 
 
 export async function getVendorBookings(params: {
