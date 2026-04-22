@@ -24,52 +24,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import StarIcon from "@mui/icons-material/Star";
 import { Link } from "react-router-dom";
 
-const mockListings = [
-  {
-    id: 1,
-    title: "Tesla Model 3",
-    category: "Vehicles",
-    price: "$99/day",
-    bookings: 12,
-    rating: 4.9,
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 2,
-    title: "Canon EOS R5",
-    category: "Electronics",
-    price: "$75/day",
-    bookings: 8,
-    rating: 5.0,
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 3,
-    title: "Beach House Villa",
-    category: "Real Estate",
-    price: "$400/night",
-    bookings: 24,
-    rating: 4.8,
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 4,
-    title: "DJ Equipment Set",
-    category: "Equipment",
-    price: "$150/day",
-    bookings: 0,
-    rating: 0,
-    status: "Draft",
-    image:
-      "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80",
-  },
-];
+const mockListings: any[] = [];
 
 const VendorListings = () => {
   return (

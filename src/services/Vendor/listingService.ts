@@ -1,13 +1,74 @@
 const API_BASE_URL = "http://localhost:5037/api";
 
+export const ListingType = {
+  Hotel: 0,
+  Restaurant: 1,
+  CarRental: 2,
+  Activity: 3,
+  Event: 4
+} as const;
+
+export type ListingType = (typeof ListingType)[keyof typeof ListingType];
+
+export interface HotelDetailsDto {
+  pricePerNight: number;
+  location: string;
+  availableRooms: number;
+  amenities: string;
+  checkInTime: string;
+  checkOutTime: string;
+}
+
+export interface RestaurantDetailsDto {
+  cuisineType: string;
+  averageCost: number;
+  openingHours: string;
+  tableCapacity: number;
+  location: string;
+}
+
+export interface CarRentalDetailsDto {
+  brand: string;
+  model: string;
+  transmission: string;
+  pricePerDay: number;
+  seatCount: number;
+  fuelType: string;
+  availabilityStatus: string;
+}
+
+export interface ActivityDetailsDto {
+  activityType: string;
+  durationHours: number;
+  difficultyLevel: string;
+  price: number;
+  location: string;
+}
+
+export interface EventDetailsDto {
+  eventName: string;
+  organizer: string;
+  dateAndTime: string;
+  location: string;
+  seatCount: number;
+  ticketPrice: number;
+}
+
 export interface CreateListingRequest {
   vendorId: string;
   categoryId: string;
+  type: ListingType;
   title: string;
   description?: string;
-  basePrice: number;
+  price: number;
   currency: string;
   location?: string;
+
+  hotelDetails?: HotelDetailsDto;
+  restaurantDetails?: RestaurantDetailsDto;
+  carRentalDetails?: CarRentalDetailsDto;
+  activityDetails?: ActivityDetailsDto;
+  eventDetails?: EventDetailsDto;
 }
 
 export const createListing = async (data: CreateListingRequest) => {

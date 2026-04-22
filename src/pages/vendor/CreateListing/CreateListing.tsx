@@ -9,7 +9,7 @@ import {
   CardContent,
   Link as MuiLink,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -20,8 +20,11 @@ import ActivityFields from "./components/ActivityFields";
 import EventFields from "./components/EventFields";
 import CarRentalFields from "./components/CarRentalFields";
 import type { ListingFormData, ListingCategory } from "../../../utils/types";
+import { createListing, ListingType } from "../../../services/Vendor/listingService";
+import type { CreateListingRequest } from "../../../services/Vendor/listingService";
 
 const CreateListing = () => {
+  const navigate = useNavigate();
   const {
     register,
     control,
@@ -41,9 +44,82 @@ const CreateListing = () => {
 
   const selectedCategory = watch("category");
 
-  const onSubmit = (data: ListingFormData) => {
-    console.log("Form Data:", data);
-    alert("Listing published successfully (check console)");
+  const onSubmit = async (data: ListingFormData) => {
+    try {
+      let type: ListingType;
+      switch(data.category) {
+        case "Hotels": type = ListingType.Hotel; break;
+        case "Restaurants": type = ListingType.Restaurant; break;
+        case "Activities": type = ListingType.Activity; break;
+        case "Events": type = ListingType.Event; break;
+        case "Car Rentals": type = ListingType.CarRental; break;
+        default: type = ListingType.Hotel;
+      }
+
+      const request: CreateListingRequest = {
+        vendorId: "00000000-0000-0000-0000-000000000000", // TODO: Replace with auth vendor ID
+        categoryId: "00000000-0000-0000-0000-000000000000", // TODO: Category logic
+        title: data.title,
+        description: data.description || "",
+        price: data.price || 0,
+        currency: "LKR",
+        location: data.location,
+        type: type,
+      };
+
+      if (type === ListingType.Hotel) {
+        request.hotelDetails = {
+          pricePerNight: data.pricePerNight || 0,
+          location: data.location,
+          availableRooms: data.numberOfRooms || 0,
+          amenities: (data.amenities || []).join(", "),
+          checkInTime: data.checkInTime ? data.checkInTime + ":00" : "14:00:00",
+          checkOutTime: data.checkOutTime ? data.checkOutTime + ":00" : "12:00:00"
+        };
+      } else if (type === ListingType.Restaurant) {
+        request.restaurantDetails = {
+          cuisineType: data.cuisineType || "",
+          averageCost: data.averageCost || 0,
+          openingHours: `${data.openingTime || "08:00"} - ${data.closingTime || "22:00"}`,
+          tableCapacity: data.seatingCapacity || 0,
+          location: data.location
+        };
+      } else if (type === ListingType.Activity) {
+        request.activityDetails = {
+          activityType: data.activityType || "",
+          durationHours: parseInt(data.duration || "0") || 0,
+          difficultyLevel: data.difficultyLevel || "",
+          price: data.activityPrice || 0,
+          location: data.location
+        };
+      } else if (type === ListingType.Event) {
+        request.eventDetails = {
+          eventName: data.title,
+          organizer: data.organizer || "",
+          dateAndTime: `${data.eventDate || "2024-01-01"}T${data.eventTime || "00:00:00"}Z`,
+          location: data.location || data.venueAddress || "",
+          seatCount: data.seatCount || 0,
+          ticketPrice: data.ticketTypes?.[0]?.price || 0
+        };
+      } else if (type === ListingType.CarRental) {
+        request.carRentalDetails = {
+          brand: data.brand || "",
+          model: data.model || "",
+          transmission: data.transmission || "",
+          pricePerDay: data.dailyRate || 0,
+          seatCount: data.seatCountCar || 0,
+          fuelType: data.fuelType || "",
+          availabilityStatus: data.availabilityStatus || "Available"
+        };
+      }
+
+      await createListing(request);
+      alert("Listing published successfully!");
+      navigate("/vendor/listings");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to publish listing. Check console for details.");
+    }
   };
 
   const renderCategoryFields = () => {

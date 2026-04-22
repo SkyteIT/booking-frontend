@@ -14,10 +14,13 @@ export interface ListingFormData {
     location: string;
     category: ListingCategory;
     images: FileList;
+    description?: string;
+    price?: number;
 
     // Hotel fields
     propertyType?: string;
     numberOfRooms?: number;
+    pricePerNight?: number;
     checkInTime?: string;
     checkOutTime?: string;
     roomTypes?: string[];
@@ -27,6 +30,7 @@ export interface ListingFormData {
     // Restaurant fields
     cuisineType?: string;
     seatingCapacity?: number;
+    averageCost?: number;
     openingTime?: string;
     closingTime?: string;
     tableTypes?: string[];
@@ -35,6 +39,8 @@ export interface ListingFormData {
     // Activity fields
     activityType?: string;
     duration?: string;
+    difficultyLevel?: string;
+    activityPrice?: number;
     minGroupSize?: number;
     maxGroupSize?: number;
     minAge?: number;
@@ -49,15 +55,21 @@ export interface ListingFormData {
     eventDate?: string;
     eventTime?: string;
     venueAddress?: string;
+    organizer?: string;
+    seatCount?: number;
     ticketTypes?: TicketType[];
 
     // Car rental fields
     vehicleType?: string;
+    brand?: string;
+    model?: string;
     transmission?: string;
     fuelType?: string;
     year?: number;
     dailyRate?: number;
     hourlyRate?: number;
+    seatCountCar?: number;
+    availabilityStatus?: string;
     pickupLocation?: string;
     returnLocation?: string;
     insuranceOptions?: string;
