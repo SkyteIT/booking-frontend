@@ -1,13 +1,13 @@
-// src/pages/vendor/CreateListing/components/ActivityFields.tsx
+// src/pages/vendor/CreateListing/components/ActivityFields.tsx — UPDATED
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
+import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import type { UseFormRegister, Control } from "react-hook-form";
 import type { ListingFormData } from "../../../../utils/types";
 
 interface ActivityFieldsProps {
   register: UseFormRegister<ListingFormData>;
   control: Control<ListingFormData>;
-  errors: any;
+  errors: FieldErrors<ListingFormData>;
 }
 
 const includedServices = [
@@ -90,7 +90,7 @@ const ActivityFields = ({ register, control, errors }: ActivityFieldsProps) => {
           name="includedServices"
           control={control}
           defaultValue={[]}
-          render={({ field }: { field: any }) => (
+          render={({ field }) => (
             <Stack
               direction="row"
               spacing={1}
@@ -103,12 +103,12 @@ const ActivityFields = ({ register, control, errors }: ActivityFieldsProps) => {
                   key={item}
                   label={item}
                   clickable
-                  variant={field.value.includes(item) ? "filled" : "outlined"}
-                  color={field.value.includes(item) ? "primary" : "default"}
+                  variant={field.value?.includes(item) ? "filled" : "outlined"}
+                  color={field.value?.includes(item) ? "primary" : "default"}
                   onClick={() => {
-                    const newValue = field.value.includes(item)
+                    const newValue = field.value?.includes(item)
                       ? field.value.filter((v: string) => v !== item)
-                      : [...field.value, item];
+                      : [...(field.value ?? []), item];
                     field.onChange(newValue);
                   }}
                 />

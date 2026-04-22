@@ -1,4 +1,4 @@
-// src/pages/vendor/CreateListing/CreateListing.tsx
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Box,
@@ -20,11 +20,30 @@ import ActivityFields from "./components/ActivityFields";
 import EventFields from "./components/EventFields";
 import CarRentalFields from "./components/CarRentalFields";
 import type { ListingFormData, ListingCategory } from "../../../utils/types";
-import { createListing, ListingType } from "../../../services/Vendor/listingService";
-import type { CreateListingRequest } from "../../../services/Vendor/listingService";
+import { createListing, getCategories, getCurrentVendor, ListingType } from "../../../services/Vendor/listingService";
+import type { CreateListingRequest, CategoryDto } from "../../../services/Vendor/listingService";
 
 const CreateListing = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [vendorId, setVendorId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [cats, vendor] = await Promise.all([
+          getCategories(),
+          getCurrentVendor()
+        ]);
+        setCategories(cats);
+        setVendorId(vendor.id);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
+    };
+    fetchInitialData();
+  }, []);
+
   const {
     register,
     control,
@@ -56,9 +75,26 @@ const CreateListing = () => {
         default: type = ListingType.Hotel;
       }
 
+      let categoryId = "00000000-0000-0000-0000-000000000000";
+      // Try to find matching category by name
+      const categoryMatch = categories.find(c => 
+        c.name.toLowerCase().includes(data.category.toLowerCase()) || 
+        data.category.toLowerCase().includes(c.name.toLowerCase())
+      );
+      if (categoryMatch) {
+        categoryId = categoryMatch.id;
+      } else if (categories.length > 0) {
+        categoryId = categories[0].id; // Fallback
+      }
+
+      if (!vendorId) {
+        alert("Vendor profile not loaded. Ensure database is seeded and try again.");
+        return;
+      }
+
       const request: CreateListingRequest = {
-        vendorId: "00000000-0000-0000-0000-000000000000", // TODO: Replace with auth vendor ID
-        categoryId: "00000000-0000-0000-0000-000000000000", // TODO: Category logic
+        vendorId: vendorId,
+        categoryId: categoryId,
         title: data.title,
         description: data.description || "",
         price: data.price || 0,

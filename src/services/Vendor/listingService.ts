@@ -87,3 +87,30 @@ export const createListing = async (data: CreateListingRequest) => {
 
   return response.json();
 };
+
+export interface CategoryDto {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export const getCategories = async (): Promise<CategoryDto[]> => {
+  const response = await fetch(`${API_BASE_URL}/Categories`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+  return response.json();
+};
+
+export interface VendorDto {
+  id: string;
+  businessName: string;
+}
+
+export const getCurrentVendor = async (): Promise<VendorDto> => {
+  const response = await fetch(`${API_BASE_URL}/Vendors/me`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch current vendor. Have you seeded the database?");
+  }
+  return response.json();
+};

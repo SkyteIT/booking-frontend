@@ -11,7 +11,7 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { useFieldArray, Controller } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import type { ListingFormData } from "../../../../utils/types";
 

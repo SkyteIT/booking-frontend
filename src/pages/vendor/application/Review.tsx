@@ -7,10 +7,10 @@ import {
   FormControlLabel,
   Snackbar,
   Alert,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
 
@@ -19,57 +19,148 @@ const Review = () => {
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
+  // ✅ Get all stored data
+  const businessInfo = JSON.parse(
+    localStorage.getItem("vendorBusinessInfo") || "{}",
+  );
+
+  const contactInfo = JSON.parse(
+    localStorage.getItem("vendorContactInfo") || "{}",
+  );
+
+  const categories = JSON.parse(
+    localStorage.getItem("vendorCategories") || "[]",
+  );
+
+  const businessLicense = localStorage.getItem("businessLicense");
+  const insuranceCertificate = localStorage.getItem("insuranceCertificate");
+  const taxDocument = localStorage.getItem("taxDocument");
+
   const handleSubmit = () => {
-    // Clear application data if needed
-    localStorage.removeItem("businessInfo");
-    localStorage.removeItem("contactInfo");
-    localStorage.removeItem("categories");
-    localStorage.removeItem("documents");
-    localStorage.removeItem("review");
-
-    // Show success message
+    localStorage.clear();
     setOpenSnackbar(true);
-
-    // ❌ Do NOT navigate anywhere
   };
 
   return (
     <ApplicationLayout activeStep={4}>
       <Container className="vendor-container">
         <Box className="vendor-form-card">
-          {/* Title */}
           <Typography className="vendor-title">
-            Review & Submit
+            Review & Submit Application
           </Typography>
 
-          {/* Summary Box */}
+          {/* ================= BUSINESS INFO ================= */}
           <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Business Information
+            </Typography>
+
             <div className="summary-item">
               <span className="summary-label">Business Name</span>
-              <span className="summary-value">Acme Rentals LLC</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Contact Email</span>
-              <span className="summary-value">contact@acmerentals.com</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Categories</span>
               <span className="summary-value">
-                Vehicles, Equipment, Tools & Machinery
+                {businessInfo.businessName || "-"}
               </span>
             </div>
 
             <div className="summary-item">
-              <span className="summary-label">Documents Uploaded</span>
+              <span className="summary-label">Business Type</span>
               <span className="summary-value">
-                3 of 3 required documents
+                {businessInfo.businessType || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Tax ID</span>
+              <span className="summary-value">{businessInfo.taxId || "-"}</span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Website</span>
+              <span className="summary-value">
+                {businessInfo.website || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Address</span>
+              <span className="summary-value">
+                {businessInfo.address || "-"}
               </span>
             </div>
           </Box>
 
-          {/* Agreement Box */}
+          <Divider sx={{ my: 3 }} />
+
+          {/* ================= CONTACT INFO ================= */}
+          <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Contact Information
+            </Typography>
+
+            <div className="summary-item">
+              <span className="summary-label">Full Name</span>
+              <span className="summary-value">
+                {contactInfo.firstName || "-"} {contactInfo.lastName || ""}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Email</span>
+              <span className="summary-value">{contactInfo.email || "-"}</span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Phone</span>
+              <span className="summary-value">{contactInfo.phone || "-"}</span>
+            </div>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ================= CATEGORIES ================= */}
+          <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Selected Categories
+            </Typography>
+
+            <div className="summary-item">
+              <span className="summary-value">
+                {categories.length > 0 ? categories.join(", ") : "-"}
+              </span>
+            </div>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ================= DOCUMENTS ================= */}
+          <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Uploaded Documents
+            </Typography>
+
+            <div className="summary-item">
+              <span className="summary-label">Business License</span>
+              <span className="summary-value">
+                {businessLicense || "Not uploaded"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Insurance Certificate</span>
+              <span className="summary-value">
+                {insuranceCertificate || "Not uploaded"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Tax Document</span>
+              <span className="summary-value">
+                {taxDocument || "Not uploaded"}
+              </span>
+            </div>
+          </Box>
+
+          {/* ================= AGREEMENT ================= */}
           <Box className="agreement-box">
             <FormControlLabel
               control={
@@ -80,7 +171,8 @@ const Review = () => {
               }
               label={
                 <span className="agreement-text">
-                  I certify that all information provided is accurate and I agree to UBE’s{" "}
+                  I certify that all information provided is accurate and I
+                  agree to UBE’s{" "}
                   <span className="agreement-link">Terms of Service</span> and{" "}
                   <span className="agreement-link">Vendor Agreement</span>.
                 </span>
@@ -88,7 +180,7 @@ const Review = () => {
             />
           </Box>
 
-          {/* Buttons */}
+          {/* ================= BUTTONS ================= */}
           <Box className="vendor-actions">
             <Button
               className="back"
