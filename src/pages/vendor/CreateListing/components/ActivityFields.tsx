@@ -1,10 +1,12 @@
 // src/pages/vendor/CreateListing/components/ActivityFields.tsx
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
-import { UseFormRegister, Control, Controller } from "react-hook-form";
+import { Controller } from "react-hook-form";
+import type { UseFormRegister, Control } from "react-hook-form";
+import type { ListingFormData } from "../../../../utils/types";
 
 interface ActivityFieldsProps {
-  register: UseFormRegister<any>;
-  control: Control<any>;
+  register: UseFormRegister<ListingFormData>;
+  control: Control<ListingFormData>;
   errors: any;
 }
 
