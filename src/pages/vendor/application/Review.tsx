@@ -19,7 +19,7 @@ const Review = () => {
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // ✅ Get all stored data
+  //  Get all stored data
   const businessInfo = JSON.parse(
     localStorage.getItem("vendorBusinessInfo") || "{}",
   );

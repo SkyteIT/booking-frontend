@@ -4,7 +4,7 @@ const StatsCards = () => {
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
 
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <Card className="stats-card">
           <CardContent>
             <Typography color="text.secondary">
@@ -15,7 +15,7 @@ const StatsCards = () => {
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <Card className="stats-card">
           <CardContent>
             <Typography color="text.secondary">
@@ -26,7 +26,7 @@ const StatsCards = () => {
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <Card className="stats-card">
           <CardContent>
             <Typography color="text.secondary">
