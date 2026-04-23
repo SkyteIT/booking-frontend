@@ -13,12 +13,10 @@ import ContactInfo from "./pages/vendor/application/ContactInfo";
 import Categories from "./pages/vendor/application/Categories";
 import Documents from "./pages/vendor/application/Documents";
 import Review from "./pages/vendor/application/Review";
-
 import UserDashboard from "./pages/customer/UserDashboard";
-
-// ✅ IMPORT CONTEXT
-
 import { VendorApplicationProvider } from "./context/VendorApplicationContext";
+
+
 function App() {
   return (
     <VendorApplicationProvider>
@@ -55,6 +53,7 @@ function App() {
         </Routes>
         </BrowserRouter>
       </VendorApplicationProvider>
+    
     
   );
 }
