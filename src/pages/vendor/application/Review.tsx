@@ -12,33 +12,70 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { useVendorApplication } from "../../../context/VendorApplicationContext";
 import "./application.css";
 
 const Review = () => {
   const navigate = useNavigate();
+  const { data, resetApplication } = useVendorApplication();
+
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  //  Get all stored data
-  const businessInfo = JSON.parse(
-    localStorage.getItem("vendorBusinessInfo") || "{}",
-  );
+  const handleSubmit = async () => {
+    try {
+      const formData = new FormData();
 
-  const contactInfo = JSON.parse(
-    localStorage.getItem("vendorContactInfo") || "{}",
-  );
+      // BUSINESS INFO
+      formData.append("businessName", data.businessInfo.businessName);
+      formData.append("businessType", data.businessInfo.businessType);
+      formData.append("taxId", data.businessInfo.taxId || "");
+      formData.append("website", data.businessInfo.website || "");
+      formData.append("address", data.businessInfo.address);
 
-  const categories = JSON.parse(
-    localStorage.getItem("vendorCategories") || "[]",
-  );
+      // CONTACT INFO
+      formData.append("firstName", data.contactInfo.firstName);
+      formData.append("lastName", data.contactInfo.lastName);
+      formData.append("email", data.contactInfo.email);
+      formData.append("phone", data.contactInfo.phone);
 
-  const businessLicense = localStorage.getItem("businessLicense");
-  const insuranceCertificate = localStorage.getItem("insuranceCertificate");
-  const taxDocument = localStorage.getItem("taxDocument");
+      // CATEGORIES
+      data.categories.forEach((cat: string) => {
+        formData.append("categories", cat);
+      });
 
-  const handleSubmit = () => {
-    localStorage.clear();
-    setOpenSnackbar(true);
+      // DOCUMENTS
+      if (data.documents.businessLicense) {
+        formData.append("businessLicense", data.documents.businessLicense);
+      }
+
+      if (data.documents.insuranceCertificate) {
+        formData.append(
+          "insuranceCertificate",
+          data.documents.insuranceCertificate,
+        );
+      }
+
+      if (data.documents.taxDocument) {
+        formData.append("taxDocument", data.documents.taxDocument);
+      }
+
+      // API CALL
+      await fetch("http://localhost:5037/api/vendor-register/submit", {
+        method: "POST",
+        body: formData,
+      });
+
+      // SUCCESS
+      resetApplication();
+      setOpenSnackbar(true);
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (err) {
+      console.error("Submission failed:", err);
+    }
   };
 
   return (
@@ -58,33 +95,35 @@ const Review = () => {
             <div className="summary-item">
               <span className="summary-label">Business Name</span>
               <span className="summary-value">
-                {businessInfo.businessName || "-"}
+                {data?.businessInfo?.businessName || "-"}
               </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Business Type</span>
               <span className="summary-value">
-                {businessInfo.businessType || "-"}
+                {data?.businessInfo?.businessType || "-"}
               </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Tax ID</span>
-              <span className="summary-value">{businessInfo.taxId || "-"}</span>
+              <span className="summary-value">
+                {data?.businessInfo?.taxId || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Website</span>
               <span className="summary-value">
-                {businessInfo.website || "-"}
+                {data?.businessInfo?.website || "-"}
               </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Address</span>
               <span className="summary-value">
-                {businessInfo.address || "-"}
+                {data?.businessInfo?.address || "-"}
               </span>
             </div>
           </Box>
@@ -98,20 +137,31 @@ const Review = () => {
             </Typography>
 
             <div className="summary-item">
-              <span className="summary-label">Full Name</span>
+              <span className="summary-label">First Name</span>
               <span className="summary-value">
-                {contactInfo.firstName || "-"} {contactInfo.lastName || ""}
+                {data?.contactInfo?.firstName || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Last Name</span>
+              <span className="summary-value">
+                {data?.contactInfo?.lastName || "-"}
               </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Email</span>
-              <span className="summary-value">{contactInfo.email || "-"}</span>
+              <span className="summary-value">
+                {data?.contactInfo?.email || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Phone</span>
-              <span className="summary-value">{contactInfo.phone || "-"}</span>
+              <span className="summary-value">
+                {data?.contactInfo?.phone || "-"}
+              </span>
             </div>
           </Box>
 
@@ -125,7 +175,7 @@ const Review = () => {
 
             <div className="summary-item">
               <span className="summary-value">
-                {categories.length > 0 ? categories.join(", ") : "-"}
+                {data?.categories?.length ? data.categories.join(", ") : "-"}
               </span>
             </div>
           </Box>
@@ -141,21 +191,23 @@ const Review = () => {
             <div className="summary-item">
               <span className="summary-label">Business License</span>
               <span className="summary-value">
-                {businessLicense || "Not uploaded"}
+                {data?.documents?.businessLicense ? "Uploaded" : "Not uploaded"}
               </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Insurance Certificate</span>
               <span className="summary-value">
-                {insuranceCertificate || "Not uploaded"}
+                {data?.documents?.insuranceCertificate
+                  ? "Uploaded"
+                  : "Not uploaded"}
               </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Tax Document</span>
               <span className="summary-value">
-                {taxDocument || "Not uploaded"}
+                {data?.documents?.taxDocument ? "Uploaded" : "Not uploaded"}
               </span>
             </div>
           </Box>
@@ -199,7 +251,7 @@ const Review = () => {
           </Box>
         </Box>
 
-        {/* Success Snackbar */}
+        {/* ================= SUCCESS ================= */}
         <Snackbar
           open={openSnackbar}
           autoHideDuration={2000}

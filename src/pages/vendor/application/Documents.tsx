@@ -1,103 +1,163 @@
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Snackbar,
-  Alert,
-} from "@mui/material";
+import { Container, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import DescriptionIcon from "@mui/icons-material/Description";
+import { useVendorApplication } from "../../../context/VendorApplicationContext";
 import "./application.css";
 
-const Review = () => {
+const Documents = () => {
   const navigate = useNavigate();
-  const [checked, setChecked] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const businessInfo = JSON.parse(
-    localStorage.getItem("vendorBusinessInfo") || "{}",
-  );
-  const contactInfo = JSON.parse(
-    localStorage.getItem("vendorContactInfo") || "{}",
-  );
-  const categories = JSON.parse(
-    localStorage.getItem("vendorCategories") || "[]",
-  );
+  // ✅ context
+  const { data, setData } = useVendorApplication();
+  const { businessLicense, insuranceCertificate, taxDocument } = data.documents;
 
-  const handleSubmit = () => {
-    localStorage.clear();
-    setOpenSnackbar(true);
+  const [error, setError] = useState<string>("");
+
+  /* =======================
+     BACK BUTTON HANDLER
+  ======================= */
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    const handleBack = (event: PopStateEvent) => {
+      event.preventDefault();
+      navigate("/", { replace: true });
+    };
+
+    window.addEventListener("popstate", handleBack);
+    return () => window.removeEventListener("popstate", handleBack);
+  }, [navigate]);
+
+  /* =======================
+     FILE CHANGE
+  ======================= */
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "businessLicense" | "insuranceCertificate" | "taxDocument",
+  ) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
+      setData((prev) => ({
+        ...prev,
+        documents: {
+          ...prev.documents,
+          [field]: file,
+        },
+      }));
+
+      setError("");
+    }
+  };
+
+  /* =======================
+     CONTINUE
+  ======================= */
+  const handleContinue = () => {
+    if (!businessLicense || !insuranceCertificate || !taxDocument) {
+      setError("Please upload all required documents");
+      return;
+    }
+
+    navigate("/vendor/review");
   };
 
   return (
-    <ApplicationLayout activeStep={4}>
+    <ApplicationLayout activeStep={3}>
       <Container className="vendor-container">
+        <Typography className="vendor-title">Required Documents</Typography>
+
         <Box className="vendor-form-card">
-          <Typography className="vendor-title">Review & Submit</Typography>
-
-          <Box className="vendor-summary">
-            <div className="summary-item">
-              <span className="summary-label">Business Name</span>
-              <span className="summary-value">
-                {businessInfo.businessName || "-"}
-              </span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Contact Email</span>
-              <span className="summary-value">{contactInfo.email || "-"}</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Categories</span>
-              <span className="summary-value">
-                {categories.length > 0 ? categories.join(", ") : "-"}
-              </span>
-            </div>
-          </Box>
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checked}
-                onChange={(e) => setChecked(e.target.checked)}
-              />
-            }
-            label="I confirm the information is correct."
+          {/* Hidden Inputs */}
+          <input
+            type="file"
+            hidden
+            id="businessLicenseInput"
+            onChange={(e) => handleFileChange(e, "businessLicense")}
           />
 
+          <input
+            type="file"
+            hidden
+            id="insuranceInput"
+            onChange={(e) => handleFileChange(e, "insuranceCertificate")}
+          />
+
+          <input
+            type="file"
+            hidden
+            id="taxInput"
+            onChange={(e) => handleFileChange(e, "taxDocument")}
+          />
+
+          {/* Upload UI */}
+          <Box className="documents-section">
+            {/* Business License */}
+            <Box
+              className="upload-box"
+              onClick={() =>
+                document.getElementById("businessLicenseInput")?.click()
+              }
+            >
+              <DescriptionIcon />
+              <Typography>
+                {businessLicense
+                  ? businessLicense.name
+                  : "Upload Business License"}
+              </Typography>
+            </Box>
+
+            {/* Insurance */}
+            <Box
+              className="upload-box"
+              onClick={() => document.getElementById("insuranceInput")?.click()}
+            >
+              <DescriptionIcon />
+              <Typography>
+                {insuranceCertificate
+                  ? insuranceCertificate.name
+                  : "Upload Insurance Certificate"}
+              </Typography>
+            </Box>
+
+            {/* Tax */}
+            <Box
+              className="upload-box"
+              onClick={() => document.getElementById("taxInput")?.click()}
+            >
+              <DescriptionIcon />
+              <Typography>
+                {taxDocument ? taxDocument.name : "Upload Tax Document"}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Error */}
+          {error && (
+            <Typography color="error" mt={2}>
+              {error}
+            </Typography>
+          )}
+
+          {/* Actions */}
           <Box className="vendor-actions">
             <Button
               className="back"
-              onClick={() => navigate("/vendor/documents")}
+              onClick={() => navigate("/vendor/categories")}
             >
               Back
             </Button>
 
-            <Button
-              className="continue"
-              disabled={!checked}
-              onClick={handleSubmit}
-            >
-              Submit Application
+            <Button className="continue" onClick={handleContinue}>
+              Continue
             </Button>
           </Box>
         </Box>
-
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={2000}
-          onClose={() => setOpenSnackbar(false)}
-        >
-          <Alert severity="success">Submitted Successfully!</Alert>
-        </Snackbar>
       </Container>
     </ApplicationLayout>
   );
 };
 
-export default Review;
+export default Documents;

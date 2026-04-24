@@ -3,9 +3,10 @@ import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { FcGoogle } from "react-icons/fc";
 import { Snackbar, Alert } from "@mui/material";
-
+import { loginUser } from "../../../services/authService";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 interface LoginFormData {
   email: string;
   password: string;
@@ -52,7 +53,8 @@ function Login(): JSX.Element {
     return newErrors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  // ✅ FIXED: async function
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (loading) return;
 
@@ -62,15 +64,30 @@ function Login(): JSX.Element {
     if (Object.keys(validationErrors).length === 0) {
       setLoading(true);
 
-      setTimeout(() => {
-        setLoading(false);
+      try {
+        const data = await loginUser(formData.email, formData.password);
+
+        // ✅ Save JWT token
+        localStorage.setItem("token", data.token);
+
         setSuccessSnackbar(true);
 
-        // Redirect to landing page after 1.5s
+        // Redirect after success
         setTimeout(() => {
           navigate("/", { replace: true });
         }, 1500);
-      }, 1500);
+
+      } catch (error: unknown) {
+        console.error(error);
+
+        setErrors({
+          email: "Invalid email or password",
+          password: "Invalid email or password"
+        });
+
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -140,10 +157,25 @@ function Login(): JSX.Element {
           <span>OR</span>
         </div>
 
-        <button className="google-btn">
-          <FcGoogle size={20} />
-          Continue with Google
-        </button>
+        <GoogleLogin
+  onSuccess={async (credentialResponse) => {
+    try {
+      const res = await axios.post("http://localhost:5037/api/auth/google", {
+        token: credentialResponse.credential,
+      });
+
+      localStorage.setItem("token", res.data.token);
+
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error(err);
+      alert("Google login failed");
+    }
+  }}
+  onError={() => {
+    console.log("Google Login Failed");
+  }}
+/>
 
         <p className="bottom-text">
           Don’t have an account?{" "}

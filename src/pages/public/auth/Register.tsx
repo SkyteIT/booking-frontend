@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Snackbar, Alert } from "@mui/material";
-
+import { registerUser } from "../../../services/authService";
+import { GoogleLogin } from "@react-oauth/google"; 
+import axios from "axios";
 interface RegisterFormData {
   name: string;
   email: string;
@@ -35,12 +37,14 @@ function Register(): JSX.Element {
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+
   const [formData, setFormData] = useState<RegisterFormData>({
     name: "",
     email: "",
     password: "",
     confirmPassword: ""
   });
+
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
@@ -71,12 +75,13 @@ function Register(): JSX.Element {
       newErrors.password = "Password must contain uppercase, lowercase and a number";
 
     if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    else if (password !== confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
 
     return newErrors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (loading) return;
 
@@ -84,17 +89,40 @@ function Register(): JSX.Element {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      setTimeout(() => {
-        setLoading(false);
+        const data = await registerUser(
+          formData.name,
+          formData.email,
+          formData.password
+        );
+
+        // Save JWT
+        localStorage.setItem("token", data.token);
+
         setSuccessSnackbar(true);
 
-        // Redirect to landing page after 1.5s
         setTimeout(() => {
-          navigate("/", { replace: true });
+          navigate("/login", { replace: true });
         }, 1500);
-      }, 1500);
+
+      }catch (error: unknown) {
+        console.error(error);
+      
+        let message = "Registration failed";
+      
+        if (error instanceof Error) {
+          message = error.message;
+        }
+      
+        setErrors({
+          email: message
+        });
+      
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -147,7 +175,10 @@ function Register(): JSX.Element {
                 onChange={handleChange}
                 className={errors.password ? "input-error" : ""}
               />
-              <span className="eye-icon" onClick={() => setShowPassword(prev => !prev)}>
+              <span
+                className="eye-icon"
+                onClick={() => setShowPassword(prev => !prev)}
+              >
                 {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
               </span>
             </div>
@@ -177,20 +208,39 @@ function Register(): JSX.Element {
               <p className="error-text">{errors.confirmPassword}</p>
             )}
           </div>
+          
 
           <button type="submit" className="primary-btn" disabled={loading}>
             {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
+        <GoogleLogin
+  onSuccess={async (credentialResponse) => {
+    try {
+      const res = await axios.post("http://localhost:5037/api/auth/google", {
+        token: credentialResponse.credential,
+      });
 
+      localStorage.setItem("token", res.data.token);
+
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error(err);
+      alert("Google login failed");
+    }
+  }}
+  onError={() => {
+    console.log("Google Login Failed");
+  }}
+/>
         <p className="bottom-text">
           Already have an account?{" "}
           <Link to="/login" className="bold-link">
             Sign in
           </Link>
         </p>
+    
 
-        {/* ✅ Success Snackbar */}
         <Snackbar
           open={successSnackbar}
           autoHideDuration={2000}

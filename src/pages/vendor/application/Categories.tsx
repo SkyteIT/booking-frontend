@@ -2,11 +2,34 @@ import { Container, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { useVendorApplication } from "../../../context/VendorApplicationContext";
 import "./application.css";
 
 const Categories = (): JSX.Element => {
   const navigate = useNavigate();
+  const { data, setData } = useVendorApplication();
 
+  //  use local state (initialize from context)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    data.categories || [],
+  );
+
+  const [error, setError] = useState<string>("");
+
+  //  BACK BUTTON HANDLER (only once)
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    const handleBack = (event: PopStateEvent) => {
+      event.preventDefault();
+      navigate("/", { replace: true });
+    };
+
+    window.addEventListener("popstate", handleBack);
+    return () => window.removeEventListener("popstate", handleBack);
+  }, [navigate]);
+
+  // --- CATEGORY LIST ---
   const categories = [
     "Hotel",
     "Restaurant",
@@ -17,24 +40,27 @@ const Categories = (): JSX.Element => {
     "Other",
   ];
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("vendorCategories");
-    if (saved) setSelectedCategories(JSON.parse(saved));
-  }, []);
-
   const handleSelect = (category: string) => {
     let updated: string[];
+
     if (selectedCategories.includes(category)) {
       updated = selectedCategories.filter((item) => item !== category);
     } else {
       updated = [...selectedCategories, category];
     }
 
+    // update local state
     setSelectedCategories(updated);
+
+    // update global context
+    setData((prev) => ({
+      ...prev,
+      categories: updated,
+    }));
+
+    // persist
     localStorage.setItem("vendorCategories", JSON.stringify(updated));
+
     setError("");
   };
 
@@ -43,6 +69,7 @@ const Categories = (): JSX.Element => {
       setError("Select at least one category");
       return;
     }
+
     navigate("/vendor/documents");
   };
 
@@ -51,6 +78,10 @@ const Categories = (): JSX.Element => {
       <Container className="vendor-container">
         <Box className="vendor-form-card">
           <Typography className="vendor-title">Service Categories</Typography>
+
+          <Typography className="category-description" sx={{ mb: 4 }}>
+            Select the categories that best describe your offerings.
+          </Typography>
 
           <Box className="category-grid">
             {categories.map((cat) => (
@@ -77,6 +108,7 @@ const Categories = (): JSX.Element => {
             >
               Back
             </Button>
+
             <Button className="continue" onClick={handleContinue}>
               Continue
             </Button>
