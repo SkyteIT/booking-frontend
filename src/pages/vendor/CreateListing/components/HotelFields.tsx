@@ -77,6 +77,13 @@ export default function HotelFields({
           InputLabelProps={{ shrink: true }}
           {...register("checkOutTime")}
         />
+
+        <TextField
+          fullWidth
+          label="Primary Room Type"
+          placeholder="e.g., Deluxe"
+          {...register("roomType")}
+        />
       </Box>
 
       <Box sx={{ mb: 3 }}>
@@ -156,15 +163,6 @@ export default function HotelFields({
           )}
         />
       </Box>
-
-      <TextField
-        fullWidth
-        label="Cancellation Policy"
-        placeholder="Enter policy details"
-        {...register("cancellationPolicy")}
-        error={!!errors.cancellationPolicy}
-        helperText={errors.cancellationPolicy?.message}
-      />
     </Box>
   );
 }

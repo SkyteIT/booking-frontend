@@ -19,6 +19,7 @@ import RestaurantFields from "./components/RestaurantFields";
 import ActivityFields from "./components/ActivityFields";
 import EventFields from "./components/EventFields";
 import CarRentalFields from "./components/CarRentalFields";
+import ListingPreview from "./components/ListingPreview";
 import type { ListingFormData, ListingCategory } from "../../../utils/types";
 import { createListing, getCategories, getCurrentVendor, ListingType } from "../../../services/Vendor/listingService";
 import type { CreateListingRequest, CategoryDto } from "../../../services/Vendor/listingService";
@@ -27,6 +28,7 @@ const CreateListing = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [vendorId, setVendorId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -61,30 +63,30 @@ const CreateListing = () => {
     },
   });
 
+  const formData = watch();
+
   const selectedCategory = watch("category");
 
   const onSubmit = async (data: ListingFormData) => {
     try {
-      let type: ListingType;
-      switch(data.category) {
-        case "Hotels": type = ListingType.Hotel; break;
-        case "Restaurants": type = ListingType.Restaurant; break;
-        case "Activities": type = ListingType.Activity; break;
-        case "Events": type = ListingType.Event; break;
-        case "Car Rentals": type = ListingType.CarRental; break;
-        default: type = ListingType.Hotel;
+      let type: string;
+      switch (data.category) {
+        case "Hotels": type = "Hotel"; break;
+        case "Restaurants": type = "Restaurant"; break;
+        case "Activities": type = "Activity"; break;
+        case "Events": type = "Event"; break;
+        case "Car Rentals": type = "CarRental"; break;
+        default: type = "Hotel";
       }
 
       let categoryId = "00000000-0000-0000-0000-000000000000";
-      // Try to find matching category by name
-      const categoryMatch = categories.find(c => 
-        c.name.toLowerCase().includes(data.category.toLowerCase()) || 
-        data.category.toLowerCase().includes(c.name.toLowerCase())
+      const categoryMatch = categories.find(c =>
+        c.name.toLowerCase().includes(data.category.toLowerCase().replace("s", ""))
       );
       if (categoryMatch) {
         categoryId = categoryMatch.id;
       } else if (categories.length > 0) {
-        categoryId = categories[0].id; // Fallback
+        categoryId = categories[0].id;
       }
 
       if (!vendorId) {
@@ -95,53 +97,61 @@ const CreateListing = () => {
       const request: CreateListingRequest = {
         vendorId: vendorId,
         categoryId: categoryId,
+        type: ListingType[type as keyof typeof ListingType],
         title: data.title,
         description: data.description || "",
-        price: data.price || 0,
+        basePrice: data.price || 0,
         currency: "LKR",
         location: data.location,
-        type: type,
+        status: data.status || "Active",
+        isAvailable: data.isAvailable !== undefined ? fieldToBoolean(data.isAvailable) : true,
+        images: Array.isArray(data.images) ? data.images : ["https://example.com/hotel1.jpg"],
+        tags: typeof data.tags === 'string' ? (data.tags as string).split(',').map(t => t.trim()).filter(t => t !== "") : (data.tags || []),
+        cancellationPolicy: data.cancellationPolicy || "Free cancellation within 24 hours"
       };
 
-      if (type === ListingType.Hotel) {
+      // Helper function to ensure boolean
+      function fieldToBoolean(val: any): boolean {
+        if (typeof val === 'boolean') return val;
+        return val === 'true';
+      }
+
+      if (type === "Hotel") {
         request.hotelDetails = {
-          pricePerNight: data.pricePerNight || 0,
-          location: data.location,
+          pricePerNight: data.pricePerNight || data.price || 0,
           availableRooms: data.numberOfRooms || 0,
-          amenities: (data.amenities || []).join(", "),
-          checkInTime: data.checkInTime ? data.checkInTime + ":00" : "14:00:00",
-          checkOutTime: data.checkOutTime ? data.checkOutTime + ":00" : "12:00:00"
+          amenities: data.amenities || [],
+          checkInTime: data.checkInTime || "14:00",
+          checkOutTime: data.checkOutTime || "12:00",
+          roomTypes: data.roomTypes || []
         };
-      } else if (type === ListingType.Restaurant) {
+      } else if (type === "Restaurant") {
         request.restaurantDetails = {
           cuisineType: data.cuisineType || "",
           averageCost: data.averageCost || 0,
-          openingHours: `${data.openingTime || "08:00"} - ${data.closingTime || "22:00"}`,
-          tableCapacity: data.seatingCapacity || 0,
-          location: data.location
+          openingHours: `${data.openingTime || "06:00"} - ${data.closingTime || "23:00"}`,
+          tableCapacity: data.seatingCapacity || 0
         };
-      } else if (type === ListingType.Activity) {
+      } else if (type === "Activity") {
         request.activityDetails = {
           activityType: data.activityType || "",
           durationHours: parseInt(data.duration || "0") || 0,
-          difficultyLevel: data.difficultyLevel || "",
-          price: data.activityPrice || 0,
-          location: data.location
+          difficultyLevel: data.difficultyLevel || "Easy",
+          price: data.activityPrice || 0
         };
-      } else if (type === ListingType.Event) {
+      } else if (type === "Event") {
         request.eventDetails = {
           eventName: data.title,
           organizer: data.organizer || "",
-          dateAndTime: `${data.eventDate || "2024-01-01"}T${data.eventTime || "00:00:00"}Z`,
-          location: data.location || data.venueAddress || "",
+          dateAndTime: `${data.eventDate || "2026-05-10"}T${data.eventTime || "19:00:00"}`,
           seatCount: data.seatCount || 0,
           ticketPrice: data.ticketTypes?.[0]?.price || 0
         };
-      } else if (type === ListingType.CarRental) {
+      } else if (type === "CarRental") {
         request.carRentalDetails = {
           brand: data.brand || "",
           model: data.model || "",
-          transmission: data.transmission || "",
+          transmission: data.transmission || "Automatic",
           pricePerDay: data.dailyRate || 0,
           seatCount: data.seatCountCar || 0,
           fuelType: data.fuelType || "",
@@ -265,6 +275,7 @@ const CreateListing = () => {
               <Button
                 variant="outlined"
                 startIcon={<VisibilityIcon />}
+                onClick={() => setPreviewOpen(true)}
                 sx={{ borderRadius: "10px", px: 3 }}
               >
                 Preview
@@ -285,6 +296,12 @@ const CreateListing = () => {
           </form>
         </CardContent>
       </Card>
+
+      <ListingPreview
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        data={formData}
+      />
     </Container>
   );
 };

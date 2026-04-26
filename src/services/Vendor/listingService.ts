@@ -3,20 +3,20 @@ const API_BASE_URL = "http://localhost:5037/api";
 export const ListingType = {
   Hotel: 0,
   Restaurant: 1,
-  CarRental: 2,
-  Activity: 3,
-  Event: 4
+  Event: 2,
+  CarRental: 3,
+  Activity: 4
 } as const;
 
 export type ListingType = (typeof ListingType)[keyof typeof ListingType];
 
 export interface HotelDetailsDto {
   pricePerNight: number;
-  location: string;
   availableRooms: number;
-  amenities: string;
+  amenities: string[];
   checkInTime: string;
   checkOutTime: string;
+  roomTypes: string[];
 }
 
 export interface RestaurantDetailsDto {
@@ -24,7 +24,6 @@ export interface RestaurantDetailsDto {
   averageCost: number;
   openingHours: string;
   tableCapacity: number;
-  location: string;
 }
 
 export interface CarRentalDetailsDto {
@@ -42,14 +41,12 @@ export interface ActivityDetailsDto {
   durationHours: number;
   difficultyLevel: string;
   price: number;
-  location: string;
 }
 
 export interface EventDetailsDto {
   eventName: string;
   organizer: string;
   dateAndTime: string;
-  location: string;
   seatCount: number;
   ticketPrice: number;
 }
@@ -57,12 +54,22 @@ export interface EventDetailsDto {
 export interface CreateListingRequest {
   vendorId: string;
   categoryId: string;
-  type: ListingType;
+  type: number;
+
   title: string;
-  description?: string;
-  price: number;
+  description: string;
+
+  basePrice: number;
   currency: string;
-  location?: string;
+  location: string;
+
+  status: string;
+  isAvailable: boolean;
+
+  images: string[];
+  tags: string[];
+
+  cancellationPolicy: string;
 
   hotelDetails?: HotelDetailsDto;
   restaurantDetails?: RestaurantDetailsDto;

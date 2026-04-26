@@ -13,9 +13,12 @@ export interface ListingFormData {
     title: string;
     location: string;
     category: ListingCategory;
-    images: FileList;
+    images: string[]; // Changed from FileList to string[] as per requested JSON
     description?: string;
     price?: number;
+    tags?: string[];
+    status?: string;
+    isAvailable?: boolean;
 
     // Hotel fields
     propertyType?: string;
@@ -24,6 +27,7 @@ export interface ListingFormData {
     checkInTime?: string;
     checkOutTime?: string;
     roomTypes?: string[];
+    roomType?: string; // Singular for single selection if needed
     amenities?: string[];
     cancellationPolicy?: string;
 

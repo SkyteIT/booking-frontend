@@ -7,6 +7,9 @@ import {
   FormControl,
   InputLabel,
   Typography,
+  Switch,
+  FormControlLabel,
+  Stack,
 } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
@@ -45,6 +48,78 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
         {...register("location", { required: "Location is required" })}
         error={!!errors.location}
         helperText={errors.location?.message}
+      />
+
+      <Stack direction="row" spacing={3}>
+        <TextField
+          fullWidth
+          type="number"
+          label="Base Price (LKR)"
+          placeholder="e.g., 25000"
+          {...register("price", { required: "Price is required" })}
+          error={!!errors.price}
+          helperText={errors.price?.message}
+        />
+
+        <FormControl fullWidth>
+          <InputLabel id="status-label">Status</InputLabel>
+          <Controller
+            name="status"
+            control={control}
+            defaultValue="Active"
+            render={({ field }) => (
+              <Select labelId="status-label" label="Status" {...field}>
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Draft">Draft</MenuItem>
+              </Select>
+            )}
+          />
+        </FormControl>
+      </Stack>
+
+      <TextField
+        fullWidth
+        multiline
+        rows={3}
+        label="Description"
+        placeholder="Provide a detailed description of your listing..."
+        {...register("description", { required: "Description is required" })}
+        error={!!errors.description}
+        helperText={errors.description?.message}
+      />
+
+      <Stack direction="row" spacing={3} alignItems="center">
+        <TextField
+          fullWidth
+          label="Tags (comma separated)"
+          placeholder="e.g., luxury, city, business"
+          {...register("tags" as any)} // Handled in onSubmit
+        />
+
+        <FormControlLabel
+          control={
+            <Controller
+              name="isAvailable"
+              control={control}
+              defaultValue={true}
+              render={({ field }) => (
+                <Switch 
+                  checked={field.value} 
+                  onChange={(e) => field.onChange(e.target.checked)} 
+                />
+              )}
+            />
+          }
+          label="Available for Booking"
+        />
+      </Stack>
+
+      <TextField
+        fullWidth
+        label="Cancellation Policy"
+        placeholder="e.g., Free cancellation within 24 hours"
+        {...register("cancellationPolicy")}
       />
 
       <FormControl fullWidth error={!!errors.category}>
