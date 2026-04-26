@@ -13,6 +13,7 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import { useNotifications } from "../../../hooks/useNotifications";
+import type { Notification, NotificationPreference } from "../../../services/notificationService";
 
 // ─── Types ───────────────────────────────────────────────
 type NotifStatus = "booking" | "payment" | "review" | "account" | "warning";
@@ -22,7 +23,7 @@ type FilterType = "All" | "Unread" | "booking" | "payment" | "review" | "account
 const iconMap: Record<NotifStatus, React.ReactNode> = {
   booking: <CheckCircleOutlineIcon sx={{ fontSize: 20, color: "#2e7d32" }} />,
   payment: <PaymentIcon sx={{ fontSize: 20, color: "#0077B6" }} />,
-  review: <StarOutlineIcon sx={{ fontSize: 20, color: "#f59e0b" }} />,
+  review:  <StarOutlineIcon sx={{ fontSize: 20, color: "#f59e0b" }} />,
   account: <AccountCircleOutlinedIcon sx={{ fontSize: 20, color: "#6a1b9a" }} />,
   warning: <WarningAmberIcon sx={{ fontSize: 20, color: "#e65100" }} />,
 };
@@ -30,21 +31,20 @@ const iconMap: Record<NotifStatus, React.ReactNode> = {
 const bgMap: Record<NotifStatus, string> = {
   booking: "#e6f4ea",
   payment: "#e3f0fb",
-  review: "#fff8e1",
+  review:  "#fff8e1",
   account: "#f3e5f5",
   warning: "#fff3e0",
 };
 
-// Maps API notificationType string/number → UI status badge
-function resolveStatus(type: string | number): NotifStatus {
-  const t = String(type).toLowerCase();
-  if (t.includes("book") || t.includes("cancel") || t === "1" || t === "2" || t === "3") {
-    if (t.includes("cancel") || t === "3") return "warning";
-    return "booking";
-  }
-  if (t.includes("pay") || t === "4" || t === "5") return "payment";
-  if (t.includes("review") || t === "6" || t === "7") return "review";
-  if (t.includes("account") || t.includes("security") || t === "8" || t === "9") return "account";
+// FIX 1: Notification.type is the only field — no notificationType on Notification.
+// API enum: 0=Booking, 1=Payment, 2=Review, 3=Account (from CreateNotificationPayload)
+function resolveStatus(type: string): NotifStatus {
+  const t = type.toLowerCase();
+  if (t === "3" || t.includes("account") || t.includes("security")) return "account";
+  if (t === "0" || t.includes("book"))    return "booking";
+  if (t === "1" || t.includes("pay"))     return "payment";
+  if (t === "2" || t.includes("review"))  return "review";
+  if (t.includes("cancel"))               return "warning";
   return "booking";
 }
 
@@ -52,52 +52,54 @@ function formatTime(dateStr: string): string {
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
   const diff = (Date.now() - date.getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) > 1 ? "s" : ""} ago`;
+  if (diff < 60)     return "just now";
+  if (diff < 3600)   return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400)  return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) > 1 ? "s" : ""} ago`;
   if (diff < 172800) return "Yesterday";
   return date.toLocaleDateString();
 }
 
 const FILTERS: { label: string; value: FilterType }[] = [
-  { label: "All", value: "All" },
-  { label: "Unread", value: "Unread" },
+  { label: "All",      value: "All" },
+  { label: "Unread",   value: "Unread" },
   { label: "Bookings", value: "booking" },
   { label: "Payments", value: "payment" },
-  { label: "Reviews", value: "review" },
-  { label: "Account", value: "account" },
+  { label: "Reviews",  value: "review" },
+  { label: "Account",  value: "account" },
 ];
 
-// Preference groups define the UI rows; notificationType numbers map to API
+// FIX 2: notificationType numbers now match the real API enum:
+// 0=Booking, 1=Payment, 2=Review, 3=Account
+// NotificationPreference.notificationType is stored as a string ("0","1","2","3")
 const PREF_GROUPS = [
   {
     label: "Bookings",
     items: [
-      { key: "new_booking",   label: "New booking requests",  notificationType: 1 },
-      { key: "booking_conf",  label: "Booking confirmations", notificationType: 2 },
-      { key: "cancellations", label: "Cancellations",         notificationType: 3 },
+      { key: "new_booking",   label: "New booking requests",  notificationType: 0 },
+      { key: "booking_conf",  label: "Booking confirmations", notificationType: 0 },
+      { key: "cancellations", label: "Cancellations",         notificationType: 0 },
     ],
   },
   {
     label: "Payments",
     items: [
-      { key: "pay_received", label: "Payment received",  notificationType: 4 },
-      { key: "payout",       label: "Payout processed",  notificationType: 5 },
-      { key: "pay_failed",   label: "Payment failed",    notificationType: 6 },
+      { key: "pay_received", label: "Payment received", notificationType: 1 },
+      { key: "payout",       label: "Payout processed", notificationType: 1 },
+      { key: "pay_failed",   label: "Payment failed",   notificationType: 1 },
     ],
   },
   {
     label: "Reviews",
     items: [
-      { key: "new_review",  label: "New reviews",        notificationType: 7 },
-      { key: "review_resp", label: "Review responses",   notificationType: 8 },
+      { key: "new_review",  label: "New reviews",      notificationType: 2 },
+      { key: "review_resp", label: "Review responses", notificationType: 2 },
     ],
   },
   {
     label: "Account",
     items: [
-      { key: "security",    label: "Security alerts",    notificationType: 9 },
-      { key: "acc_updates", label: "Account updates",    notificationType: 10 },
+      { key: "security",    label: "Security alerts", notificationType: 3 },
+      { key: "acc_updates", label: "Account updates", notificationType: 3 },
     ],
   },
 ];
@@ -106,6 +108,7 @@ const PREF_GROUPS = [
 export default function VendorNotifications() {
   const VENDOR_USER_ID = "YOUR-VENDOR-USER-GUID-HERE"; // Replace with real auth user id
 
+  // FIX 3: Removed deleteNotification — it does not exist in useNotifications hook.
   const {
     notifications,
     preferences,
@@ -113,49 +116,50 @@ export default function VendorNotifications() {
     unreadCount,
     markAsRead,
     markAllAsRead,
-    deleteNotification,
     savePreference,
   } = useNotifications(VENDOR_USER_ID);
 
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
-  const [prefsSaved, setPrefsSaved] = useState(false);
+  const [prefsSaved,   setPrefsSaved]   = useState(false);
   const [view, setView] = useState<"notifications" | "preferences">("notifications");
 
-  // ── Preference toggle handler ──
+  // ── Preference toggle handler ──────────────────────────
   const handlePrefToggle = async (
     notificationType: number,
     channel: "email" | "push" | "sms",
     value: boolean
   ) => {
     setPrefsSaved(false);
-    const existing = preferences.find(
-      (p) => p.notificationType === String(notificationType)
+    // NotificationPreference.notificationType is a string — compare with String()
+    const existing: NotificationPreference | undefined = preferences.find(
+      (p: NotificationPreference) => p.notificationType === String(notificationType)
     );
     await savePreference({
       notificationType,
-      emailEnabled: channel === "email" ? value : existing?.emailEnabled ?? false,
-      pushEnabled:  channel === "push"  ? value : existing?.pushEnabled  ?? false,
-      smsEnabled:   channel === "sms"   ? value : existing?.smsEnabled   ?? false,
+      emailEnabled: channel === "email" ? value : (existing?.emailEnabled ?? false),
+      pushEnabled:  channel === "push"  ? value : (existing?.pushEnabled  ?? false),
+      smsEnabled:   channel === "sms"   ? value : (existing?.smsEnabled   ?? false),
     });
     setPrefsSaved(true);
   };
 
-  // Helper: read a preference value for a given type + channel
+  // Helper: read current toggle state from preferences array
   const getPrefValue = (
     notificationType: number,
     channel: "emailEnabled" | "pushEnabled"
   ): boolean => {
-    const pref = preferences.find(
-      (p) => p.notificationType === String(notificationType)
+    const pref: NotificationPreference | undefined = preferences.find(
+      (p: NotificationPreference) => p.notificationType === String(notificationType)
     );
     return pref?.[channel] ?? false;
   };
 
-  // ── Filter notifications list ──
-  const filtered = notifications.filter((n) => {
-    if (activeFilter === "All") return true;
+  // FIX 4: Use only n.type (the field that exists on Notification).
+  // n.notificationType does NOT exist — removed ?? n.notificationType references.
+  const filtered: Notification[] = notifications.filter((n: Notification) => {
+    if (activeFilter === "All")    return true;
     if (activeFilter === "Unread") return !n.isRead;
-    return resolveStatus(n.notificationType ?? n.type ?? "") === activeFilter;
+    return resolveStatus(n.type) === activeFilter;
   });
 
   return (
@@ -217,7 +221,7 @@ export default function VendorNotifications() {
                   sx={{
                     fontWeight: 500, fontSize: 13,
                     bgcolor: activeFilter === f.value ? "#0077B6" : "#f0f4f8",
-                    color: activeFilter === f.value ? "#fff" : "#4a5568",
+                    color:   activeFilter === f.value ? "#fff"    : "#4a5568",
                     "&:hover": { bgcolor: activeFilter === f.value ? "#005A8D" : "#e2e8f0" },
                   }}
                 />
@@ -247,8 +251,9 @@ export default function VendorNotifications() {
                   <Typography color="text.secondary" fontSize={14}>No notifications here</Typography>
                 </Box>
               ) : (
-                filtered.map((n, idx) => {
-                  const status = resolveStatus(n.notificationType ?? n.type ?? "");
+                // FIX 5: n is typed as Notification — use n.type (not n.notificationType)
+                filtered.map((n: Notification, idx: number) => {
+                  const status = resolveStatus(n.type);
                   return (
                     <Box
                       key={n.id}
@@ -271,7 +276,7 @@ export default function VendorNotifications() {
                         {iconMap[status]}
                       </Box>
 
-                      {/* Text */}
+                      {/* Text — Notification fields: title, message, createdAtUtc, isRead */}
                       <Box flexGrow={1}>
                         <Typography fontSize={14} fontWeight={n.isRead ? 400 : 600} lineHeight={1.4}>
                           {n.title}
@@ -284,20 +289,20 @@ export default function VendorNotifications() {
                         </Typography>
                       </Box>
 
-                      {/* Unread dot + delete */}
+                      {/* Unread dot + dismiss button
+                          FIX 6: deleteNotification removed — hook doesn't have it.
+                          Dismiss = markAsRead (closest available action). */}
                       <Box display="flex" alignItems="center" gap={1} flexShrink={0}>
                         {!n.isRead && (
                           <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "#0077B6" }} />
                         )}
-                        {deleteNotification && (
-                          <IconButton
-                            size="small"
-                            onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
-                            sx={{ color: "#b0bec5", "&:hover": { color: "#ef5350" } }}
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        )}
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}
+                          sx={{ color: "#b0bec5", "&:hover": { color: "#ef5350" } }}
+                        >
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
                       </Box>
                     </Box>
                   );
@@ -337,7 +342,6 @@ export default function VendorNotifications() {
           ) : (
             PREF_GROUPS.map((group, gi) => (
               <Box key={group.label}>
-                {/* Group label */}
                 <Box px={3} pt={2} pb={0.5}>
                   <Typography fontWeight={700} fontSize={14}>{group.label}</Typography>
                 </Box>
@@ -346,7 +350,10 @@ export default function VendorNotifications() {
                   <Box
                     key={item.key}
                     display="grid"
-                    sx={{ gridTemplateColumns: "1fr 80px 80px", "&:last-child": { borderBottom: "none" } }}
+                    sx={{
+                      gridTemplateColumns: "1fr 80px 80px",
+                      "&:last-child": { borderBottom: "none" },
+                    }}
                     px={3} py={1.2}
                     alignItems="center"
                     borderBottom="1px solid #f0f0f0"

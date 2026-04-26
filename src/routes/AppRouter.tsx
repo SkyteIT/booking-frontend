@@ -18,14 +18,15 @@ import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
 import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
 
-// Vendor (existing develop)
+// Vendor (existing)
 import VendorListings from "../pages/vendor/Listings/VendorListings";
 import Bookings from "../pages/vendor/Bookings";
 import Dashboard from "../pages/vendor/Dashboard";
 import Availability from "../pages/vendor/Availability";
 
-// Vendor (your feature)
+// Vendor (features)
 import VendorNotifications from "../pages/vendor/notifications/VendorNotifications";
+import VendorSettings from "../pages/vendor/settings/VendorSettings";
 
 function AppRouter() {
   return (
@@ -49,15 +50,13 @@ function AppRouter() {
 
       {/* ───────── VENDOR ───────── */}
       <Route path="/vendor" element={<VendorLayout />}>
-        {/* existing */}
         <Route index element={<Navigate to="/vendor/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="listings" element={<VendorListings />} />
         <Route path="availability" element={<Availability />} />
-
-        {/* your feature */}
         <Route path="notifications" element={<VendorNotifications />} />
+        <Route path="settings" element={<VendorSettings />} />
       </Route>
 
       {/* ───────── FALLBACK ───────── */}
