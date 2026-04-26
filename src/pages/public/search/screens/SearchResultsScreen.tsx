@@ -9,8 +9,10 @@ import { useSearchResults } from "../hooks/useSearchResults";
 const SearchResultsScreen = () => {
   const {
     filters,
-    filteredListings,
-    categories,
+    listings = [],    // ← guard: fallback to [] if API returns undefined
+    loading,
+    error,
+    categories = [],  // ← guard: fallback to [] if API returns undefined
     ratingOptions,
     setQuery,
     setMinPrice,
@@ -26,7 +28,7 @@ const SearchResultsScreen = () => {
       <Container maxWidth="xl">
         <SearchToolbar
           query={filters.q}
-          total={filteredListings.length}
+          total={listings.length}
           onQueryChange={setQuery}
         />
 
@@ -49,7 +51,11 @@ const SearchResultsScreen = () => {
           </Grid>
 
           <Grid size={{ xs: 12, md: 9 }}>
-            <ResultsGrid listings={filteredListings} />
+            <ResultsGrid
+              listings={listings}
+              loading={loading}
+              error={error}
+            />
           </Grid>
         </Grid>
       </Container>

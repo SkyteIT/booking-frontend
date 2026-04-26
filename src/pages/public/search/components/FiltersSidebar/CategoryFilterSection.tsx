@@ -9,14 +9,14 @@ import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined
 import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
 import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
 import type { ReactNode } from "react";
-import type { ListingCategory } from "../../utils/types";
 import {
   filterTitleSx,
   getOptionButtonStateSx,
   optionButtonBaseSx,
 } from "./styles";
 
-const categoryIconMap: Record<ListingCategory, ReactNode> = {
+// Icon map keyed by category name string (no longer tied to ListingCategory type)
+const categoryIconMap: Record<string, ReactNode> = {
   Hotels: <ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />,
   Restaurants: <RestaurantOutlinedIcon sx={{ fontSize: "1rem" }} />,
   Events: <ConfirmationNumberOutlinedIcon sx={{ fontSize: "1rem" }} />,
@@ -26,11 +26,12 @@ const categoryIconMap: Record<ListingCategory, ReactNode> = {
   Equipment: <HandymanOutlinedIcon sx={{ fontSize: "1rem" }} />,
 };
 
+// ← Updated Props: categories now come from API as {id, name} objects
 interface CategoryFilterSectionProps {
-  categories: ListingCategory[];
-  selectedCategories: ListingCategory[];
+  categories: { id: string; name: string }[];
+  selectedCategories: string[];
   onClearCategories: () => void;
-  onToggleCategory: (category: ListingCategory) => void;
+  onToggleCategory: (category: string) => void;
 }
 
 const CategoryFilterSection = ({
@@ -55,17 +56,17 @@ const CategoryFilterSection = ({
         </Button>
 
         {categories.map((category) => {
-          const isSelected = selectedCategories.includes(category);
+          const isSelected = selectedCategories.includes(category.name); // ← use .name
 
           return (
             <Button
-              key={category}
+              key={category.id}                                           // ← use .id as key
               variant="text"
-              onClick={() => onToggleCategory(category)}
+              onClick={() => onToggleCategory(category.name)}            // ← pass .name
               sx={{ ...optionButtonBaseSx, ...getOptionButtonStateSx(isSelected) }}
-              startIcon={categoryIconMap[category]}
+              startIcon={categoryIconMap[category.name]}                 // ← look up icon by .name
             >
-              {category}
+              {category.name}
             </Button>
           );
         })}

@@ -10,6 +10,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
+import { createCategory } from "../services/contentService";
 
 // ─── Types ───────────────────────────────────────────────
 interface CustomField {
@@ -59,6 +60,7 @@ export default function AddCategory() {
   const [bannerName, setBannerName] = useState<string | null>(null);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   // ── Handlers ──
   const set = (field: string, value: string | boolean) => {
@@ -102,10 +104,21 @@ export default function AddCategory() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    alert(`Category "${form.name}" saved successfully!`);
-    navigate("/admin/content");
+    setSaving(true);
+    try {
+      await createCategory({
+        name: form.name,
+        description: form.description || undefined,
+        iconUrl: form.icon || undefined,
+      });
+      navigate("/admin/content");
+    } catch {
+      setErrors((p) => ({ ...p, name: "Failed to save. Please try again." }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => navigate("/admin/content");
@@ -132,9 +145,10 @@ export default function AddCategory() {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
+            disabled={saving}
             sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" } }}
           >
-            Save Category
+            {saving ? "Saving..." : "Save Category"}
           </Button>
         </Box>
       </Box>

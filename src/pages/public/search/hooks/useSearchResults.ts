@@ -1,128 +1,106 @@
-// Main feature hook (business logic):
-// 1) reads filters from URL params
-// 2) filters listings
-// 3) exposes simple handlers that update URL params.
-import { useMemo } from "react";
+// src/pages/public/search/hooks/useSearchResults.ts
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { MOCK_LISTINGS } from "../data/mockListings";
-import { filterListings } from "../utils/filterListings";
-import { CATEGORIES, parseSearchFilters } from "../utils/searchParams";
-import type { ListingCategory } from "../utils/types";
+import { searchListings, type SearchListing } from "../../../../services/searchService";
+import { fetchCategories, type ApiCategory } from "../../../../services/categoryService";
+import { parseSearchFilters } from "../utils/searchParams";
 
-const ratingOptions = [3, 4, 4.5] as const;
-
-// Central hook for the search page:
-// reads filters from URL, filters data, and exposes update handlers.
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [listings, setListings] = useState<SearchListing[]>([]);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
-  const filteredListings = useMemo(
-    () => filterListings(MOCK_LISTINGS, filters),
-    [filters],
-  );
+  // Load categories once on mount
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
 
-  // Updates the main text query (`q`) in URL params.
-  const setQuery = (value: string) => {
+  // Fetch listings whenever filters change
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    const selectedCategoryId = categories.find(
+      (c) => filters.categories[0] && c.name === filters.categories[0]
+    )?.id;
+
+    searchListings({
+      searchTerm: filters.q || undefined,
+      categoryId: selectedCategoryId,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+    })
+      // Guard: API may return undefined, null, or a wrapped object instead of array
+      .then((data) => setListings(Array.isArray(data) ? data : []))
+      .catch(() => {
+        setListings([]);
+        setError("Failed to load results. Please try again.");
+      })
+      .finally(() => setLoading(false));
+  }, [filters, categories]);
+
+  const setQuery = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
-    const query = value.trim();
-
-    if (query) {
-      next.set("q", query);
-    } else {
-      next.delete("q");
-    }
-
+    value.trim() ? next.set("q", value.trim()) : next.delete("q");
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Updates minimum price in URL after removing non-numeric characters.
-  const setMinPrice = (value: string) => {
+  const setMinPrice = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
-    const normalized = value.replace(/[^0-9]/g, "");
-
-    if (normalized) {
-      next.set("minPrice", normalized);
-    } else {
-      next.delete("minPrice");
-    }
-
+    const n = value.replace(/[^0-9]/g, "");
+    n ? next.set("minPrice", n) : next.delete("minPrice");
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Updates maximum price in URL after removing non-numeric characters.
-  const setMaxPrice = (value: string) => {
+  const setMaxPrice = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
-    const normalized = value.replace(/[^0-9]/g, "");
-
-    if (normalized) {
-      next.set("maxPrice", normalized);
-    } else {
-      next.delete("maxPrice");
-    }
-
+    const n = value.replace(/[^0-9]/g, "");
+    n ? next.set("maxPrice", n) : next.delete("maxPrice");
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Removes all selected categories from URL params.
-  const clearCategories = () => {
+  const toggleCategory = useCallback((categoryName: string) => {
+    const next = new URLSearchParams(searchParams);
+    const current = filters.categories;
+    const isSelected = current.includes(categoryName as any);
+    const updated = isSelected
+      ? current.filter((c) => c !== categoryName)
+      : [...current, categoryName as any];
+    updated.length ? next.set("category", updated.join(",")) : next.delete("category");
+    setSearchParams(next);
+  }, [searchParams, setSearchParams, filters.categories]);
+
+  const clearCategories = useCallback(() => {
     const next = new URLSearchParams(searchParams);
     next.delete("category");
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Adds/removes one category in the URL category list.
-  const toggleCategory = (category: ListingCategory) => {
+  const setMinRating = useCallback((rating?: number) => {
     const next = new URLSearchParams(searchParams);
-    const isSelected = filters.categories.includes(category);
-    let updatedCategories = [...filters.categories];
-
-    if (isSelected) {
-      updatedCategories = updatedCategories.filter((item) => item !== category);
-    } else {
-      updatedCategories.push(category);
-    }
-
-    if (updatedCategories.length === 0) {
-      next.delete("category");
-    } else {
-      next.set("category", updatedCategories.join(","));
-    }
-
+    rating !== undefined ? next.set("minRating", String(rating)) : next.delete("minRating");
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Sets or clears minimum rating in URL params.
-  const setMinRating = (rating?: number) => {
+  const clearFilters = useCallback(() => {
     const next = new URLSearchParams(searchParams);
-
-    if (rating === undefined) {
-      next.delete("minRating");
-    } else {
-      next.set("minRating", String(rating));
-    }
-
+    ["category", "minPrice", "maxPrice", "minRating"].forEach((k) => next.delete(k));
     setSearchParams(next);
-  };
-
-  // Clears sidebar filters but keeps other params like `q`.
-  const clearFilters = () => {
-    const next = new URLSearchParams(searchParams);
-
-    next.delete("category");
-    next.delete("minPrice");
-    next.delete("maxPrice");
-    next.delete("minRating");
-
-    setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
   return {
     filters,
-    filteredListings,
-    categories: CATEGORIES,
-    ratingOptions,
+    listings,
+    loading,
+    error,
+    categories,
+    ratingOptions: [3, 4, 4.5] as const,
     setQuery,
     setMinPrice,
     setMaxPrice,

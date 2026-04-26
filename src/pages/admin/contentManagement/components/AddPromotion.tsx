@@ -19,6 +19,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate } from "react-router-dom";
+import { createPromotion } from "../services/contentService";
 
 const CATEGORIES = ["All Categories", "Hotels", "Car Rentals", "Activities", "Restaurants", "Event Tickets"];
 
@@ -50,6 +51,7 @@ export default function AddPromotion() {
     description: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -72,10 +74,24 @@ export default function AddPromotion() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    alert(`Promotion "${form.code}" saved successfully!`);
-    navigate("/admin/content");
+    setSaving(true);
+    try {
+      await createPromotion({
+        code: form.code,
+        promotionType: form.type === "Percentage" ? 0 : 1,
+        discountValue: Number(form.value),
+        startDate: form.startDate || undefined,
+        endDate: form.endDate || undefined,
+        usageLimit: form.usageLimitEnabled ? Number(form.usageLimit) : undefined,
+      });
+      navigate("/admin/content");
+    } catch {
+      setErrors((prev) => ({ ...prev, code: "Failed to save. Please try again." }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => navigate("/admin/content");
@@ -110,9 +126,10 @@ export default function AddPromotion() {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
+            disabled={saving}
             sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" } }}
           >
-            Save Promotion
+            {saving ? "Saving..." : "Save Promotion"}
           </Button>
         </Box>
       </Box>

@@ -38,9 +38,9 @@ export default function ContentManagement() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { categories, banners, promotions } = useContent();
+  const { categories, banners, promotions, toggleCategory, removeCategory } = useContent();
   const navigate = useNavigate();
 
   const activeCount = categories.filter((c) => c.status).length;
@@ -58,11 +58,12 @@ export default function ContentManagement() {
     });
   }, [categories, search, filter]);
 
-  const categoryToDelete = categories.find((c) => c.id === deleteId);
+  const categoryToDelete = categories.find((c) => String(c.id) === deleteId);
 
   function handleDeleteConfirm() {
-    // TODO: wire to real delete API
-    console.log("Deleting category", deleteId);
+    if (deleteId !== null) {
+      removeCategory(deleteId);
+    }
     setDeleteId(null);
   }
 
@@ -315,15 +316,16 @@ export default function ContentManagement() {
           </Box>
         ) : (
           <Grid container spacing={2.5}>
-            {filtered.map((c) => (
+            {filtered.map((cat) => (
               <Grid
                 size={viewMode === "grid" ? { xs: 12, sm: 6, md: 4 } : { xs: 12 }}
-                key={c.id}
+                key={cat.id}
               >
                 <CategoryCard
-                  category={c}
+                  category={cat}
                   viewMode={viewMode}
-                  onDelete={(id) => setDeleteId(id)}
+                  onToggle={toggleCategory}
+                  onDelete={removeCategory}
                 />
               </Grid>
             ))}

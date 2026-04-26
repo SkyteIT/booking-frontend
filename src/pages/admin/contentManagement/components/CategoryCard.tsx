@@ -81,8 +81,8 @@ function getCategoryIcon(name: string): IconConfig {
 interface Props {
   category: Category;
   viewMode?: "grid" | "list";
-  onToggle?: (id: number, active: boolean) => void;
-  onDelete?: (id: number) => void;
+  onToggle: (id: string, isActive: boolean) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function CategoryCard({
@@ -158,7 +158,7 @@ export default function CategoryCard({
         <Switch
           checked={category.status}
           size="small"
-          onChange={(e) => onToggle?.(category.id, e.target.checked)}
+          onChange={(e) => onToggle(String(category.id), e.target.checked)}
         />
 
         {/* Actions */}
@@ -175,7 +175,7 @@ export default function CategoryCard({
           <Tooltip title="Delete">
             <IconButton
               size="small"
-              onClick={() => onDelete?.(category.id)}
+              onClick={() => onDelete(String(category.id))}
               sx={{ color: "#EF4444", "&:hover": { background: "#FEF2F2" } }}
             >
               <DeleteIcon fontSize="small" />
@@ -257,7 +257,7 @@ export default function CategoryCard({
             <Tooltip title="Delete category">
               <IconButton
                 size="small"
-                onClick={() => onDelete?.(category.id)}
+                onClick={() => onDelete(String(category.id))}
                 sx={{
                   width: 32,
                   height: 32,
@@ -305,7 +305,7 @@ export default function CategoryCard({
           />
           <Switch
             checked={category.status}
-            onChange={(e) => onToggle?.(category.id, e.target.checked)}
+            onChange={(e) => onToggle(String(category.id), e.target.checked)}
             sx={{
               "& .MuiSwitch-switchBase.Mui-checked": { color: "#10B981" },
               "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {

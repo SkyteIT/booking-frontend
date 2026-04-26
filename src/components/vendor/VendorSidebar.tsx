@@ -34,9 +34,9 @@ export default function VendorSidebar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // ==============================
-  // 📱 MOBILE VERSION
-  // ==============================
+  const isActivePath = (path: string) =>
+    location.pathname === path || (path === "/vendor/dashboard" && location.pathname === "/vendor");
+
   if (isMobile) {
     return (
       <Paper
@@ -77,31 +77,29 @@ export default function VendorSidebar() {
     );
   }
 
-  // ==============================
-  // 💻 DESKTOP VERSION
-  // ==============================
   return (
     <Box
       sx={{
         position: "sticky",
-        left: 16,
-        top: 96,
-        zIndex: 10,
-        height: "calc(100vh - 150px)",
-        width: 260,
-        borderRadius: 3,
-        boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-        overflowY: "auto",
-        background: "linear-gradient(to bottom, #0077b6, #005a8d)",
-        p: 2,
+        top: 92,
+        alignSelf: "start",
+        width: 220,
+        minHeight: 535,
+        borderRadius: "24px",
+        boxShadow: "0 18px 40px rgba(0,0,0,0.14)",
+        overflow: "hidden",
+        background: "linear-gradient(180deg, #0d83c3 0%, #0b6ea6 100%)",
+        px: 1.75,
+        py: 2.25,
       }}
     >
       <Typography
         sx={{
           color: "white",
-          fontWeight: 600,
-          mb: 2,
-          px: 1,
+          fontWeight: 700,
+          fontSize: "1rem",
+          mb: 2.2,
+          px: 1.25,
         }}
       >
         Vendor Panel
@@ -109,7 +107,7 @@ export default function VendorSidebar() {
 
       {menuItems.map((item) => {
         const Icon = item.icon;
-        const isActive = location.pathname === item.path;
+        const isActive = isActivePath(item.path);
 
         return (
           <Box
@@ -119,31 +117,33 @@ export default function VendorSidebar() {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 2,
+              gap: 1.75,
               px: 2,
-              py: 1.5,
-              mb: 1,
-              borderRadius: 2,
+              py: 1.15,
+              mb: 1.05,
+              minHeight: 42,
+              borderRadius: "18px",
               textDecoration: "none",
-              fontWeight: isActive ? 600 : 400,
+              fontSize: "0.95rem",
+              fontWeight: isActive ? 700 : 500,
+              lineHeight: 1.25,
               transition: "all 0.2s ease",
               ...(isActive
                 ? {
                     backgroundColor: "#ffffff",
                     color: "#0077b6",
-                    boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+                    boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
                   }
                 : {
                     color: "rgba(255,255,255,0.85)",
                     "&:hover": {
-                      backgroundColor: "rgba(255,255,255,0.15)",
+                      backgroundColor: "rgba(255,255,255,0.1)",
                       color: "#ffffff",
                     },
                   }),
             }}
           >
-            <Icon sx={{ fontSize: 20 }} />
-
+            <Icon sx={{ fontSize: 19 }} />
             {item.label}
           </Box>
         );

@@ -16,6 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
+import { createBanner } from "../services/contentService";
 
 const PLACEMENTS = [
   "Homepage Hero",
@@ -49,6 +50,7 @@ export default function AddBanner() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -76,11 +78,24 @@ export default function AddBanner() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    // TODO: wire to real API
-    alert(`Banner "${form.title}" saved successfully!`);
-    navigate("/admin/content");
+    setSaving(true);
+    try {
+      await createBanner({
+        title: form.title,
+        description: form.description || undefined,
+        linkUrl: form.linkUrl || undefined,
+        placement: form.placement,
+        startDate: form.startDate || undefined,
+        endDate: form.endDate || undefined,
+      });
+      navigate("/admin/content");
+    } catch {
+      setErrors((prev) => ({ ...prev, title: "Failed to save. Please try again." }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => navigate("/admin/content");
@@ -112,9 +127,10 @@ export default function AddBanner() {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
+            disabled={saving}
             sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" } }}
           >
-            Save Banner
+            {saving ? "Saving..." : "Save Banner"}
           </Button>
         </Box>
       </Box>
@@ -262,7 +278,11 @@ export default function AddBanner() {
 
             {imageName && (
               <Box display="flex" alignItems="center" gap={1}>
-                <Chip label={imageName} size="small" onDelete={() => { setImagePreview(null); setImageName(null); }} />
+                <Chip
+                  label={imageName}
+                  size="small"
+                  onDelete={() => { setImagePreview(null); setImageName(null); }}
+                />
               </Box>
             )}
           </Paper>
