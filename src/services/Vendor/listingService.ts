@@ -17,6 +17,8 @@ export interface HotelDetailsDto {
   checkInTime: string;
   checkOutTime: string;
   roomTypes: string[];
+  propertyType?: string;
+  primaryRoomType?: string;
 }
 
 export interface RestaurantDetailsDto {
@@ -24,6 +26,8 @@ export interface RestaurantDetailsDto {
   averageCost: number;
   openingHours: string;
   tableCapacity: number;
+  tableTypes: string[];
+  reservationRules?: string;
 }
 
 export interface CarRentalDetailsDto {
@@ -34,12 +38,30 @@ export interface CarRentalDetailsDto {
   seatCount: number;
   fuelType: string;
   availabilityStatus: string;
+  year?: number;
+  hourlyRate?: number;
+  pickupLocation?: string;
+  returnLocation?: string;
+  insuranceOptions?: string;
 }
 
 export interface ActivityDetailsDto {
   activityType: string;
   durationHours: number;
   difficultyLevel: string;
+  price: number;
+  minGroupSize: number;
+  maxGroupSize: number;
+  minAge: number;
+  maxAge: number;
+  includedServices: string[];
+  safetyRequirements: string;
+  availabilitySchedule: string;
+}
+
+export interface TicketTypeDto {
+  type: string;
+  quantity: number;
   price: number;
 }
 
@@ -49,6 +71,10 @@ export interface EventDetailsDto {
   dateAndTime: string;
   seatCount: number;
   ticketPrice: number;
+  eventType?: string;
+  venueName?: string;
+  venueAddress?: string;
+  ticketTypes?: TicketTypeDto[];
 }
 
 export interface CreateListingRequest {

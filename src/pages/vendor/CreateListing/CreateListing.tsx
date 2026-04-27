@@ -21,8 +21,16 @@ import EventFields from "./components/EventFields";
 import CarRentalFields from "./components/CarRentalFields";
 import ListingPreview from "./components/ListingPreview";
 import type { ListingFormData, ListingCategory } from "../../../utils/types";
-import { createListing, getCategories, getCurrentVendor, ListingType } from "../../../services/Vendor/listingService";
-import type { CreateListingRequest, CategoryDto } from "../../../services/Vendor/listingService";
+import {
+  createListing,
+  getCategories,
+  getCurrentVendor,
+  ListingType,
+} from "../../../services/Vendor/listingService";
+import type {
+  CreateListingRequest,
+  CategoryDto,
+} from "../../../services/Vendor/listingService";
 
 const CreateListing = () => {
   const navigate = useNavigate();
@@ -35,7 +43,7 @@ const CreateListing = () => {
       try {
         const [cats, vendor] = await Promise.all([
           getCategories(),
-          getCurrentVendor()
+          getCurrentVendor(),
         ]);
         setCategories(cats);
         setVendorId(vendor.id);
@@ -71,17 +79,30 @@ const CreateListing = () => {
     try {
       let type: string;
       switch (data.category) {
-        case "Hotels": type = "Hotel"; break;
-        case "Restaurants": type = "Restaurant"; break;
-        case "Activities": type = "Activity"; break;
-        case "Events": type = "Event"; break;
-        case "Car Rentals": type = "CarRental"; break;
-        default: type = "Hotel";
+        case "Hotels":
+          type = "Hotel";
+          break;
+        case "Restaurants":
+          type = "Restaurant";
+          break;
+        case "Activities":
+          type = "Activity";
+          break;
+        case "Events":
+          type = "Event";
+          break;
+        case "Car Rentals":
+          type = "CarRental";
+          break;
+        default:
+          type = "Hotel";
       }
 
       let categoryId = "00000000-0000-0000-0000-000000000000";
-      const categoryMatch = categories.find(c =>
-        c.name.toLowerCase().includes(data.category.toLowerCase().replace("s", ""))
+      const categoryMatch = categories.find((c) =>
+        c.name
+          .toLowerCase()
+          .includes(data.category.toLowerCase().replace("s", "")),
       );
       if (categoryMatch) {
         categoryId = categoryMatch.id;
@@ -90,7 +111,9 @@ const CreateListing = () => {
       }
 
       if (!vendorId) {
-        alert("Vendor profile not loaded. Ensure database is seeded and try again.");
+        alert(
+          "Vendor profile not loaded. Ensure database is seeded and try again.",
+        );
         return;
       }
 
@@ -104,16 +127,33 @@ const CreateListing = () => {
         currency: "LKR",
         location: data.location,
         status: data.status || "Active",
-        isAvailable: data.isAvailable !== undefined ? fieldToBoolean(data.isAvailable) : true,
-        images: Array.isArray(data.images) ? data.images : ["https://example.com/hotel1.jpg"],
-        tags: typeof data.tags === 'string' ? (data.tags as string).split(',').map(t => t.trim()).filter(t => t !== "") : (data.tags || []),
-        cancellationPolicy: data.cancellationPolicy || "Free cancellation within 24 hours"
+        isAvailable:
+          data.isAvailable !== undefined
+            ? fieldToBoolean(data.isAvailable)
+            : true,
+        images: data.imageUrls
+          ? (data.imageUrls as string)
+            .split(",")
+            .map((u) => u.trim())
+            .filter((u) => u !== "")
+          : Array.isArray(data.images) && data.images.length > 0
+            ? data.images
+            : ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000"], // Better placeholder
+        tags:
+          typeof data.tags === "string"
+            ? (data.tags as string)
+              .split(",")
+              .map((t) => t.trim())
+              .filter((t) => t !== "")
+            : data.tags || [],
+        cancellationPolicy:
+          data.cancellationPolicy || "Free cancellation within 24 hours",
       };
 
       // Helper function to ensure boolean
       function fieldToBoolean(val: any): boolean {
-        if (typeof val === 'boolean') return val;
-        return val === 'true';
+        if (typeof val === "boolean") return val;
+        return val === "true";
       }
 
       if (type === "Hotel") {
@@ -123,21 +163,40 @@ const CreateListing = () => {
           amenities: data.amenities || [],
           checkInTime: data.checkInTime || "14:00",
           checkOutTime: data.checkOutTime || "12:00",
-          roomTypes: data.roomTypes || []
+          roomTypes: data.roomTypes || [],
+          propertyType: data.propertyType || "",
+          primaryRoomType: data.roomType || "",
         };
       } else if (type === "Restaurant") {
         request.restaurantDetails = {
           cuisineType: data.cuisineType || "",
           averageCost: data.averageCost || 0,
           openingHours: `${data.openingTime || "06:00"} - ${data.closingTime || "23:00"}`,
-          tableCapacity: data.seatingCapacity || 0
+          tableCapacity: data.seatingCapacity || 0,
+          tableTypes: data.tableTypes || [],
+          reservationRules: data.reservationRules || "",
         };
       } else if (type === "Activity") {
         request.activityDetails = {
           activityType: data.activityType || "",
-          durationHours: parseInt(data.duration || "0") || 0,
+
+
+          durationHours: parseInt(data.duration?.replace(/\D/g, "") || "0"),
+
           difficultyLevel: data.difficultyLevel || "Easy",
-          price: data.activityPrice || 0
+
+          price: data.activityPrice || 0,
+
+          // NEW FIELDS (must match backend DTO)
+          minGroupSize: data.minGroupSize || 1,
+          maxGroupSize: data.maxGroupSize || 10,
+          minAge: data.minAge || 0,
+          maxAge: data.maxAge || 100,
+
+          includedServices: data.includedServices || [],
+
+          safetyRequirements: data.safetyRequirements || "",
+          availabilitySchedule: data.availabilitySchedule || "",
         };
       } else if (type === "Event") {
         request.eventDetails = {
@@ -145,17 +204,26 @@ const CreateListing = () => {
           organizer: data.organizer || "",
           dateAndTime: `${data.eventDate || "2026-05-10"}T${data.eventTime || "19:00:00"}`,
           seatCount: data.seatCount || 0,
-          ticketPrice: data.ticketTypes?.[0]?.price || 0
+          ticketPrice: data.ticketTypes?.[0]?.price || 0,
+          eventType: data.eventType || "",
+          venueName: data.venueName || "",
+          venueAddress: data.venueAddress || "",
+          ticketTypes: data.ticketTypes || [],
         };
       } else if (type === "CarRental") {
         request.carRentalDetails = {
-          brand: data.brand || "",
+          brand: data.brand || data.vehicleType || "",
           model: data.model || "",
           transmission: data.transmission || "Automatic",
           pricePerDay: data.dailyRate || 0,
           seatCount: data.seatCountCar || 0,
           fuelType: data.fuelType || "",
-          availabilityStatus: data.availabilityStatus || "Available"
+          availabilityStatus: data.availabilityStatus || "Available",
+          year: data.year || 2024,
+          hourlyRate: data.hourlyRate || 0,
+          pickupLocation: data.pickupLocation || "",
+          returnLocation: data.returnLocation || "",
+          insuranceOptions: data.insuranceOptions || "Basic Insurance",
         };
       }
 

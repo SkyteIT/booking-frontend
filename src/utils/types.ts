@@ -14,6 +14,7 @@ export interface ListingFormData {
     location: string;
     category: ListingCategory;
     images: string[]; // Changed from FileList to string[] as per requested JSON
+    imageUrls?: string;
     description?: string;
     price?: number;
     tags?: string[];

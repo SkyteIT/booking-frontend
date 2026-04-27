@@ -158,18 +158,20 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
             p: 4,
             textAlign: "center",
             cursor: "pointer",
+            mb: 2,
             "&:hover": {
               borderColor: "primary.main",
               backgroundColor: "action.hover",
             },
           }}
+          onClick={() => document.getElementById("image-upload")?.click()}
         >
-          {/* keep your icon as-is if you have it */}
           <Typography variant="body2" color="text.secondary">
             Click or drag images to upload (0/10)
           </Typography>
 
           <input
+            id="image-upload"
             type="file"
             multiple
             hidden
@@ -177,6 +179,14 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
             {...register("images")}
           />
         </Box>
+
+        <TextField
+          fullWidth
+          label="Image URLs (comma separated)"
+          placeholder="e.g., https://example.com/image1.jpg, https://example.com/image2.jpg"
+          {...register("imageUrls")}
+          helperText="Or paste direct image links here"
+        />
 
         {errors.images && (
           <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
