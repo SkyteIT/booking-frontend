@@ -1,6 +1,5 @@
-
 export interface Category {
-  id: number;
+  id: string;
   name: string;
   listings: number;
   status: boolean;
@@ -8,9 +7,10 @@ export interface Category {
 }
 
 export interface Banner {
-  id: number;
+  id: string;
   title: string;
   description: string;
+  imageUrl: string;
   placement: "Homepage Hero" | "Homepage Banner" | "Category Pages" | string;
   startDate: string;
   endDate: string;
@@ -18,12 +18,12 @@ export interface Banner {
 }
 
 export interface Promotion {
-  id: number;
+  id: string;
   code: string;
   type: "Percentage" | "Fixed Amount";
   value: number;
   usageCount: number;
-  usageLimit: number | null; // null = unlimited
+  usageLimit: number | null;
   startDate: string;
   endDate: string;
   status: "Active" | "Expired" | "Draft";

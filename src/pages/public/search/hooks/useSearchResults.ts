@@ -1,4 +1,3 @@
-// src/pages/public/search/hooks/useSearchResults.ts
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { searchListings, type SearchListing } from "../../../../services/searchService";
@@ -9,41 +8,45 @@ export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [listings, setListings] = useState<SearchListing[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
-  // Load categories once on mount
   useEffect(() => {
     fetchCategories()
       .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]));
+      .catch(() => setCategories([]))
+      .finally(() => setCategoriesLoaded(true));
   }, []);
 
-  // Fetch listings whenever filters change
   useEffect(() => {
+    if (!categoriesLoaded) return;
+
     setLoading(true);
     setError(null);
 
-    const selectedCategoryId = categories.find(
-      (c) => filters.categories[0] && c.name === filters.categories[0]
-    )?.id;
+    const selectedCategoryIds = filters.categories
+      .map((name) =>
+        categories.find((c) => c.name.toLowerCase() === name.toLowerCase())?.id
+      )
+      .filter((id): id is string => Boolean(id));
 
     searchListings({
       searchTerm: filters.q || undefined,
-      categoryId: selectedCategoryId,
+      categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
+      minRating: filters.minRating,
     })
-      // Guard: API may return undefined, null, or a wrapped object instead of array
       .then((data) => setListings(Array.isArray(data) ? data : []))
       .catch(() => {
         setListings([]);
         setError("Failed to load results. Please try again.");
       })
       .finally(() => setLoading(false));
-  }, [filters, categories]);
+  }, [filters, categories, categoriesLoaded]);
 
   const setQuery = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
@@ -72,6 +75,7 @@ export const useSearchResults = () => {
     const updated = isSelected
       ? current.filter((c) => c !== categoryName)
       : [...current, categoryName as any];
+
     updated.length ? next.set("category", updated.join(",")) : next.delete("category");
     setSearchParams(next);
   }, [searchParams, setSearchParams, filters.categories]);

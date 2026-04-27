@@ -1,30 +1,14 @@
 // src/pages/admin/contentManagement/components/AddBanner.tsx
 import { useState } from "react";
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  MenuItem,
-  FormControlLabel,
-  Switch,
-  IconButton,
-  Chip,
+  Box, Typography, TextField, Button, Paper, MenuItem,
+  FormControlLabel, Switch, IconButton, Chip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
-import { createBanner } from "../services/contentService";
-
-const PLACEMENTS = [
-  "Homepage Hero",
-  "Homepage Banner",
-  "Category Pages",
-  "Search Results",
-  "Checkout Page",
-];
+import { createBanner, PLACEMENT_OPTIONS } from "../services/contentService";
 
 const cardStyle = {
   p: 3,
@@ -38,21 +22,22 @@ export default function AddBanner() {
 
   const [form, setForm] = useState({
     title: "",
-    description: "",
-    placement: "",
-    linkUrl: "",
+    subtitle: "",
+    // placement is now an int matching the backend enum
+    placement: "" as "" | number,
     startDate: "",
     endDate: "",
     status: true,
-    displayOrder: "1",
     openInNewTab: false,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string | null>(null);
+  // imageUrl sent to backend — empty string satisfies non-nullable requirement
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: string | boolean | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
@@ -62,16 +47,21 @@ export default function AddBanner() {
     if (!file) return;
     setImageName(file.name);
     const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setImagePreview(result);
+      // For now store base64 as imageUrl; replace with upload endpoint if available
+      setImageUrl(result);
+    };
     reader.readAsDataURL(file);
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.title.trim()) newErrors.title = "Banner title is required";
-    if (!form.placement) newErrors.placement = "Placement is required";
-    if (!form.startDate) newErrors.startDate = "Start date is required";
-    if (!form.endDate) newErrors.endDate = "End date is required";
+    if (!form.title.trim())       newErrors.title     = "Banner title is required";
+    if (form.placement === "")    newErrors.placement = "Placement is required";
+    if (!form.startDate)          newErrors.startDate = "Start date is required";
+    if (!form.endDate)            newErrors.endDate   = "End date is required";
     if (form.startDate && form.endDate && form.endDate < form.startDate)
       newErrors.endDate = "End date must be after start date";
     setErrors(newErrors);
@@ -82,13 +72,16 @@ export default function AddBanner() {
     if (!validate()) return;
     setSaving(true);
     try {
+      // Payload matches CreateBannerDto exactly:
+      // Title (string), Subtitle (string?), ImageUrl (string),
+      // Placement (int), StartDate (DateOnly), EndDate (DateOnly)
       await createBanner({
-        title: form.title,
-        description: form.description || undefined,
-        linkUrl: form.linkUrl || undefined,
-        placement: form.placement,
-        startDate: form.startDate || undefined,
-        endDate: form.endDate || undefined,
+        title:     form.title,
+        subtitle:  form.subtitle || undefined,
+        imageUrl:  imageUrl || "",        // required non-nullable field
+        placement: form.placement as number, // int enum
+        startDate: form.startDate,           // "YYYY-MM-DD"
+        endDate:   form.endDate,             // "YYYY-MM-DD"
       });
       navigate("/admin/content");
     } catch {
@@ -100,7 +93,8 @@ export default function AddBanner() {
 
   const handleCancel = () => navigate("/admin/content");
 
-  // Derive preview status label
+  const previewPlacementLabel =
+    PLACEMENT_OPTIONS.find((p) => p.value === form.placement)?.label ?? "—";
   const previewStatus = form.status ? "Active" : "Inactive";
   const today = new Date().toISOString().split("T")[0];
   const isScheduled = form.startDate && form.startDate > today;
@@ -144,7 +138,7 @@ export default function AddBanner() {
           {/* 1. Basic Information */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display:"flex" }}>
+              <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
                 <Typography fontSize={18}>🖼️</Typography>
               </Box>
               <Typography fontWeight={600}>1. Basic Information</Typography>
@@ -163,20 +157,20 @@ export default function AddBanner() {
             />
 
             <TextField
-              label="Description"
+              label="Subtitle"
               placeholder="Short description shown below the banner title..."
               fullWidth
               multiline
               rows={3}
-              value={form.description}
-              onChange={(e) => handleChange("description", e.target.value)}
+              value={form.subtitle}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
             />
           </Paper>
 
           {/* 2. Placement & Scheduling */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display:"flex" }}>
+              <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
                 <Typography fontSize={18}>📍</Typography>
               </Box>
               <Typography fontWeight={600}>2. Placement & Scheduling</Typography>
@@ -188,13 +182,16 @@ export default function AddBanner() {
               fullWidth
               required
               sx={{ mb: 2 }}
+              // value must be number or "" — keep as-is
               value={form.placement}
-              onChange={(e) => handleChange("placement", e.target.value)}
+              onChange={(e) => handleChange("placement", Number(e.target.value))}
               error={!!errors.placement}
-              helperText={errors.placement || "Where this banner will appear on the site"}
+             
             >
-              {PLACEMENTS.map((p) => (
-                <MenuItem key={p} value={p}>{p}</MenuItem>
+              {PLACEMENT_OPTIONS.map((p) => (
+                <MenuItem key={p.value} value={p.value}>
+                  {p.label}
+                </MenuItem>
               ))}
             </TextField>
 
@@ -224,28 +221,24 @@ export default function AddBanner() {
             </Box>
           </Paper>
 
-          {/* 3. Media Upload */}
+          {/* 3. Banner Image */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display:"flex" }}>
+              <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
                 <Typography fontSize={18}>🖼</Typography>
               </Box>
               <Typography fontWeight={600}>3. Banner Image</Typography>
             </Box>
 
-            {/* Upload zone */}
             <Box
               component="label"
               htmlFor="banner-image-input"
               sx={{
                 border: "2px dashed #b0c4d8",
-                borderRadius: 2,
-                p: 4,
-                textAlign: "center",
-                cursor: "pointer",
+                borderRadius: 2, p: 4,
+                textAlign: "center", cursor: "pointer",
                 bgcolor: imagePreview ? "transparent" : "#f8fafc",
-                display: "block",
-                mb: 2,
+                display: "block", mb: 2,
                 "&:hover": { borderColor: "#0077B6", bgcolor: "#f0f7ff" },
                 transition: "all 0.2s",
               }}
@@ -277,34 +270,22 @@ export default function AddBanner() {
             </Box>
 
             {imageName && (
-              <Box display="flex" alignItems="center" gap={1}>
-                <Chip
-                  label={imageName}
-                  size="small"
-                  onDelete={() => { setImagePreview(null); setImageName(null); }}
-                />
-              </Box>
+              <Chip
+                label={imageName}
+                size="small"
+                onDelete={() => { setImagePreview(null); setImageName(null); setImageUrl(""); }}
+              />
             )}
           </Paper>
 
           {/* 4. Link & Behaviour */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display:"flex" }}>
+              <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display: "flex" }}>
                 <Typography fontSize={18}>🔗</Typography>
               </Box>
               <Typography fontWeight={600}>4. Link & Behaviour</Typography>
             </Box>
-
-            <TextField
-              label="Destination URL"
-              placeholder="https://example.com/summer-sale"
-              fullWidth
-              sx={{ mb: 2 }}
-              value={form.linkUrl}
-              onChange={(e) => handleChange("linkUrl", e.target.value)}
-              helperText="Leave empty if the banner is for display only"
-            />
 
             <FormControlLabel
               control={
@@ -316,35 +297,14 @@ export default function AddBanner() {
               label="Open link in new tab"
             />
           </Paper>
-
-          {/* 5. Display Settings */}
-          <Paper sx={cardStyle}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#ede7f6", borderRadius: "50%", p: 0.8, display:"flex" }}>
-                <Typography fontSize={18}>⚙️</Typography>
-              </Box>
-              <Typography fontWeight={600}>5. Display Settings</Typography>
-            </Box>
-
-            <TextField
-              label="Display Order"
-              type="number"
-              fullWidth
-              value={form.displayOrder}
-              onChange={(e) => handleChange("displayOrder", e.target.value)}
-              helperText="Lower numbers appear first when multiple banners share a placement"
-              inputProps={{ min: 1 }}
-            />
-          </Paper>
         </Box>
 
         {/* ── RIGHT COLUMN ── */}
         <Box display="flex" flexDirection="column" gap={2}>
 
-          {/* Status card */}
+          {/* Status */}
           <Paper sx={cardStyle}>
             <Typography fontWeight={600} mb={2}>Status & Visibility</Typography>
-
             <FormControlLabel
               control={
                 <Switch
@@ -358,12 +318,9 @@ export default function AddBanner() {
               }
               label={form.status ? "Active" : "Inactive"}
             />
-
             <Box
               sx={{
-                mt: 2,
-                p: 2,
-                borderRadius: 2,
+                mt: 2, p: 2, borderRadius: 2,
                 bgcolor: form.status ? "#e6f4ea" : "#f5f5f5",
                 border: `1px solid ${form.status ? "#c8e6c9" : "#e0e0e0"}`,
               }}
@@ -378,56 +335,30 @@ export default function AddBanner() {
             </Box>
           </Paper>
 
-          {/* Preview card */}
-          <Paper
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              background: "linear-gradient(135deg, #0077B6, #00B4D8)",
-              color: "#fff",
-            }}
-          >
+          {/* Preview */}
+          <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#0077B6,#00B4D8)", color: "#fff" }}>
             <Typography fontWeight={600} mb={2}>Banner Preview</Typography>
-
-            <Box display="flex" justifyContent="space-between" mb={1}>
-              <Typography fontSize={13} sx={{ opacity: 0.8 }}>Title</Typography>
-              <Typography fontSize={13} fontWeight={600}>
-                {form.title || "—"}
-              </Typography>
-            </Box>
-
-            <Box display="flex" justifyContent="space-between" mb={1}>
-              <Typography fontSize={13} sx={{ opacity: 0.8 }}>Placement</Typography>
-              <Typography fontSize={13} fontWeight={600}>
-                {form.placement || "—"}
-              </Typography>
-            </Box>
-
-            <Box display="flex" justifyContent="space-between" mb={1}>
-              <Typography fontSize={13} sx={{ opacity: 0.8 }}>Duration</Typography>
-              <Typography fontSize={13} fontWeight={600}>
-                {form.startDate && form.endDate
-                  ? `${form.startDate} → ${form.endDate}`
-                  : "—"}
-              </Typography>
-            </Box>
-
+            {[
+              { label: "Title",     value: form.title || "—" },
+              { label: "Placement", value: previewPlacementLabel },
+              { label: "Duration",  value: form.startDate && form.endDate ? `${form.startDate} → ${form.endDate}` : "—" },
+            ].map((row) => (
+              <Box key={row.label} display="flex" justifyContent="space-between" mb={1}>
+                <Typography fontSize={13} sx={{ opacity: 0.8 }}>{row.label}</Typography>
+                <Typography fontSize={13} fontWeight={600}>{row.value}</Typography>
+              </Box>
+            ))}
             <Box display="flex" justifyContent="space-between">
               <Typography fontSize={13} sx={{ opacity: 0.8 }}>Status</Typography>
               <Chip
                 label={previewStatus}
                 size="small"
-                sx={{
-                  bgcolor: "rgba(255,255,255,0.25)",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 11,
-                }}
+                sx={{ bgcolor: "rgba(255,255,255,0.25)", color: "#fff", fontWeight: 600, fontSize: 11 }}
               />
             </Box>
           </Paper>
 
-          {/* Tips card */}
+          {/* Tips */}
           <Paper sx={{ ...cardStyle, bgcolor: "#fff8e1", border: "1px solid #ffe082" }}>
             <Typography fontWeight={600} mb={1} fontSize={14}>💡 Tips</Typography>
             <Typography fontSize={12} color="text.secondary" lineHeight={1.8}>

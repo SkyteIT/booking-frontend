@@ -1,16 +1,15 @@
-// src/pages/admin/contentManagement/services/contentService.ts
 import api from "../../../../services/api";
 import type { Category, Banner, Promotion } from "../types/contentType";
 
-// ─── Categories ──────────────────────────────────────────────────────────────
+// Categories
 
 export const getCategories = async (): Promise<Category[]> => {
   const { data } = await api.get("/categories");
   return data.map((c: any) => ({
-    id: c.id,
+    id: String(c.id),
     name: c.name,
-    listings: 0,           // backend doesn't return count; set 0 or enhance later
-    status: c.isActive,
+    listings: 0,
+    status: c.isActive ?? false,
     icon: c.iconUrl ?? "",
   }));
 };
@@ -21,7 +20,13 @@ export const createCategory = async (payload: {
   iconUrl?: string;
 }): Promise<Category> => {
   const { data } = await api.post("/categories", payload);
-  return { id: data.id, name: data.name, listings: 0, status: data.isActive, icon: data.iconUrl ?? "" };
+  return {
+    id: String(data.id),
+    name: data.name,
+    listings: 0,
+    status: data.isActive ?? false,
+    icon: data.iconUrl ?? "",
+  };
 };
 
 export const updateCategory = async (
@@ -29,7 +34,13 @@ export const updateCategory = async (
   payload: { name?: string; description?: string; iconUrl?: string }
 ): Promise<Category> => {
   const { data } = await api.put(`/categories/${id}`, payload);
-  return { id: data.id, name: data.name, listings: 0, status: data.isActive, icon: data.iconUrl ?? "" };
+  return {
+    id: String(data.id),
+    name: data.name,
+    listings: 0,
+    status: data.isActive ?? false,
+    icon: data.iconUrl ?? "",
+  };
 };
 
 export const toggleCategoryStatus = async (id: string, isActive: boolean): Promise<void> => {
@@ -40,65 +51,103 @@ export const deleteCategory = async (id: string): Promise<void> => {
   await api.delete(`/categories/${id}`);
 };
 
-// ─── Banners ─────────────────────────────────────────────────────────────────
+// Banners
+
+export const PLACEMENT_OPTIONS = [
+  { label: "Homepage Hero", value: 1 },
+  { label: "Homepage Banner", value: 2 },
+  { label: "Category Pages", value: 3 },
+] as const;
+
+export const placementLabel = (value: string | number): string => {
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "homepagehero") return "Homepage Hero";
+    if (normalized === "homepagebanner") return "Homepage Banner";
+    if (normalized === "categorypage") return "Category Pages";
+    if (normalized === "homepage hero") return "Homepage Hero";
+    if (normalized === "homepage banner") return "Homepage Banner";
+    if (normalized === "category pages") return "Category Pages";
+    if (normalized === "category page") return "Category Pages";
+    return value;
+  }
+
+  return PLACEMENT_OPTIONS.find((p) => p.value === value)?.label ?? String(value);
+};
+
+const normalizeBanner = (b: any): Banner => ({
+  id: String(b.id),
+  title: b.title ?? "",
+  description: b.subtitle ?? "",
+  imageUrl: b.imageUrl ?? "",
+  placement: placementLabel(b.placement),
+  startDate: b.startDate?.slice(0, 10) ?? "",
+  endDate: b.endDate?.slice(0, 10) ?? "",
+  status: b.status === "Inactive" ? "Inactive" : "Active",
+});
 
 export const getBanners = async (): Promise<Banner[]> => {
   const { data } = await api.get("/banners");
-  return data.map((b: any) => ({
-    id: b.id,
-    title: b.title,
-    description: b.description ?? "",
-    placement: b.placement ?? "Homepage Hero",
-    startDate: b.startDate?.slice(0, 10) ?? "",
-    endDate: b.endDate?.slice(0, 10) ?? "",
-    status: b.isActive ? "Active" : "Inactive",
-  }));
+  return data.map((b: any) => normalizeBanner(b));
 };
 
 export const createBanner = async (payload: {
   title: string;
-  description?: string;
-  imageUrl?: string;
-  linkUrl?: string;
-  placement?: string;
-  startDate?: string;
-  endDate?: string;
+  subtitle?: string;
+  imageUrl: string;
+  placement: number;
+  startDate: string;
+  endDate: string;
 }): Promise<Banner> => {
-  const { data } = await api.post("/banners", payload);
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description ?? "",
-    placement: data.placement ?? "Homepage Hero",
-    startDate: data.startDate?.slice(0, 10) ?? "",
-    endDate: data.endDate?.slice(0, 10) ?? "",
-    status: data.isActive ? "Active" : "Inactive",
+  const requestBody = {
+    title: payload.title,
+    subtitle: payload.subtitle ?? "",
+    imageUrl: payload.imageUrl,
+    placement: payload.placement,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
   };
+
+  const { data } = await api.post("/banners", requestBody);
+  return normalizeBanner(data);
 };
 
-export const updateBanner = async (id: string, payload: any): Promise<Banner> => {
-  const { data } = await api.put(`/banners/${id}`, payload);
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description ?? "",
-    placement: data.placement ?? "Homepage Hero",
-    startDate: data.startDate?.slice(0, 10) ?? "",
-    endDate: data.endDate?.slice(0, 10) ?? "",
-    status: data.isActive ? "Active" : "Inactive",
+export const updateBanner = async (
+  id: string,
+  payload: {
+    title: string;
+    subtitle?: string;
+    imageUrl: string;
+    placement: number;
+    startDate: string;
+    endDate: string;
+    status: "Active" | "Inactive";
+  }
+): Promise<Banner> => {
+  const requestBody = {
+    title: payload.title,
+    subtitle: payload.subtitle ?? "",
+    imageUrl: payload.imageUrl,
+    placement: payload.placement,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    status: payload.status === "Active" ? 1 : 0,
   };
+
+  const { data } = await api.put(`/banners/${id}`, requestBody);
+  return normalizeBanner(data);
 };
 
 export const deleteBanner = async (id: string): Promise<void> => {
   await api.delete(`/banners/${id}`);
 };
 
-// ─── Promotions ───────────────────────────────────────────────────────────────
+// Promotions
 
 export const getPromotions = async (): Promise<Promotion[]> => {
   const { data } = await api.get("/promotions");
   return data.map((p: any) => ({
-    id: p.id,
+    id: String(p.id),
     code: p.code,
     type: p.promotionType === 0 ? "Percentage" : "Fixed Amount",
     value: p.discountValue,
@@ -120,7 +169,7 @@ export const createPromotion = async (payload: {
 }): Promise<Promotion> => {
   const { data } = await api.post("/promotions", payload);
   return {
-    id: data.id,
+    id: String(data.id),
     code: data.code,
     type: data.promotionType === 0 ? "Percentage" : "Fixed Amount",
     value: data.discountValue,
