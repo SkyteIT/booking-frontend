@@ -18,6 +18,8 @@ import { useNavigate } from "react-router-dom";
 import CategoryCard from "./components/CategoryCard";
 import BannerTable from "./components/BannerTable";
 import PromotionTable from "./components/PromotionTable";
+import EditBanner from "./components/EditBanner";
+import EditPromotion from "./components/EditPromotion";
 import { useContent } from "./hooks/useContent";
 
 const SlideUp = React.forwardRef(function SlideUp(
@@ -40,7 +42,15 @@ export default function ContentManagement() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { categories, banners, promotions, toggleCategory, removeCategory } = useContent();
+  // Banner edit/delete state
+  const [editBannerId, setEditBannerId] = useState<string | null>(null);
+  const [deleteBannerId, setDeleteBannerId] = useState<string | null>(null);
+
+  // Promotion edit/delete state
+  const [editPromotionId, setEditPromotionId] = useState<string | null>(null);
+  const [deletePromotionId, setDeletePromotionId] = useState<string | null>(null);
+
+  const { categories, banners, promotions, toggleCategory, removeCategory, removeBanner, removePromotion, refresh } = useContent();
   const navigate = useNavigate();
 
   const activeCount = categories.filter((c) => c.status).length;
@@ -65,6 +75,20 @@ export default function ContentManagement() {
       removeCategory(deleteId);
     }
     setDeleteId(null);
+  }
+
+  async function handleDeleteBannerConfirm() {
+    if (deleteBannerId !== null) {
+      await removeBanner(deleteBannerId);
+    }
+    setDeleteBannerId(null);
+  }
+
+  async function handleDeletePromotionConfirm() {
+    if (deletePromotionId !== null) {
+      await removePromotion(deletePromotionId);
+    }
+    setDeletePromotionId(null);
   }
 
   return (
@@ -333,10 +357,94 @@ export default function ContentManagement() {
         )
       )}
 
-      {tab === 1 && <BannerTable banners={banners} />}
-      {tab === 2 && <PromotionTable promotions={promotions} />}
+      {tab === 1 && (
+        <BannerTable
+          banners={banners}
+          onEdit={(id) => setEditBannerId(id)}
+          onDelete={(id) => setDeleteBannerId(id)}
+        />
+      )}
+      {tab === 2 && (
+        <PromotionTable
+          promotions={promotions}
+          onEdit={(id) => setEditPromotionId(id)}
+          onDelete={(id) => setDeletePromotionId(id)}
+        />
+      )}
 
-      {/* ── Delete Confirmation Dialog ── */}
+      {/* ── Edit Banner Modal ── */}
+      <EditBanner
+        bannerId={editBannerId ?? undefined}
+        open={editBannerId !== null}
+        onClose={() => setEditBannerId(null)}
+        onSaved={() => { setEditBannerId(null); refresh(); }}
+      />
+
+      {/* ── Edit Promotion Modal ── */}
+      <EditPromotion
+        promotionId={editPromotionId ?? undefined}
+        open={editPromotionId !== null}
+        onClose={() => setEditPromotionId(null)}
+        onSaved={() => { setEditPromotionId(null); refresh(); }}
+      />
+
+      {/* ── Delete Banner Confirmation ── */}
+      <Dialog
+        open={deleteBannerId !== null}
+        onClose={() => setDeleteBannerId(null)}
+        TransitionComponent={SlideUp}
+        PaperProps={{ sx: { borderRadius: "20px", p: 1, maxWidth: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" } }}
+      >
+        <DialogTitle sx={{ textAlign: "center", pt: 3, pb: 1 }}>
+          <Box sx={{ width: 60, height: 60, borderRadius: "50%", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto", mb: 1.5 }}>
+            <WarningAmberRoundedIcon sx={{ color: "#EF4444", fontSize: 30 }} />
+          </Box>
+          <Typography fontWeight={800} fontSize={18} color="#0F172A">Delete Banner</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: "center", pb: 1 }}>
+          <DialogContentText sx={{ color: "#64748B", fontSize: 14 }}>
+            Are you sure you want to delete this banner? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 1.5, pb: 3, px: 3 }}>
+          <Button fullWidth onClick={() => setDeleteBannerId(null)} sx={{ borderRadius: "10px", border: "1px solid #E2E8F0", color: "#64748B", fontWeight: 600, textTransform: "none", py: 1.1 }}>
+            Cancel
+          </Button>
+          <Button fullWidth onClick={handleDeleteBannerConfirm} sx={{ borderRadius: "10px", background: "linear-gradient(135deg,#EF4444,#DC2626)", color: "#fff", fontWeight: 700, textTransform: "none", py: 1.1 }}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Delete Promotion Confirmation ── */}
+      <Dialog
+        open={deletePromotionId !== null}
+        onClose={() => setDeletePromotionId(null)}
+        TransitionComponent={SlideUp}
+        PaperProps={{ sx: { borderRadius: "20px", p: 1, maxWidth: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" } }}
+      >
+        <DialogTitle sx={{ textAlign: "center", pt: 3, pb: 1 }}>
+          <Box sx={{ width: 60, height: 60, borderRadius: "50%", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto", mb: 1.5 }}>
+            <WarningAmberRoundedIcon sx={{ color: "#EF4444", fontSize: 30 }} />
+          </Box>
+          <Typography fontWeight={800} fontSize={18} color="#0F172A">Delete Promotion</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: "center", pb: 1 }}>
+          <DialogContentText sx={{ color: "#64748B", fontSize: 14 }}>
+            Are you sure you want to delete this promotion? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 1.5, pb: 3, px: 3 }}>
+          <Button fullWidth onClick={() => setDeletePromotionId(null)} sx={{ borderRadius: "10px", border: "1px solid #E2E8F0", color: "#64748B", fontWeight: 600, textTransform: "none", py: 1.1 }}>
+            Cancel
+          </Button>
+          <Button fullWidth onClick={handleDeletePromotionConfirm} sx={{ borderRadius: "10px", background: "linear-gradient(135deg,#EF4444,#DC2626)", color: "#fff", fontWeight: 700, textTransform: "none", py: 1.1 }}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Delete Category Confirmation Dialog ── */}
       <Dialog
         open={deleteId !== null}
         onClose={() => setDeleteId(null)}

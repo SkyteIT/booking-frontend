@@ -51,6 +51,38 @@ export const deleteCategory = async (id: string): Promise<void> => {
   await api.delete(`/categories/${id}`);
 };
 
+export const getCategoryById = async (id: string): Promise<Category | null> => {
+  try {
+    const { data } = await api.get(`/categories/${id}`);
+    return {
+      id: String(data.id),
+      name: data.name ?? "",
+      listings: 0,
+      status: data.isActive ?? false,
+      icon: data.iconUrl ?? "",
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const updateCategoryFull = async (
+  id: string,
+  payload: {
+    name: string;
+    description?: string;
+    iconUrl?: string;
+    isActive?: boolean;
+  }
+): Promise<void> => {
+  await api.put(`/categories/${id}`, {
+    name: payload.name,
+    description: payload.description ?? "",
+    iconUrl: payload.iconUrl ?? "",
+    isActive: payload.isActive,
+  });
+};
+
 // Banners
 
 export const PLACEMENT_OPTIONS = [
@@ -89,6 +121,15 @@ const normalizeBanner = (b: any): Banner => ({
 export const getBanners = async (): Promise<Banner[]> => {
   const { data } = await api.get("/banners");
   return data.map((b: any) => normalizeBanner(b));
+};
+
+export const getBannerById = async (id: string): Promise<Banner | null> => {
+  try {
+    const { data } = await api.get(`/banners/${id}`);
+    return normalizeBanner(data);
+  } catch {
+    return null;
+  }
 };
 
 export const createBanner = async (payload: {
@@ -183,4 +224,48 @@ export const createPromotion = async (payload: {
 
 export const deletePromotion = async (id: string): Promise<void> => {
   await api.delete(`/promotions/${id}`);
+};
+
+export const getPromotionById = async (id: string): Promise<Promotion | null> => {
+  try {
+    const { data } = await api.get(`/promotions/${id}`);
+    return {
+      id: String(data.id),
+      code: data.code,
+      type: data.promotionType === 0 ? "Percentage" : "Fixed Amount",
+      value: data.discountValue,
+      usageCount: data.usageCount ?? 0,
+      usageLimit: data.usageLimit ?? null,
+      startDate: data.startDate?.slice(0, 10) ?? "",
+      endDate: data.endDate?.slice(0, 10) ?? "",
+      status: data.isActive ? "Active" : "Expired",
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const updatePromotion = async (
+  id: string,
+  payload: {
+    promoCode: string;
+    type: number;
+    value: number;
+    usageCount: number;
+    usageLimit?: number;
+    startDate: string;
+    endDate: string;
+    status: number;
+  }
+): Promise<void> => {
+  await api.put(`/promotions/${id}`, {
+    code: payload.promoCode,
+    promotionType: payload.type,
+    discountValue: payload.value,
+    usageCount: payload.usageCount,
+    usageLimit: payload.usageLimit ?? null,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    isActive: payload.status === 1,
+  });
 };

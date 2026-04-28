@@ -16,6 +16,9 @@ import ContentManagement from "../pages/admin/contentManagement/ContentManagemen
 import AddCategory from "../pages/admin/contentManagement/components/AddCategory";
 import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
+import EditBanner from "../pages/admin/contentManagement/components/EditBanner";
+import EditPromotion from "../pages/admin/contentManagement/components/EditPromotion";
+import EditCategory from "../pages/admin/contentManagement/components/EditCategory";
 import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
 
 // Vendor (existing)
@@ -43,8 +46,11 @@ function AppRouter() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="content" element={<ContentManagement />} />
         <Route path="categories/add" element={<AddCategory />} />
+        <Route path="categories/edit/:id" element={<EditCategory />} />
         <Route path="banners/add" element={<AddBanner />} />
+        <Route path="banners/edit/:id" element={<EditBanner />} />
         <Route path="promotions/add" element={<AddPromotion />} />
+        <Route path="promotions/edit/:id" element={<EditPromotion />} />
         <Route path="notifications" element={<AdminNotifications />} />
       </Route>
 

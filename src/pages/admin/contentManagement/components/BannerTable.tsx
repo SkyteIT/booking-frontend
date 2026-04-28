@@ -19,6 +19,8 @@ import type { Banner } from "../types/contentType";
 
 interface Props {
   banners: Banner[];
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const placementColor: Record<string, string> = {
@@ -27,7 +29,7 @@ const placementColor: Record<string, string> = {
   "Category Pages": "#fff3e0",
 };
 
-export default function BannerTable({ banners }: Props) {
+export default function BannerTable({ banners, onEdit, onDelete }: Props) {
   return (
     <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
       <Table>
@@ -99,10 +101,10 @@ export default function BannerTable({ banners }: Props) {
 
               <TableCell>
                 <Box display="flex" gap={0.5}>
-                  <IconButton size="small" color="primary">
+                  <IconButton size="small" color="primary" onClick={() => onEdit(banner.id)}>
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" color="error">
+                  <IconButton size="small" color="error" onClick={() => onDelete(banner.id)}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>

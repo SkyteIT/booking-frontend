@@ -19,6 +19,8 @@ import type { Promotion } from "../types/contentType";
 
 interface Props {
   promotions: Promotion[];
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const statusStyles: Record<string, { bg: string; color: string }> = {
@@ -27,7 +29,7 @@ const statusStyles: Record<string, { bg: string; color: string }> = {
   Draft:   { bg: "#fff8e1", color: "#f57f17" },
 };
 
-export default function PromotionTable({ promotions }: Props) {
+export default function PromotionTable({ promotions, onEdit, onDelete }: Props) {
   return (
     <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
       <Table>
@@ -120,10 +122,10 @@ export default function PromotionTable({ promotions }: Props) {
                 {/* Actions */}
                 <TableCell>
                   <Box display="flex" gap={0.5}>
-                    <IconButton size="small" color="primary">
+                    <IconButton size="small" color="primary" onClick={() => onEdit(promo.id)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" color="error">
+                    <IconButton size="small" color="error" onClick={() => onDelete(promo.id)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Box>
