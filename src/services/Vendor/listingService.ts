@@ -105,10 +105,12 @@ export interface CreateListingRequest {
 }
 
 export const createListing = async (data: CreateListingRequest) => {
+  const token = localStorage.getItem("token");
   const response = await fetch(`${API_BASE_URL}/Listings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(data),
   });
@@ -141,9 +143,17 @@ export interface VendorDto {
 }
 
 export const getCurrentVendor = async (): Promise<VendorDto> => {
-  const response = await fetch(`${API_BASE_URL}/Vendors/me`);
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_BASE_URL}/Vendors/me`, {
+    headers: {
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    },
+  });
   if (!response.ok) {
-    throw new Error("Failed to fetch current vendor. Have you seeded the database?");
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Not authorized. Please log in.");
+    }
+    throw new Error("Failed to fetch current vendor. Have you created a vendor profile?");
   }
   return response.json();
 };

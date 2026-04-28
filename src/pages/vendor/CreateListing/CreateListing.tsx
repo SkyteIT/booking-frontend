@@ -49,10 +49,12 @@ const CreateListing = () => {
         setVendorId(vendor.id);
       } catch (error) {
         console.error("Error fetching initial data:", error);
+        alert("You must complete your vendor profile before creating a listing.");
+        navigate("/vendor/businessinfo");
       }
     };
     fetchInitialData();
-  }, []);
+  }, [navigate]);
 
   const {
     register,

@@ -36,9 +36,12 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     handleProfileClose();
     navigate("/login");
   };
+
+  const isAuthenticated = !!localStorage.getItem("token");
 
   return (
     <AppBar
@@ -121,8 +124,8 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
 
           {/* Right — Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {/* Profile Dropdown */}
-            {!isAuthPage && (
+            {/* Profile Dropdown OR Auth Links */}
+            {isAuthenticated ? (
               <>
                 <IconButton
                   onClick={handleProfileClick}
@@ -201,6 +204,39 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
               </>
+            ) : (
+              /* Auth Links for Unauthenticated Users */
+              !isAuthPage && (
+                <>
+                  <Typography
+                    component={Link}
+                    to="/login"
+                    sx={{
+                      color: "#374151",
+                      textDecoration: "none",
+                      fontSize: "0.9rem",
+                      display: { xs: "none", sm: "block" },
+                      "&:hover": { color: "#2563EB" },
+                      transition: "color 0.2s ease",
+                    }}
+                  >
+                    Sign in
+                  </Typography>
+                  <Typography
+                    component={Link}
+                    to="/register"
+                    sx={{
+                      color: "#374151",
+                      textDecoration: "none",
+                      fontSize: "0.9rem",
+                      "&:hover": { color: "#2563EB" },
+                      transition: "color 0.2s ease",
+                    }}
+                  >
+                    Sign up
+                  </Typography>
+                </>
+              )
             )}
 
             {/* List Your Property Button */}
@@ -242,38 +278,6 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 List
               </Box>
             </Button>
-
-            {/* Sign Up Link */}
-            {isAuthPage ? (
-              <Typography
-                component={Link}
-                to="/register"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  "&:hover": { color: "#2563EB" },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign up
-              </Typography>
-            ) : (
-              <Typography
-                component={Link}
-                to="/Login"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  display: { xs: "none", sm: "block" },
-                  "&:hover": { color: "#2563EB" },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign in
-              </Typography>
-            )}
           </Box>
         </Toolbar>
       </Container>

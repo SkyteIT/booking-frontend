@@ -27,24 +27,24 @@ const Review = () => {
       const formData = new FormData();
 
       // BUSINESS INFO
-      formData.append("businessName", data.businessInfo.businessName);
-      formData.append("businessType", data.businessInfo.businessType);
-      formData.append("taxId", data.businessInfo.taxId || "");
-      formData.append("website", data.businessInfo.website || "");
-      formData.append("address", data.businessInfo.address);
+      formData.append("BusinessName", data.businessInfo.businessName);
+      formData.append("BusinessType", data.businessInfo.businessType);
+      formData.append("TaxId", data.businessInfo.taxId || "");
+      formData.append("Website", data.businessInfo.website || "");
+      formData.append("Address", data.businessInfo.address);
 
       // CONTACT INFO
-      formData.append("firstName", data.contactInfo.firstName);
-      formData.append("lastName", data.contactInfo.lastName);
-      formData.append("email", data.contactInfo.email);
-      formData.append("phone", data.contactInfo.phone);
+      formData.append("FirstName", data.contactInfo.firstName);
+      formData.append("LastName", data.contactInfo.lastName);
+      formData.append("Email", data.contactInfo.email);
+      formData.append("Phone", data.contactInfo.phone);
 
-      // CATEGORIES
+      // CATEGORIES (Simplified format for standard [FromForm] binding)
       data.categories.forEach((cat: string) => {
-        formData.append("categories", cat);
+        formData.append("Categories", cat);
       });
 
-      // DOCUMENTS
+      // DOCUMENTS (Matching controller parameter names exactly)
       if (data.documents.businessLicense) {
         formData.append("businessLicense", data.documents.businessLicense);
       }
@@ -60,11 +60,23 @@ const Review = () => {
         formData.append("taxDocument", data.documents.taxDocument);
       }
 
+      formData.append("IsSubmitted", "true");
+
       // API CALL
-      await fetch("http://localhost:5037/api/vendor-register/submit", {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5037/api/vendor-register/submit", {
         method: "POST",
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
         body: formData,
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Detailed Server Error:", JSON.stringify(errorData, null, 2));
+        throw new Error(errorData.title || "Failed to submit application");
+      }
 
       // SUCCESS
       resetApplication();

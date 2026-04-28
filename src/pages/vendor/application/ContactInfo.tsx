@@ -2,6 +2,7 @@ import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { useVendorApplication } from "../../../context/VendorApplicationContext";
 import "./application.css";
 
 interface ContactFormData {
@@ -13,25 +14,28 @@ interface ContactFormData {
 
 const ContactInfo = (): JSX.Element => {
   const navigate = useNavigate();
+  const { data, setData } = useVendorApplication();
 
   const [formData, setFormData] = useState<ContactFormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+    firstName: data.contactInfo.firstName || "",
+    lastName: data.contactInfo.lastName || "",
+    email: data.contactInfo.email || "",
+    phone: data.contactInfo.phone || "",
   });
 
   const [errors, setErrors] = useState<Partial<ContactFormData>>({});
 
   useEffect(() => {
-    const saved = localStorage.getItem("vendorContactInfo");
-    if (saved) setFormData(JSON.parse(saved));
-  }, []);
+    setFormData({
+      firstName: data.contactInfo.firstName || "",
+      lastName: data.contactInfo.lastName || "",
+      email: data.contactInfo.email || "",
+      phone: data.contactInfo.phone || "",
+    });
+  }, [data.contactInfo]);
 
   const handleChange = (field: keyof ContactFormData, value: string) => {
-    const updated = { ...formData, [field]: value };
-    setFormData(updated);
-    localStorage.setItem("vendorContactInfo", JSON.stringify(updated));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
@@ -48,6 +52,10 @@ const ContactInfo = (): JSX.Element => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
+      setData((prev) => ({
+        ...prev,
+        contactInfo: formData,
+      }));
       navigate("/vendor/categories");
     }
   };

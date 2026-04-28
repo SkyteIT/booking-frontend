@@ -23,16 +23,28 @@ interface BusinessErrors {
 
 const BusinessInfo = (): JSX.Element => {
   const navigate = useNavigate();
+  const { data, setData } = useVendorApplication();
 
   const [formData, setFormData] = useState<BusinessFormData>({
-    businessName: "",
-    businessType: "",
-    taxId: "",
-    website: "",
-    address: "",
+    businessName: data.businessInfo.businessName || "",
+    businessType: data.businessInfo.businessType || "",
+    taxId: data.businessInfo.taxId || "",
+    website: data.businessInfo.website || "",
+    address: data.businessInfo.address || "",
   });
 
   const [errors, setErrors] = useState<BusinessErrors>({});
+
+  // Sync context with local state if it changes externally
+  useEffect(() => {
+    setFormData({
+      businessName: data.businessInfo.businessName || "",
+      businessType: data.businessInfo.businessType || "",
+      taxId: data.businessInfo.taxId || "",
+      website: data.businessInfo.website || "",
+      address: data.businessInfo.address || "",
+    });
+  }, [data.businessInfo]);
 
   // --- BACK BUTTON HANDLER ---
   useEffect(() => {
@@ -96,6 +108,11 @@ const BusinessInfo = (): JSX.Element => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
+      // Save to context
+      setData((prev) => ({
+        ...prev,
+        businessInfo: formData,
+      }));
       navigate("/vendor/contactinfo");
     }
   };

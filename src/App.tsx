@@ -21,6 +21,7 @@ import Review from "./pages/vendor/application/Review";
 import UserDashboard from "./pages/customer/UserDashboard";
 
 import { VendorApplicationProvider } from "./context/VendorApplicationContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
@@ -48,32 +49,37 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Customer */}
-          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<UserDashboard />} />
+          </Route>
 
-          {/* Vendor Application */}
-          <Route path="/vendor/businessinfo" element={<BusinessInfo />} />
-          <Route path="/vendor/contactinfo" element={<ContactInfo />} />
-          <Route path="/vendor/categories" element={<Categories />} />
-          <Route path="/vendor/documents" element={<Documents />} />
-          <Route path="/vendor/review" element={<Review />} />
+          {/* Vendor Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            {/* Vendor Application */}
+            <Route path="/vendor/businessinfo" element={<BusinessInfo />} />
+            <Route path="/vendor/contactinfo" element={<ContactInfo />} />
+            <Route path="/vendor/categories" element={<Categories />} />
+            <Route path="/vendor/documents" element={<Documents />} />
+            <Route path="/vendor/review" element={<Review />} />
 
-          {/* Vendor Dashboard */}
-          <Route
-            path="/vendor/*"
-            element={
-              <VendorLayout>
-                <Routes>
-                  <Route path="dashboard" element={<VendorDashboard />} />
-                  <Route path="listings" element={<VendorListings />} />
-                  <Route path="listings/new" element={<CreateListing />} />
-                  <Route
-                    path="*"
-                    element={<Navigate to="/vendor/dashboard" replace />}
-                  />
-                </Routes>
-              </VendorLayout>
-            }
-          />
+            {/* Vendor Dashboard */}
+            <Route
+              path="/vendor/*"
+              element={
+                <VendorLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<VendorDashboard />} />
+                    <Route path="listings" element={<VendorListings />} />
+                    <Route path="listings/new" element={<CreateListing />} />
+                    <Route
+                      path="*"
+                      element={<Navigate to="/vendor/dashboard" replace />}
+                    />
+                  </Routes>
+                </VendorLayout>
+              }
+            />
+          </Route>
         </Routes>
       </BrowserRouter>
     </VendorApplicationProvider>
