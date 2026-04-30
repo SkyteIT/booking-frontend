@@ -13,7 +13,7 @@ interface ApiCategory {
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [listings, setListings] = useState<SearchListing[]>([]);
-  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [allCategories, setAllCategories] = useState<ApiCategory[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +23,17 @@ export const useSearchResults = () => {
   // Load categories from the API once on mount
   useEffect(() => {
     fetchCategories()
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]))
+      .then((data) => setAllCategories(Array.isArray(data) ? data : []))
+      .catch(() => setAllCategories([]))
       .finally(() => setCategoriesLoaded(true));
   }, []);
+
+  // Only show ACTIVE categories in the filter sidebar
+  // Bug fix: previously showed all categories including Inactive ones
+  const categories = useMemo(
+    () => allCategories.filter((c) => c.isActive),
+    [allCategories]
+  );
 
   // Run search whenever filters or categories change
   useEffect(() => {
@@ -36,6 +43,7 @@ export const useSearchResults = () => {
     setError(null);
 
     // Resolve selected category names → IDs for the API call
+    // Only resolve against active categories so Inactive ones never reach the API
     const selectedCategoryIds = filters.categories
       .map((name) =>
         categories.find((c) => c.name.toLowerCase() === name.toLowerCase())?.id
@@ -85,7 +93,9 @@ export const useSearchResults = () => {
       ? current.filter((c) => c !== categoryName)
       : [...current, categoryName];
 
-    updated.length > 0 ? next.set("category", updated.join(",")) : next.delete("category");
+    updated.length > 0
+      ? next.set("category", updated.join(","))
+      : next.delete("category");
     setSearchParams(next);
   }, [searchParams, setSearchParams, filters.categories]);
 
@@ -97,7 +107,9 @@ export const useSearchResults = () => {
 
   const setMinRating = useCallback((rating?: number) => {
     const next = new URLSearchParams(searchParams);
-    rating !== undefined ? next.set("minRating", String(rating)) : next.delete("minRating");
+    rating !== undefined
+      ? next.set("minRating", String(rating))
+      : next.delete("minRating");
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
@@ -112,7 +124,7 @@ export const useSearchResults = () => {
     listings,
     loading,
     error,
-    categories,                         // ← { id, name, isActive }[] from the database
+    categories,           // ← only Active categories for the sidebar
     ratingOptions: [3, 4, 4.5] as const,
     setQuery,
     setMinPrice,

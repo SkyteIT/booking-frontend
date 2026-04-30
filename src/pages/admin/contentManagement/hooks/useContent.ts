@@ -37,7 +37,7 @@ export const useContent = () => {
 
   // ── Category actions ─────────────────────────────────────
   const addCategory = useCallback(async (name: string, icon?: string) => {
-    await createCategory({ name, iconUrl: icon });
+    await createCategory({ name, icon });
     await refresh();
   }, [refresh]);
 
