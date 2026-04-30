@@ -111,11 +111,29 @@ export default function AddCategory() {
       await createCategory({
         name: form.name,
         description: form.description || undefined,
-        iconUrl: form.icon || undefined,
+        bookingType: form.bookingType || undefined,
+        serviceModel: form.serviceModel || undefined,
+        dateSelectionEnabled: form.dateSelection,
+        timeSlotEnabled: form.timeSlot,
+        availabilityCalendarEnabled: form.availabilityCalendar,
+        defaultCommissionPercent: Number(form.commission) || 15,
+        platformServiceFee: form.platformFee ? Number(form.platformFee) : undefined,
+        taxApplicable: form.taxApplicable,
+        icon: form.icon || undefined,
+        displayOrder: Number(form.displayOrder) || 1,
+        isFeatured: form.featuredCategory,
+        requiresAdminApproval: form.requiresApproval,
+        status: form.status,
       });
       navigate("/admin/content");
-    } catch {
-      setErrors((p) => ({ ...p, name: "Failed to save. Please try again." }));
+    } catch (err: any) {
+      // Use the server's error message if available (e.g. "already exists")
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to save. Please try again.";
+      setErrors((p) => ({ ...p, name: serverMsg }));
     } finally {
       setSaving(false);
     }

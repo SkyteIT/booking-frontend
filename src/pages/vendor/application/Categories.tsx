@@ -2,30 +2,30 @@ import {
   Container,
   Typography,
   Box,
-  Button
+  Button,
+  CircularProgress
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
+import { fetchCategories, type ApiCategory } from "../../../services/categoryService";
 
 const Categories = (): JSX.Element => {
   const navigate = useNavigate();
 
-  const categories = [
-    "Vehicles",
-    "Equipment",
-    "Real Estate",
-    "Event Spaces",
-    "Sports & Recreation",
-    "Electronics",
-    "Tools & Machinery",
-    "Other"
-  ];
-
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
-  
+
+  // Load active categories from the database
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data.filter((c) => c.isActive)))
+      .catch(() => setCategories([]))
+      .finally(() => setLoadingCategories(false));
+  }, []);
 
   // --- BACK BUTTON HANDLER ---
   useEffect(() => {
@@ -33,7 +33,7 @@ const Categories = (): JSX.Element => {
 
     const handleBack = (event: PopStateEvent) => {
       event.preventDefault();
-      navigate("/", { replace: true }); // Always go to landing page
+      navigate("/", { replace: true });
     };
 
     window.addEventListener("popstate", handleBack);
@@ -43,13 +43,10 @@ const Categories = (): JSX.Element => {
 
   const handleSelect = (category: string) => {
     if (selectedCategories.includes(category)) {
-      setSelectedCategories(
-        selectedCategories.filter((item) => item !== category)
-      );
+      setSelectedCategories(selectedCategories.filter((item) => item !== category));
     } else {
       setSelectedCategories([...selectedCategories, category]);
     }
-
     if (error) setError("");
   };
 
@@ -58,7 +55,6 @@ const Categories = (): JSX.Element => {
       setError("Please select at least one category");
       return;
     }
-
     navigate("/vendor/documents");
   };
 
@@ -74,27 +70,33 @@ const Categories = (): JSX.Element => {
             Select the categories that best describe your offerings.
           </Typography>
 
-          <Box
-            className="category-grid"
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 3
-            }}
-          >
-            {categories.map((cat) => (
-              <Box
-                key={cat}
-                className={`category-box ${
-                  selectedCategories.includes(cat) ? "selected" : ""
-                }`}
-                onClick={() => handleSelect(cat)}
-                sx={{ cursor: "pointer" }}
-              >
-                {cat}
-              </Box>
-            ))}
-          </Box>
+          {loadingCategories ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box
+              className="category-grid"
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 3
+              }}
+            >
+              {categories.map((cat) => (
+                <Box
+                  key={cat.id}
+                  className={`category-box ${
+                    selectedCategories.includes(cat.name) ? "selected" : ""
+                  }`}
+                  onClick={() => handleSelect(cat.name)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  {cat.name}
+                </Box>
+              ))}
+            </Box>
+          )}
 
           {error && (
             <Typography sx={{ color: "red", mt: 2 }}>

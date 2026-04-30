@@ -1,14 +1,13 @@
 // src/pages/admin/contentManagement/components/EditCategory.tsx
 import { useState, useEffect } from "react";
 import {
-  Box, Typography, TextField, Button, Paper, MenuItem,
+  Box, Typography, TextField, Button, Paper,
   FormControlLabel, Switch, IconButton, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions,
   CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
-import UploadIcon from "@mui/icons-material/Upload";
 import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCategoryById, updateCategoryFull } from "../services/contentService";
@@ -20,9 +19,11 @@ const cardStyle = {
   mb: 0,
 };
 
-const BOOKING_TYPES = ["Instant Confirmation", "Request to Confirm"];
-const SERVICE_MODELS = ["Per Night", "Per Hour", "Per Person", "Per Day", "Fixed Price"];
-const STATUS_OPTIONS = ["Active", "Inactive"];
+const EMOJI_OPTIONS = [
+  "🏨","🏠","🚗","✈️","🍽️","🎭","🏖️","⛺","🎿","🚢",
+  "🏋️","🎪","🏕️","🎡","🚀","🌴","🗺️","🧳","🎯","🏄",
+  "🎸","📸","🎨","🛒","💼","🎓","🏥","🌿","🐾","🎮",
+];
 
 interface EditCategoryProps {
   categoryId?: string;
@@ -39,22 +40,9 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
   const [form, setForm] = useState({
     name: "",
     description: "",
-    bookingType: "",
-    serviceModel: "",
-    dateSelection: false,
-    timeSlot: false,
-    availabilityCalendar: false,
-    commission: "15",
-    platformFee: "",
-    taxApplicable: false,
     icon: "",
-    displayOrder: "1",
-    featuredCategory: false,
-    requiresApproval: false,
-    status: "Active",
+    status: true,
   });
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [bannerName, setBannerName] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,22 +55,10 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
         if (!cat) return;
         setForm({
           name: cat.name ?? "",
-          description: cat.description ?? "",
-          bookingType: cat.bookingType ?? "",
-          serviceModel: cat.serviceModel ?? "",
-          dateSelection: cat.dateSelectionEnabled ?? false,
-          timeSlot: cat.timeSlotEnabled ?? false,
-          availabilityCalendar: cat.availabilityCalendarEnabled ?? false,
-          commission: cat.defaultCommissionPercent ? String(cat.defaultCommissionPercent) : "15",
-          platformFee: cat.platformServiceFee ? String(cat.platformServiceFee) : "",
-          taxApplicable: cat.taxApplicable ?? false,
+          description: "",
           icon: cat.icon ?? "",
-          displayOrder: cat.displayOrder ? String(cat.displayOrder) : "1",
-          featuredCategory: cat.isFeatured ?? false,
-          requiresApproval: cat.requiresAdminApproval ?? false,
-          status: cat.status ?? "Active",
+          status: cat.status ?? true,
         });
-        if (cat.bannerImageUrl) setBannerPreview(cat.bannerImageUrl);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -92,20 +68,11 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
     setErrors((p) => ({ ...p, [field]: "" }));
   };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setBannerName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => setBannerPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) newErrors.name = "Category name is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Category name is required";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleSave = async () => {
@@ -115,20 +82,8 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
       await updateCategoryFull(id, {
         name: form.name,
         description: form.description || undefined,
-        bookingType: form.bookingType || undefined,
-        serviceModel: form.serviceModel || undefined,
-        dateSelectionEnabled: form.dateSelection,
-        timeSlotEnabled: form.timeSlot,
-        availabilityCalendarEnabled: form.availabilityCalendar,
-        defaultCommissionPercent: form.commission ? Number(form.commission) : undefined,
-        platformServiceFee: form.platformFee ? Number(form.platformFee) : undefined,
-        taxApplicable: form.taxApplicable,
         icon: form.icon || undefined,
-        bannerImageUrl: bannerPreview || undefined,
-        displayOrder: form.displayOrder ? Number(form.displayOrder) : undefined,
-        isFeatured: form.featuredCategory,
-        requiresAdminApproval: form.requiresApproval,
-        status: form.status,
+        status: form.status ? "Active" : "Inactive",
       });
       if (onSaved) onSaved();
       else navigate("/admin/content");
@@ -144,232 +99,160 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
     else navigate("/admin/content");
   };
 
-  const formContent = loading ? (
+  // ── Shared inner content (used in both modal + standalone) ──
+  const innerContent = loading ? (
     <Box display="flex" justifyContent="center" alignItems="center" py={8}>
       <CircularProgress />
     </Box>
   ) : (
-    <Box>
-      <Box sx={{ display: "grid", gridTemplateColumns: open ? "1fr" : "2fr 1fr", gap: 2, alignItems: "start" }}>
-        {/* ── LEFT COLUMN ── */}
-        <Box display="flex" flexDirection="column" gap={2}>
-          {/* 1. Basic Info */}
-          <Paper sx={cardStyle}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
-              </Box>
-              <Typography fontWeight={600}>1. Basic Information</Typography>
-            </Box>
-            <TextField
-              label="Category Name"
-              fullWidth
-              required
-              sx={{ mb: 2 }}
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              error={!!errors.name}
-              helperText={errors.name}
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              sx={{ mb: 2 }}
-              value={form.description}
-              onChange={(e) => set("description", e.target.value)}
-            />
-            <TextField
-              label="Icon (emoji or URL)"
-              fullWidth
-              value={form.icon}
-              onChange={(e) => set("icon", e.target.value)}
-              placeholder="🏨 or https://..."
-            />
-          </Paper>
+    <Box display="flex" flexDirection="column" gap={2}>
 
-          {/* 2. Booking Configuration */}
-          <Paper sx={cardStyle}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>⚙️</Typography>
-              </Box>
-              <Typography fontWeight={600}>2. Booking Configuration</Typography>
-            </Box>
-            <TextField
-              label="Booking Type"
-              select
-              fullWidth
-              sx={{ mb: 2 }}
-              value={form.bookingType}
-              onChange={(e) => set("bookingType", e.target.value)}
-            >
-              {BOOKING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-            </TextField>
-            <TextField
-              label="Service Model"
-              select
-              fullWidth
-              sx={{ mb: 2 }}
-              value={form.serviceModel}
-              onChange={(e) => set("serviceModel", e.target.value)}
-            >
-              {SERVICE_MODELS.map((m) => <MenuItem key={m} value={m}>{m}</MenuItem>)}
-            </TextField>
-            <Box display="flex" flexDirection="column" gap={0.5}>
-              <FormControlLabel control={<Switch checked={form.dateSelection} onChange={(e) => set("dateSelection", e.target.checked)} />} label="Date Selection" />
-              <FormControlLabel control={<Switch checked={form.timeSlot} onChange={(e) => set("timeSlot", e.target.checked)} />} label="Time Slot" />
-              <FormControlLabel control={<Switch checked={form.availabilityCalendar} onChange={(e) => set("availabilityCalendar", e.target.checked)} />} label="Availability Calendar" />
-            </Box>
-          </Paper>
+      {/* 1. Basic Information */}
+      <Paper sx={cardStyle}>
+        <Box display="flex" alignItems="center" gap={1} mb={2}>
+          <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
+            <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+          </Box>
+          <Typography fontWeight={600}>1. Basic Information</Typography>
+        </Box>
+        <TextField
+          label="Category Name"
+          fullWidth
+          required
+          sx={{ mb: 2 }}
+          value={form.name}
+          onChange={(e) => set("name", e.target.value)}
+          error={!!errors.name}
+          helperText={errors.name}
+        />
+        <TextField
+          label="Description"
+          fullWidth
+          multiline
+          rows={3}
+          value={form.description}
+          onChange={(e) => set("description", e.target.value)}
+        />
+      </Paper>
 
-          {/* 3. Financial Settings */}
-          <Paper sx={cardStyle}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>💰</Typography>
-              </Box>
-              <Typography fontWeight={600}>3. Financial Settings</Typography>
-            </Box>
-            <Box display="flex" gap={2} mb={2}>
-              <TextField
-                label="Commission (%)"
-                type="number"
-                fullWidth
-                value={form.commission}
-                onChange={(e) => set("commission", e.target.value)}
-              />
-              <TextField
-                label="Platform Fee ($)"
-                type="number"
-                fullWidth
-                value={form.platformFee}
-                onChange={(e) => set("platformFee", e.target.value)}
-              />
-            </Box>
-            <FormControlLabel
-              control={<Switch checked={form.taxApplicable} onChange={(e) => set("taxApplicable", e.target.checked)} />}
-              label="Tax Applicable"
-            />
-          </Paper>
-
-          {/* 4. Banner Image */}
-          <Paper sx={cardStyle}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>🖼️</Typography>
-              </Box>
-              <Typography fontWeight={600}>4. Banner Image</Typography>
-            </Box>
-            <Box
-              component="label"
-              htmlFor="edit-cat-banner-input"
-              sx={{
-                border: "2px dashed #b0c4d8",
-                borderRadius: 2, p: 4,
-                textAlign: "center", cursor: "pointer",
-                bgcolor: bannerPreview ? "transparent" : "#f8fafc",
-                display: "block", mb: 2,
-                "&:hover": { borderColor: "#0077B6", bgcolor: "#f0f7ff" },
-                transition: "all 0.2s",
-              }}
-            >
-              {bannerPreview ? (
-                <img
-                  src={bannerPreview}
-                  alt="Preview"
-                  style={{ maxWidth: "100%", maxHeight: 160, borderRadius: 8, objectFit: "cover" }}
-                />
-              ) : (
-                <Box>
-                  <UploadIcon sx={{ fontSize: 36, color: "#90a4ae", mb: 1 }} />
-                  <Typography color="text.secondary" fontSize={14}>Click to upload banner image</Typography>
-                </Box>
-              )}
-              <input id="edit-cat-banner-input" hidden type="file" accept="image/*" onChange={handleBannerChange} />
-            </Box>
-            {bannerName && (
-              <Chip label={bannerName} size="small" onDelete={() => { setBannerPreview(null); setBannerName(null); }} />
-            )}
-          </Paper>
+      {/* 2. Category Icon */}
+      <Paper sx={cardStyle}>
+        <Box display="flex" alignItems="center" gap={1} mb={2}>
+          <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
+            <Typography fontSize={18}>🎨</Typography>
+          </Box>
+          <Typography fontWeight={600}>2. Category Icon</Typography>
         </Box>
 
-        {/* ── RIGHT COLUMN ── */}
-        {!open && (
-          <Box display="flex" flexDirection="column" gap={2}>
-            <Paper sx={cardStyle}>
-              <Typography fontWeight={600} mb={2}>Status & Settings</Typography>
-              <TextField
-                label="Status"
-                select
-                fullWidth
-                sx={{ mb: 2 }}
-                value={form.status}
-                onChange={(e) => set("status", e.target.value)}
-              >
-                {STATUS_OPTIONS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-              </TextField>
-              <TextField
-                label="Display Order"
-                type="number"
-                fullWidth
-                sx={{ mb: 2 }}
-                value={form.displayOrder}
-                onChange={(e) => set("displayOrder", e.target.value)}
-              />
-              <FormControlLabel
-                control={<Switch checked={form.featuredCategory} onChange={(e) => set("featuredCategory", e.target.checked)} />}
-                label="Featured Category"
-              />
-              <FormControlLabel
-                control={<Switch checked={form.requiresApproval} onChange={(e) => set("requiresApproval", e.target.checked)} />}
-                label="Requires Admin Approval"
-              />
-            </Paper>
+        {/* Native input so emoji input works on all keyboards/OS */}
+        <TextField
+          label="Type or paste an emoji"
+          fullWidth
+          value={form.icon}
+          onChange={(e) => set("icon", e.target.value)}
+          placeholder="e.g. 🏨"
+          helperText="Type an emoji from your keyboard, or click one below"
+          inputProps={{ style: { fontSize: 22, letterSpacing: 4 } }}
+          sx={{ mb: 2 }}
+        />
 
-            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff" }}>
-              <Typography fontWeight={600} mb={2}>Category Preview</Typography>
-              <Box textAlign="center" py={1}>
-                <Typography fontSize={40}>{form.icon || "🏷️"}</Typography>
-                <Typography fontWeight={800} fontSize={18} mt={1}>{form.name || "Category Name"}</Typography>
-                <Chip
-                  label={form.status}
-                  size="small"
-                  sx={{ mt: 1, bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontWeight: 600 }}
-                />
-              </Box>
-            </Paper>
+        {/* Quick-pick grid */}
+        <Typography fontSize={12} color="text.secondary" mb={1}>Quick pick:</Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.6 }}>
+          {EMOJI_OPTIONS.map((emoji) => (
+            <Box
+              key={emoji}
+              onClick={() => set("icon", emoji)}
+              sx={{
+                width: 40, height: 40,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, borderRadius: "8px", cursor: "pointer",
+                border: form.icon === emoji ? "2px solid #6366F1" : "1px solid #E2E8F0",
+                bgcolor: form.icon === emoji ? "#EEF2FF" : "#fafafa",
+                transition: "all .15s",
+                "&:hover": { borderColor: "#6366F1", bgcolor: "#EEF2FF", transform: "scale(1.15)" },
+              }}
+            >
+              {emoji}
+            </Box>
+          ))}
+        </Box>
+
+        {/* Live preview */}
+        {form.icon && (
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1.5}
+            mt={2}
+            p={1.5}
+            sx={{ bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #E2E8F0" }}
+          >
+            <Typography fontSize={13} color="text.secondary">Preview:</Typography>
+            <Box
+              sx={{
+                width: 44, height: 44, borderRadius: "12px",
+                background: "linear-gradient(135deg,#6366F1,#4F46E5)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              {form.icon.startsWith("http") ? (
+                <img src={form.icon} alt="icon" style={{ width: 28, height: 28, objectFit: "contain" }} />
+              ) : (
+                <Typography fontSize={22}>{form.icon}</Typography>
+              )}
+            </Box>
+            <Typography fontSize={14} fontWeight={600} color="#0F172A">
+              {form.name || "Category Name"}
+            </Typography>
           </Box>
         )}
-      </Box>
+      </Paper>
+
+      {/* 3. Status & Visibility */}
+      <Paper sx={cardStyle}>
+        <Box display="flex" alignItems="center" gap={1} mb={2}>
+          <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
+            <Typography fontSize={18}>⚙️</Typography>
+          </Box>
+          <Typography fontWeight={600}>3. Status & Visibility</Typography>
+        </Box>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.status}
+              onChange={(e) => set("status", e.target.checked)}
+              sx={{
+                "& .MuiSwitch-switchBase.Mui-checked": { color: "#6366F1" },
+                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#6366F1" },
+              }}
+            />
+          }
+          label={form.status ? "Active" : "Inactive"}
+        />
+        <Box
+          sx={{
+            mt: 1.5, p: 2, borderRadius: 2,
+            bgcolor: form.status ? "#eef2ff" : "#f5f5f5",
+            border: `1px solid ${form.status ? "#c7d2fe" : "#e0e0e0"}`,
+          }}
+        >
+          <Typography fontSize={13} color={form.status ? "#4338ca" : "#757575"}>
+            {form.status
+              ? "Category is active and visible to users"
+              : "Category is hidden from users"}
+          </Typography>
+        </Box>
+      </Paper>
     </Box>
   );
 
+  // ── MODAL mode (matches EditBanner / EditPromotion exactly) ──
   if (open !== undefined) {
     return (
       <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Edit Category</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          {/* Status inside modal */}
-          <Box mb={2} display="flex" gap={2}>
-            <TextField
-              label="Status"
-              select
-              value={form.status}
-              onChange={(e) => set("status", e.target.value)}
-              size="small"
-              sx={{ minWidth: 140 }}
-            >
-              {STATUS_OPTIONS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-            </TextField>
-            <FormControlLabel
-              control={<Switch checked={form.featuredCategory} onChange={(e) => set("featuredCategory", e.target.checked)} />}
-              label="Featured"
-            />
-          </Box>
-          {formContent}
-        </DialogContent>
+        <DialogContent>{innerContent}</DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
           <Button
@@ -377,7 +260,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
             startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)" }}
+            sx={{ bgcolor: "#6366F1", "&:hover": { bgcolor: "#4F46E5" } }}
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>
@@ -386,6 +269,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
     );
   }
 
+  // ── STANDALONE page mode ──
   return (
     <Box sx={{ p: 3, bgcolor: "#f4f6f8", minHeight: "100vh" }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -405,13 +289,41 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
             startIcon={<SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)" }}
+            sx={{ bgcolor: "#6366F1", "&:hover": { bgcolor: "#4F46E5" } }}
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </Box>
       </Box>
-      {formContent}
+
+      {/* Two-column layout for standalone */}
+      <Box sx={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 2, alignItems: "start" }}>
+        <Box>{innerContent}</Box>
+
+        {/* Right column preview */}
+        <Box display="flex" flexDirection="column" gap={2}>
+          <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff" }}>
+            <Typography fontWeight={600} mb={2}>Category Preview</Typography>
+            {[
+              { label: "Name",   value: form.name   || "—" },
+              { label: "Icon",   value: form.icon   || "—" },
+            ].map((row) => (
+              <Box key={row.label} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography fontSize={13} sx={{ opacity: 0.8 }}>{row.label}</Typography>
+                <Typography fontSize={row.label === "Icon" ? 20 : 13} fontWeight={600}>{row.value}</Typography>
+              </Box>
+            ))}
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography fontSize={13} sx={{ opacity: 0.8 }}>Status</Typography>
+              <Chip
+                label={form.status ? "Active" : "Inactive"}
+                size="small"
+                sx={{ bgcolor: "rgba(255,255,255,0.25)", color: "#fff", fontWeight: 600, fontSize: 11 }}
+              />
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
     </Box>
   );
 }

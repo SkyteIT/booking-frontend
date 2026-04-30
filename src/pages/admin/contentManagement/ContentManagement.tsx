@@ -20,6 +20,7 @@ import BannerTable from "./components/BannerTable";
 import PromotionTable from "./components/PromotionTable";
 import EditBanner from "./components/EditBanner";
 import EditPromotion from "./components/EditPromotion";
+import EditCategory from "./components/EditCategory";
 import { useContent } from "./hooks/useContent";
 
 const SlideUp = React.forwardRef(function SlideUp(
@@ -41,6 +42,7 @@ export default function ContentManagement() {
   const [filter, setFilter] = useState("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
 
   // Banner edit/delete state
   const [editBannerId, setEditBannerId] = useState<string | null>(null);
@@ -349,7 +351,8 @@ export default function ContentManagement() {
                   category={cat}
                   viewMode={viewMode}
                   onToggle={toggleCategory}
-                  onDelete={removeCategory}
+                  onDelete={(id) => setDeleteId(id)}
+                  onEdit={(id) => setEditCategoryId(id)}
                 />
               </Grid>
             ))}
@@ -371,6 +374,14 @@ export default function ContentManagement() {
           onDelete={(id) => setDeletePromotionId(id)}
         />
       )}
+
+      {/* ── Edit Category Modal ── */}
+      <EditCategory
+        categoryId={editCategoryId ?? undefined}
+        open={editCategoryId !== null}
+        onClose={() => setEditCategoryId(null)}
+        onSaved={() => { setEditCategoryId(null); refresh(); }}
+      />
 
       {/* ── Edit Banner Modal ── */}
       <EditBanner

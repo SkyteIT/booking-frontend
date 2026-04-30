@@ -18,7 +18,6 @@ import FlightIcon from "@mui/icons-material/Flight";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
 import CategoryIcon from "@mui/icons-material/Category";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
-import { useNavigate } from "react-router-dom";
 
 import type { Category } from "../types/contentType";
 
@@ -83,6 +82,8 @@ interface Props {
   viewMode?: "grid" | "list";
   onToggle: (id: string, isActive: boolean) => void;
   onDelete: (id: string) => void;
+  // ✅ FIX: added onEdit prop (was missing — Edit button was calling navigate() instead)
+  onEdit: (id: string) => void;
 }
 
 export default function CategoryCard({
@@ -90,9 +91,9 @@ export default function CategoryCard({
   viewMode = "grid",
   onToggle,
   onDelete,
+  onEdit, // ✅ FIX: destructure the prop
 }: Props) {
-  const navigate = useNavigate();
-  const { icon, color, bg, gradient } = getCategoryIcon(category.name);
+  const { icon, color, gradient } = getCategoryIcon(category.name);
 
   if (viewMode === "list") {
     return (
@@ -166,7 +167,8 @@ export default function CategoryCard({
           <Tooltip title="Edit">
             <IconButton
               size="small"
-              onClick={() => navigate(`/admin/categories/edit/${category.id}`)}
+              // ✅ FIX: was navigate(`/admin/categories/edit/${category.id}`) — now opens modal
+              onClick={() => onEdit(String(category.id))}
               sx={{ color: "#6366F1", "&:hover": { background: "#EEF2FF" } }}
             >
               <EditIcon fontSize="small" />
@@ -241,7 +243,8 @@ export default function CategoryCard({
             <Tooltip title="Edit category">
               <IconButton
                 size="small"
-                onClick={() => navigate(`/admin/categories/edit/${category.id}`)}
+                // ✅ FIX: was navigate(`/admin/categories/edit/${category.id}`) — now opens modal
+                onClick={() => onEdit(String(category.id))}
                 sx={{
                   width: 32,
                   height: 32,

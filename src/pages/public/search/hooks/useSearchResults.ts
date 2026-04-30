@@ -1,8 +1,14 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { searchListings, type SearchListing } from "../../../../services/searchService";
-import { fetchCategories, type ApiCategory } from "../../../../services/categoryService";
+import { fetchCategories } from "../../../../services/categoryService";
 import { parseSearchFilters } from "../utils/searchParams";
+
+interface ApiCategory {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
 
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,6 +20,7 @@ export const useSearchResults = () => {
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
+  // Load categories from the API once on mount
   useEffect(() => {
     fetchCategories()
       .then((data) => setCategories(Array.isArray(data) ? data : []))
@@ -21,12 +28,14 @@ export const useSearchResults = () => {
       .finally(() => setCategoriesLoaded(true));
   }, []);
 
+  // Run search whenever filters or categories change
   useEffect(() => {
     if (!categoriesLoaded) return;
 
     setLoading(true);
     setError(null);
 
+    // Resolve selected category names → IDs for the API call
     const selectedCategoryIds = filters.categories
       .map((name) =>
         categories.find((c) => c.name.toLowerCase() === name.toLowerCase())?.id
@@ -71,12 +80,12 @@ export const useSearchResults = () => {
   const toggleCategory = useCallback((categoryName: string) => {
     const next = new URLSearchParams(searchParams);
     const current = filters.categories;
-    const isSelected = current.includes(categoryName as any);
+    const isSelected = current.includes(categoryName);
     const updated = isSelected
       ? current.filter((c) => c !== categoryName)
-      : [...current, categoryName as any];
+      : [...current, categoryName];
 
-    updated.length ? next.set("category", updated.join(",")) : next.delete("category");
+    updated.length > 0 ? next.set("category", updated.join(",")) : next.delete("category");
     setSearchParams(next);
   }, [searchParams, setSearchParams, filters.categories]);
 
@@ -103,7 +112,7 @@ export const useSearchResults = () => {
     listings,
     loading,
     error,
-    categories,
+    categories,                         // ← { id, name, isActive }[] from the database
     ratingOptions: [3, 4, 4.5] as const,
     setQuery,
     setMinPrice,

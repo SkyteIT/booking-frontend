@@ -8,38 +8,51 @@ export const getCategories = async (): Promise<Category[]> => {
   return data.map((c: any) => ({
     id: String(c.id),
     name: c.name,
-    listings: 0,
-    status: c.isActive ?? false,
-    icon: c.iconUrl ?? "",
+    listings: c.listingCount ?? 0,
+    // API returns status as "Active" | "Inactive" string
+    status: c.status === "Active",
+    icon: c.icon ?? "",
   }));
 };
 
 export const createCategory = async (payload: {
   name: string;
   description?: string;
-  iconUrl?: string;
+  bookingType?: string;
+  serviceModel?: string;
+  dateSelectionEnabled?: boolean;
+  timeSlotEnabled?: boolean;
+  availabilityCalendarEnabled?: boolean;
+  defaultCommissionPercent?: number;
+  platformServiceFee?: number;
+  taxApplicable?: boolean;
+  icon?: string;
+  displayOrder?: number;
+  isFeatured?: boolean;
+  requiresAdminApproval?: boolean;
+  status?: string;
 }): Promise<Category> => {
   const { data } = await api.post("/categories", payload);
   return {
     id: String(data.id),
     name: data.name,
-    listings: 0,
-    status: data.isActive ?? false,
-    icon: data.iconUrl ?? "",
+    listings: data.listingCount ?? 0,
+    status: data.status === "Active",
+    icon: data.icon ?? "",
   };
 };
 
 export const updateCategory = async (
   id: string,
-  payload: { name?: string; description?: string; iconUrl?: string }
+  payload: { name?: string; description?: string; icon?: string }
 ): Promise<Category> => {
   const { data } = await api.put(`/categories/${id}`, payload);
   return {
     id: String(data.id),
     name: data.name,
-    listings: 0,
-    status: data.isActive ?? false,
-    icon: data.iconUrl ?? "",
+    listings: data.listingCount ?? 0,
+    status: data.status === "Active",
+    icon: data.icon ?? "",
   };
 };
 
@@ -57,9 +70,9 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
     return {
       id: String(data.id),
       name: data.name ?? "",
-      listings: 0,
-      status: data.isActive ?? false,
-      icon: data.iconUrl ?? "",
+      listings: data.listingCount ?? 0,
+      status: data.status === "Active",
+      icon: data.icon ?? "",
     };
   } catch {
     return null;
@@ -71,15 +84,15 @@ export const updateCategoryFull = async (
   payload: {
     name: string;
     description?: string;
-    iconUrl?: string;
-    isActive?: boolean;
+    icon?: string;
+    status?: string;
   }
 ): Promise<void> => {
   await api.put(`/categories/${id}`, {
     name: payload.name,
     description: payload.description ?? "",
-    iconUrl: payload.iconUrl ?? "",
-    isActive: payload.isActive,
+    icon: payload.icon ?? "",
+    status: payload.status,
   });
 };
 

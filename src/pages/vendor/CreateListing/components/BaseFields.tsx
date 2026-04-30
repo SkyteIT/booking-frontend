@@ -1,9 +1,11 @@
 // src/pages/vendor/CreateListing/components/BaseFields.tsx
-import { Box, TextField, Select, MenuItem, FormControl, InputLabel, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Box, TextField, Select, MenuItem, FormControl, InputLabel, Typography, CircularProgress } from "@mui/material";
 import type { UseFormRegister, Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import InfoIcon from "@mui/icons-material/Info";
+import { fetchCategories, type ApiCategory } from "../../../../services/categoryService";
 
 interface BaseFieldsProps {
     register: UseFormRegister<any>;
@@ -11,9 +13,17 @@ interface BaseFieldsProps {
     errors: any;
 }
 
-const categories = ["Hotels", "Restaurants", "Activities", "Events", "Car Rentals"];
-
 const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
+    const [categories, setCategories] = useState<ApiCategory[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+
+    useEffect(() => {
+        fetchCategories()
+            .then((data) => setCategories(data.filter((c) => c.isActive)))
+            .catch(() => setCategories([]))
+            .finally(() => setLoadingCategories(false));
+    }, []);
+
     return (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Listing Title */}
@@ -36,7 +46,7 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
                 helperText={errors.location?.message}
             />
 
-            {/* Category */}
+            {/* Category — loaded from DB */}
             <FormControl fullWidth error={!!errors.category}>
                 <InputLabel id="category-label">Category</InputLabel>
                 <Controller
@@ -48,10 +58,15 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
                             labelId="category-label"
                             label="Category"
                             {...field}
+                            endAdornment={
+                                loadingCategories ? (
+                                    <CircularProgress size={18} sx={{ mr: 2 }} />
+                                ) : null
+                            }
                         >
                             {categories.map((cat) => (
-                                <MenuItem key={cat} value={cat}>
-                                    {cat}
+                                <MenuItem key={cat.id} value={cat.name}>
+                                    {cat.name}
                                 </MenuItem>
                             ))}
                         </Select>

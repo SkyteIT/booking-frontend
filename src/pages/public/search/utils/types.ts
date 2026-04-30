@@ -1,17 +1,16 @@
-// Feature-level types shared across search hook, utils, data, and components.
-export type ListingCategory =
-  | "Hotels"
-  | "Restaurants"
-  | "Events"
-  | "Activities"
-  | "Car Rentals"
-  | "Apartments"
-  | "Equipment";
+// types.ts
+// No longer a fixed union — categories come from the database.
+
+export interface ApiCategory {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
 
 export interface Listing {
   id: number;
   title: string;
-  category: ListingCategory;
+  category: string;       // ← was ListingCategory (hardcoded union), now plain string
   location: string;
   price: number;
   priceUnit: "night" | "person" | "ticket" | "day" | "hour";
@@ -24,7 +23,7 @@ export interface Listing {
 export interface SearchFilters {
   q: string;
   date: string;
-  categories: ListingCategory[];
+  categories: string[];   // ← was ListingCategory[], now string[]
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;

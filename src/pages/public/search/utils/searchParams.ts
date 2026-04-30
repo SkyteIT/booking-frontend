@@ -1,16 +1,6 @@
 // URL param helpers:
 // converts raw URLSearchParams into typed filter values for the app.
-import type { ListingCategory, SearchFilters } from "./types";
-
-export const CATEGORIES: ListingCategory[] = [
-  "Hotels",
-  "Restaurants",
-  "Events",
-  "Activities",
-  "Car Rentals",
-  "Apartments",
-  "Equipment",
-];
+import type { SearchFilters } from "./types";
 
 // Converts URL text value to number; returns undefined for empty/invalid values.
 const parseNumber = (value: string | null): number | undefined => {
@@ -28,17 +18,15 @@ const parseNumber = (value: string | null): number | undefined => {
 };
 
 // Reads URL params and returns a typed filter object used by the hook.
+// Categories are no longer validated against a hardcoded list — they come
+// from the database, so any non-empty string is a valid category name.
 export const parseSearchFilters = (
   searchParams: URLSearchParams,
 ): SearchFilters => {
-  const categoryFromUrl = (searchParams.get("category") || "")
+  const categories = (searchParams.get("category") || "")
     .split(",")
     .map((item) => item.trim())
-    .filter(Boolean);
-
-  const categories = categoryFromUrl.filter((category): category is ListingCategory =>
-    CATEGORIES.includes(category as ListingCategory),
-  );
+    .filter(Boolean); // accept all non-empty category names from the DB
 
   return {
     q: searchParams.get("q") || "",
