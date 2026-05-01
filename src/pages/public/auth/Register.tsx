@@ -2,7 +2,9 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+// ✅ FIX: Replaced react-icons/ai (not installed) with @mui/icons-material (already installed)
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Snackbar, Alert } from "@mui/material";
 
 interface RegisterFormData {
@@ -148,7 +150,11 @@ function Register(): JSX.Element {
                 className={errors.password ? "input-error" : ""}
               />
               <span className="eye-icon" onClick={() => setShowPassword(prev => !prev)}>
-                {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+                {showPassword ? (
+                  <VisibilityIcon sx={{ fontSize: 20 }} />
+                ) : (
+                  <VisibilityOffIcon sx={{ fontSize: 20 }} />
+                )}
               </span>
             </div>
             {errors.password && <p className="error-text">{errors.password}</p>}
@@ -170,7 +176,11 @@ function Register(): JSX.Element {
                 className="eye-icon"
                 onClick={() => setShowConfirmPassword(prev => !prev)}
               >
-                {showConfirmPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+                {showConfirmPassword ? (
+                  <VisibilityIcon sx={{ fontSize: 20 }} />
+                ) : (
+                  <VisibilityOffIcon sx={{ fontSize: 20 }} />
+                )}
               </span>
             </div>
             {errors.confirmPassword && (

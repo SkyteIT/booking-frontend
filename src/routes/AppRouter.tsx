@@ -5,10 +5,17 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";
+import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 
 // Public
 import LandingPage from "../pages/public/LandingPage";
 import SearchResultsPage from "../pages/public/search/SearchResultsPage";
+import ViewProduct from "../pages/public/ViewProduct/ViewProduct";
+
+// Auth
+import Login from "../pages/public/auth/Login";
+import Register from "../pages/public/auth/Register";
+import ForgotPassword from "../pages/public/auth/ForgotPassword";
 
 // Admin
 import AdminDashboard from "../pages/admin/dashboard/AdminDashboard";
@@ -16,9 +23,6 @@ import ContentManagement from "../pages/admin/contentManagement/ContentManagemen
 import AddCategory from "../pages/admin/contentManagement/components/AddCategory";
 import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
-import EditBanner from "../pages/admin/contentManagement/components/EditBanner";
-import EditPromotion from "../pages/admin/contentManagement/components/EditPromotion";
-import EditCategory from "../pages/admin/contentManagement/components/EditCategory";
 import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
 
 // Vendor (existing)
@@ -31,6 +35,10 @@ import Availability from "../pages/vendor/Availability";
 import VendorNotifications from "../pages/vendor/notifications/VendorNotifications";
 import VendorSettings from "../pages/vendor/settings/VendorSettings";
 
+// User / Customer
+import UserDashboard from "../pages/customer/UserDashboard";
+import UserNotificationsPage from "../pages/user/notifications/UserNotificationsPage";
+
 function AppRouter() {
   return (
     <Routes>
@@ -38,6 +46,14 @@ function AppRouter() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/search" element={<SearchResultsPage />} />
+        <Route path="/listings/:id" element={<ViewProduct />} />
+      </Route>
+
+      {/* ───────── AUTH ───────── */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
       {/* ───────── ADMIN ───────── */}
@@ -46,11 +62,8 @@ function AppRouter() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="content" element={<ContentManagement />} />
         <Route path="categories/add" element={<AddCategory />} />
-        <Route path="categories/edit/:id" element={<EditCategory />} />
         <Route path="banners/add" element={<AddBanner />} />
-        <Route path="banners/edit/:id" element={<EditBanner />} />
         <Route path="promotions/add" element={<AddPromotion />} />
-        <Route path="promotions/edit/:id" element={<EditPromotion />} />
         <Route path="notifications" element={<AdminNotifications />} />
       </Route>
 
@@ -63,6 +76,12 @@ function AppRouter() {
         <Route path="availability" element={<Availability />} />
         <Route path="notifications" element={<VendorNotifications />} />
         <Route path="settings" element={<VendorSettings />} />
+      </Route>
+
+      {/* ───────── USER / CUSTOMER ───────── */}
+      <Route path="/user">
+        <Route path="dashboard" element={<UserDashboard />} />
+        <Route path="notifications" element={<UserNotificationsPage />} />
       </Route>
 
       {/* ───────── FALLBACK ───────── */}

@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import "./auth.css";
 
 type AuthLayoutProps = {
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 function AuthLayout({ children }: AuthLayoutProps) {
@@ -23,7 +24,8 @@ function AuthLayout({ children }: AuthLayoutProps) {
       </div>
 
       <div className="auth-right">
-        {children}
+        {/* When used as a route wrapper (no children), render nested routes */}
+        {children ?? <Outlet />}
       </div>
     </div>
   );

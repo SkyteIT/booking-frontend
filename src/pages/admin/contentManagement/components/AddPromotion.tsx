@@ -29,7 +29,6 @@ const cardStyle = {
   boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
 };
 
-// Helper: generate a random promo code
 function generateCode(prefix = "PROMO") {
   return `${prefix}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
@@ -87,8 +86,19 @@ export default function AddPromotion() {
         usageLimit: form.usageLimitEnabled ? Number(form.usageLimit) : undefined,
       });
       navigate("/admin/content");
-    } catch {
-      setErrors((prev) => ({ ...prev, code: "Failed to save. Please try again." }));
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 409) {
+        setErrors((prev) => ({
+          ...prev,
+          code: `Promo code "${form.code}" already exists. Please use a different code.`,
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          code: err?.response?.data?.message || err?.response?.data?.error || "Failed to save. Please try again.",
+        }));
+      }
     } finally {
       setSaving(false);
     }
@@ -96,7 +106,6 @@ export default function AddPromotion() {
 
   const handleCancel = () => navigate("/admin/content");
 
-  // Live preview values
   const previewValue =
     form.value
       ? form.type === "Percentage"
@@ -192,7 +201,6 @@ export default function AddPromotion() {
               <Typography fontWeight={600}>2. Discount Type & Value</Typography>
             </Box>
 
-            {/* Toggle between Percentage / Fixed */}
             <Box display="flex" gap={1} mb={2}>
               {(["Percentage", "Fixed Amount"] as const).map((t) => (
                 <Button
@@ -401,9 +409,7 @@ export default function AddPromotion() {
               { label: "Category", value: form.applicableCategory || "—" },
               {
                 label: "Usage limit",
-                value: form.usageLimitEnabled
-                  ? (form.usageLimit || "—")
-                  : "Unlimited",
+                value: form.usageLimitEnabled ? (form.usageLimit || "—") : "Unlimited",
               },
               {
                 label: "Valid",
@@ -422,9 +428,7 @@ export default function AddPromotion() {
                     maxWidth: 130,
                     textAlign: "right",
                     wordBreak: "break-word",
-                    ...(label === "Code"
-                      ? { letterSpacing: 1.5, fontFamily: "monospace" }
-                      : {}),
+                    ...(label === "Code" ? { letterSpacing: 1.5, fontFamily: "monospace" } : {}),
                   }}
                 >
                   {value}
