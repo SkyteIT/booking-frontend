@@ -1,7 +1,45 @@
+import { useEffect, useState } from "react";
 import { Card, Typography, Box } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 
+// ✅ Define correct user type
+type User = {
+  name: string;
+  email: string;
+};
+
 const DashboardSidebar = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   return (
     <Card className="sidebar-card" sx={{ p: 3 }}>
 
@@ -11,11 +49,11 @@ const DashboardSidebar = () => {
         </Box>
 
         <Typography fontWeight={600}>
-          --
+          {user?.name || "--"}
         </Typography>
 
         <Typography variant="body2" color="text.secondary">
-          --
+          {user?.email || "--"}
         </Typography>
       </Box>
 

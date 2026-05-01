@@ -66,7 +66,7 @@ function Login(): JSX.Element {
 
       try {
         const data = await loginUser(formData.email, formData.password);
-
+        console.log("LOGIN RESPONSE:", data);
         // ✅ Save JWT token
         localStorage.setItem("token", data.token);
 

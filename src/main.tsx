@@ -6,6 +6,7 @@ import { createTheme } from "@mui/material/styles"; // ← add this
 import App from "./App";
 import "./index.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AuthProvider } from "./context/AuthContext";
 // Define theme inline temporarily to rule out import issue
 const theme = createTheme({
   palette: {
@@ -18,10 +19,15 @@ const theme = createTheme({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId="722594355617-j73v9slh5v8ctop8lnma9lt6fl1mhthg.apps.googleusercontent.com">
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-      </ThemeProvider>
+
+      {/* ✅ WRAP HERE */}
+      <AuthProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>
+      </AuthProvider>
+
     </GoogleOAuthProvider>
   </StrictMode>
 );
