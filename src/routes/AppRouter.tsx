@@ -25,14 +25,11 @@ import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
 import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
 
-// Vendor (existing)
+// Vendor
 import VendorListings from "../pages/vendor/Listings/VendorListings";
 import Bookings from "../pages/vendor/Bookings";
 import Dashboard from "../pages/vendor/Dashboard";
 import Availability from "../pages/vendor/Availability";
-
-// Vendor (features)
-import VendorNotifications from "../pages/vendor/notifications/VendorNotifications";
 import VendorSettings from "../pages/vendor/settings/VendorSettings";
 
 // User / Customer
@@ -74,8 +71,15 @@ function AppRouter() {
         <Route path="bookings" element={<Bookings />} />
         <Route path="listings" element={<VendorListings />} />
         <Route path="availability" element={<Availability />} />
-        <Route path="notifications" element={<VendorNotifications />} />
-        <Route path="settings" element={<VendorSettings />} />
+
+        {/* /vendor/notifications → redirect to merged settings page */}
+        <Route path="notifications" element={<Navigate to="/vendor/settings/notifications" replace />} />
+
+        {/* /vendor/settings → redirect to notifications sub-section */}
+        <Route path="settings" element={<Navigate to="/vendor/settings/notifications" replace />} />
+
+        {/* /vendor/settings/:section — all settings including notifications */}
+        <Route path="settings/:section" element={<VendorSettings />} />
       </Route>
 
       {/* ───────── USER / CUSTOMER ───────── */}
