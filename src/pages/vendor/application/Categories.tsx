@@ -59,7 +59,7 @@ const Categories = (): JSX.Element => {
       updated = [...selectedCategories, category];
     }
 
-    // ✅ save to global context
+    //  save to global context
     setData(prev => ({
       ...prev,
       categories: updated

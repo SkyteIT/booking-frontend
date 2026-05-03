@@ -20,6 +20,8 @@ interface LoginErrors {
 function Login(): JSX.Element {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  //for enter data
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: ""
@@ -53,7 +55,7 @@ function Login(): JSX.Element {
     return newErrors;
   };
 
-  // ✅ FIXED: async function
+  // handle submit+validation
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (loading) return;
@@ -63,11 +65,11 @@ function Login(): JSX.Element {
 
     if (Object.keys(validationErrors).length === 0) {
       setLoading(true);
-
+//to call backend via service
       try {
         const data = await loginUser(formData.email, formData.password);
         console.log("LOGIN RESPONSE:", data);
-        // ✅ Save JWT token
+        //  Save JWT token
         localStorage.setItem("token", data.token);
 
         setSuccessSnackbar(true);
@@ -184,7 +186,7 @@ function Login(): JSX.Element {
           </Link>
         </p>
 
-        {/* ✅ Success Snackbar */}
+        {/*  Success Snackbar */}
         <Snackbar
           open={successSnackbar}
           autoHideDuration={2000}

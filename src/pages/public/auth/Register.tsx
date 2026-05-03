@@ -91,7 +91,7 @@ function Register(): JSX.Element {
     if (Object.keys(validationErrors).length === 0) {
       try {
         setLoading(true);
-
+// calls service layer-after generating the token in controller,return to this component,save it in local storage
         const data = await registerUser(
           formData.name,
           formData.email,

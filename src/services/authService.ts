@@ -5,7 +5,7 @@ const API_URL = "http://localhost:5037/api/auth";
 export interface LoginResponse {
   token: string;
 }
-
+//real login backend call
 export const loginUser = async (
   email: string,
   password: string
@@ -21,7 +21,7 @@ export const loginUser = async (
 export interface RegisterResponse {
   token: string;
 }
-
+//real register backend call(after that request reach controller)
 export const registerUser = async (
   name: string,
   email: string,

@@ -9,7 +9,7 @@ import "./application.css";
 const Documents = (): JSX.Element => {
   const navigate = useNavigate();
 
-  // ✅ correct context usage
+  //  correct context usage
   const { data, setData } = useVendorApplication();
 
   const documents = data.documents;
