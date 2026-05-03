@@ -1,11 +1,42 @@
-// src/pages/vendor/VendorDashboard.tsx
-import { Container, Typography, Grid, Card, CardContent } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Container, Typography, Grid, Card, CardContent, CircularProgress, Box } from "@mui/material";
+import { getCurrentVendor } from "../../services/Vendor/listingService";
+import type { VendorDto } from "../../services/Vendor/listingService";
 
 const VendorDashboard = () => {
+    const [vendor, setVendor] = useState<VendorDto | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchVendor = async () => {
+            try {
+                const data = await getCurrentVendor();
+                setVendor(data);
+            } catch (error) {
+                console.error("Error fetching vendor:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVendor();
+    }, []);
+
+    if (loading) {
+        return (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
     return (
         <Container maxWidth="lg" sx={{ py: 6 }}>
-            <Typography variant="h4" sx={{ mb: 4, fontWeight: 700, color: "#1E293B" }}>
-                Vendor Dashboard
+            <Typography variant="h4" sx={{ mb: 1, fontWeight: 700, color: "#1E293B" }}>
+                {vendor ? `${vendor.businessName} Vendor Profile` : "Vendor Dashboard"}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 4, color: "#64748B" }}>
+                Welcome to your command center. Manage your properties and bookings here.
             </Typography>
 
             <Grid container spacing={3}>

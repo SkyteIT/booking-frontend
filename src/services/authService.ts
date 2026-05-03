@@ -4,6 +4,7 @@ const API_URL = "http://localhost:5037/api/auth";
 
 export interface LoginResponse {
   token: string;
+  userName: string;
 }
 
 export const loginUser = async (
@@ -20,6 +21,7 @@ export const loginUser = async (
 
 export interface RegisterResponse {
   token: string;
+  userName: string;
 }
 
 export const registerUser = async (

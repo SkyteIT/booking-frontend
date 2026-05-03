@@ -157,3 +157,30 @@ export const getCurrentVendor = async (): Promise<VendorDto> => {
   }
   return response.json();
 };
+
+export interface ListingResponse {
+  id: string;
+  title: string;
+  basePrice: number;
+  currency: string;
+  categoryName: string;
+  type: number;
+  status: string;
+  rating: number;
+  bookingsCount: number;
+  primaryImage?: string;
+  isActive: boolean;
+}
+
+export const getVendorListings = async (): Promise<ListingResponse[]> => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_BASE_URL}/Listings/me`, {
+    headers: {
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch vendor listings");
+  }
+  return response.json();
+};

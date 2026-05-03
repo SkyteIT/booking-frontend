@@ -98,8 +98,9 @@ function Register(): JSX.Element {
           formData.password
         );
 
-        // Save JWT
+        // Save JWT and user details
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userName", data.userName);
 
         setSuccessSnackbar(true);
 
@@ -222,6 +223,7 @@ function Register(): JSX.Element {
       });
 
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userName", res.data.userName);
 
       navigate("/", { replace: true });
     } catch (err) {

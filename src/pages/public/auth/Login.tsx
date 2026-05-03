@@ -67,8 +67,9 @@ function Login(): JSX.Element {
       try {
         const data = await loginUser(formData.email, formData.password);
 
-        // ✅ Save JWT token
+        // ✅ Save JWT token and user details
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userName", data.userName);
 
         setSuccessSnackbar(true);
 
@@ -165,6 +166,7 @@ function Login(): JSX.Element {
       });
 
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userName", res.data.userName);
 
       navigate("/", { replace: true });
     } catch (err) {
