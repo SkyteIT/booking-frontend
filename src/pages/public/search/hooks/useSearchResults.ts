@@ -20,30 +20,31 @@ export const useSearchResults = () => {
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
-  // Load categories from the API once on mount
+  // Load categories from the API once on mount.
+  // Even if this fails we mark categoriesLoaded=true so the search can still
+  // run — the user just won't see category filter chips, which is acceptable.
   useEffect(() => {
     fetchCategories()
       .then((data) => setAllCategories(Array.isArray(data) ? data : []))
       .catch(() => setAllCategories([]))
-      .finally(() => setCategoriesLoaded(true));
+      .finally(() => setCategoriesLoaded(true)); // always unblock the search
   }, []);
 
   // Only show ACTIVE categories in the filter sidebar
-  // Bug fix: previously showed all categories including Inactive ones
   const categories = useMemo(
     () => allCategories.filter((c) => c.isActive),
     [allCategories]
   );
 
-  // Run search whenever filters or categories change
+  // Run search whenever filters or categories are ready.
   useEffect(() => {
     if (!categoriesLoaded) return;
 
     setLoading(true);
     setError(null);
 
-    // Resolve selected category names → IDs for the API call
-    // Only resolve against active categories so Inactive ones never reach the API
+    // Resolve selected category names → IDs for the API call.
+    // Only resolve against active categories so Inactive ones never reach the API.
     const selectedCategoryIds = filters.categories
       .map((name) =>
         categories.find((c) => c.name.toLowerCase() === name.toLowerCase())?.id
@@ -65,12 +66,16 @@ export const useSearchResults = () => {
       .finally(() => setLoading(false));
   }, [filters, categories, categoriesLoaded]);
 
+  // Commits the search query to the URL (triggers API via the useEffect above).
+  // Call this only on explicit user action (button click / Enter), NOT on every keystroke.
   const setQuery = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
     value.trim() ? next.set("q", value.trim()) : next.delete("q");
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
+  // Price filters: also committed only on explicit action (blur or Enter)
+  // so we don't fire an API call on every digit the user types.
   const setMinPrice = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
     const n = value.replace(/[^0-9]/g, "");
@@ -124,7 +129,7 @@ export const useSearchResults = () => {
     listings,
     loading,
     error,
-    categories,           // ← only Active categories for the sidebar
+    categories,
     ratingOptions: [3, 4, 4.5] as const,
     setQuery,
     setMinPrice,

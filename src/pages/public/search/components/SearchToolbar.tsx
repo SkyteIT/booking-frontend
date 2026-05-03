@@ -1,5 +1,6 @@
 // Top toolbar: contains search text input and current result count.
 // It is presentational and forwards text changes via callback props.
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -17,6 +18,27 @@ interface SearchToolbarProps {
 }
 
 const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
+  // Local state buffers the input so we only commit to the URL (and trigger
+  // the API call) when the user clicks Search or presses Enter — not on
+  // every keystroke, which previously caused race-condition API floods.
+  const [inputValue, setInputValue] = useState(query);
+
+  // Keep local input in sync if the URL query changes externally
+  // (e.g. browser back/forward navigation).
+  useEffect(() => {
+    setInputValue(query);
+  }, [query]);
+
+  const handleSubmit = () => {
+    onQueryChange(inputValue);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSubmit();
+    }
+  };
+
   return (
     <>
       <Typography
@@ -42,8 +64,9 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
           fullWidth
           size="small"
           placeholder="Search properties, locations..."
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          onKeyDown={handleKeyDown}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -52,7 +75,11 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
             ),
           }}
         />
-        <Button variant="contained" sx={{ minWidth: 120, borderRadius: "8px", px: 3 }}>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          sx={{ minWidth: 120, borderRadius: "8px", px: 3 }}
+        >
           Search
         </Button>
       </Paper>
