@@ -24,7 +24,7 @@ export default function ListingSelector({
         sx={{
           fontSize: 14,
           fontWeight: 600,
-          color: "#6B7280",
+          color: "text.secondary",
           mb: 1.5,
         }}
       >
@@ -53,15 +53,15 @@ export default function ListingSelector({
                 textAlign: "left",
 
                 border: "1px solid",
-                borderColor: selected ? "#0077b6" : "#E5E7EB",
-                backgroundColor: selected ? "#F9FAFB" : "#fff",
+                borderColor: selected ? "primary.main" : "divider",
+                backgroundColor: selected ? "secondary.light" : "background.paper",
                 boxShadow: selected ? "0 6px 20px rgba(0,0,0,0.05)" : "none",
 
                 transition: "all 0.2s ease",
 
                 "&:hover": {
-                  borderColor: "#0077b6",
-                  backgroundColor: "#F9FAFB",
+                  borderColor: "primary.main",
+                  backgroundColor: "secondary.light",
                   transform: "scale(1.01)",
                   
                 },
@@ -74,7 +74,7 @@ export default function ListingSelector({
                   sx={{
                     fontWeight: 600,
                     fontSize: 15,
-                    color: "#111827",
+                    color: "text.primary",
                   }}
                 >
                   {l.name}
@@ -84,7 +84,7 @@ export default function ListingSelector({
                 <Typography
                   sx={{
                     fontSize: 12,
-                    color: "#6B7280",
+                    color: "text.secondary",
                   }}
                 >
                   {l.bookedCount} booked · {l.blockedCount} blocked

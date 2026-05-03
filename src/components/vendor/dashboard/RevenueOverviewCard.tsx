@@ -1,28 +1,73 @@
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 
 type Props = {
-  loading?: boolean;
-  error?: string | null;
+  bookings: any[];
 };
 
-export default function RevenueOverviewCard({ loading = false, error = null }: Props) {
-  return (
-    <Card sx={{ borderRadius: 3 }}>
-      <CardContent sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-          <Typography variant="h3" sx={{ fontWeight: 700 }}>
-            Revenue Overview
-          </Typography>
+export default function RevenueOverviewCard({ bookings }: Props) {
+  const chartData = bookings
+    .filter((b) => b.status === "Confirmed")
+    .reduce((acc: any[], b) => {
+      const day = new Date(b.startDateTime).toLocaleDateString("en-US", {
+        weekday: "short",
+      });
 
-         
+      const existing = acc.find((d) => d.day === day);
+
+      if (existing) {
+        existing.revenue += b.totalAmount;
+      } else {
+        acc.push({
+          day,
+          revenue: b.totalAmount,
+        });
+      }
+
+      return acc;
+    }, []);
+
+  const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  chartData.sort((a, b) => order.indexOf(a.day) - order.indexOf(b.day));
+
+  return (
+    <Card
+      sx={{
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: "divider",
+      }}
+    >
+      <CardContent sx={{ p: 2.5 }}>
+        {/* 🔹 Header */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 500 }}>
+            Revenue overview
+          </Typography>
         </Stack>
 
-        {error ? (
-          <Box sx={{ p: 2, borderRadius: 2, bgcolor: "#FDE2E2", color: "#B91C1C" }}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              Failed to load revenue overview
-            </Typography>
-            <Typography variant="caption">{error}</Typography>
+        {/* 🔹 Empty state */}
+        {chartData.length === 0 ? (
+          <Box
+            sx={(t) => ({
+              height: 250,
+              borderRadius: 2,
+              border: `1px solid ${t.palette.divider}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: t.palette.text.secondary,
+            })}
+          >
+            <Typography variant="body2">No revenue data yet</Typography>
           </Box>
         ) : (
           <Box
@@ -31,19 +76,54 @@ export default function RevenueOverviewCard({ loading = false, error = null }: P
               borderRadius: 2,
               border: `1px solid ${t.palette.divider}`,
               bgcolor: t.palette.background.paper,
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              px: 3,
-              pb: 2,
-              opacity: loading ? 0.6 : 1,
+              px: 1,
+              py: 1.5,
             })}
           >
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-              <Typography key={d} variant="caption" color="text.secondary">
-                {d}
-              </Typography>
-            ))}
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                {/* 🔹 X Axis */}
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 12, fill: "#6b7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                {/* 🔹 Y Axis */}
+                <YAxis
+                  tick={{ fontSize: 12, fill: "#6b7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                {/* 🔹 Tooltip */}
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: "1px solid #e5e7eb",
+                    fontSize: 12,
+                  }}
+                  cursor={{
+                    stroke: "#2563EB",
+                    strokeOpacity: 0.2,
+                  }}
+                />
+
+                {/* 🔹 Line */}
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#2563EB"
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{
+                    r: 4,
+                    strokeWidth: 2,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </Box>
         )}
       </CardContent>

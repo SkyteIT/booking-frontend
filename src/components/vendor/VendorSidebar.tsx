@@ -1,7 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Box,
-  Typography,
   useTheme,
   useMediaQuery,
   BottomNavigation,
@@ -34,13 +33,12 @@ export default function VendorSidebar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // ==============================
-  // 📱 MOBILE VERSION
-  // ==============================
+// MOBILE VERSION
+  
   if (isMobile) {
     return (
       <Paper
-        elevation={8}
+        elevation={6} //
         sx={{
           position: "fixed",
           bottom: 0,
@@ -48,7 +46,7 @@ export default function VendorSidebar() {
           right: 0,
           zIndex: 1200,
           background: "linear-gradient(to right, #0077b6, #005a8d)",
-          borderTop: "1px solid rgba(255,255,255,0.2)",
+          borderTop: "1px solid rgba(255,255,255,0.15)",
         }}
       >
         <BottomNavigation
@@ -77,11 +75,10 @@ export default function VendorSidebar() {
     );
   }
 
-  // ==============================
-  // 💻 DESKTOP VERSION
-  // ==============================
+  //DESKTOP VERSION
+  
   return (
-    <Box
+   <Box
       sx={{
         position: "sticky",
         left: 16,
@@ -90,59 +87,51 @@ export default function VendorSidebar() {
         height: "calc(100vh - 150px)",
         width: 260,
         borderRadius: 3,
-        boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+        boxShadow: "0 12px 24px rgba(0,0,0,0.12)", 
         overflowY: "auto",
         background: "linear-gradient(to bottom, #0077b6, #005a8d)",
-        p: 2,
+        p: 1.5, 
       }}
     >
-      <Typography
+
+  {menuItems.map((item) => {
+    const Icon = item.icon;
+    const isActive = location.pathname === item.path;
+
+    return (
+      <Box
+        key={item.path}
+        component={NavLink}
+        to={item.path}
         sx={{
-          color: "white",
-          fontWeight: 600,
-          mb: 2,
-          px: 1,
-        }}
-      >
-        Vendor Panel
-      </Typography>
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5, 
+          px: 2,
+          py: 1.2,
+          mb: 0.6,
+          borderRadius: 2,
+          textDecoration: "none",
+          fontSize: "0.9rem",
+          fontWeight: isActive ? 600 : 400,
+          transition: "all 0.2s ease",
 
-      {menuItems.map((item) => {
-        const Icon = item.icon;
-        const isActive = location.pathname === item.path;
-
-        return (
-          <Box
-            key={item.path}
-            component={NavLink}
-            to={item.path}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              px: 2,
-              py: 1.5,
-              mb: 1,
-              borderRadius: 2,
-              textDecoration: "none",
-              fontWeight: isActive ? 600 : 400,
-              transition: "all 0.2s ease",
-              ...(isActive
+          ...(isActive
                 ? {
-                    backgroundColor: "#ffffff",
-                    color: "#0077b6",
-                    boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+                    backgroundColor: "secondary.main", 
+                    color: "primary.main",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)", 
                   }
                 : {
                     color: "rgba(255,255,255,0.85)",
                     "&:hover": {
-                      backgroundColor: "rgba(255,255,255,0.15)",
+                      backgroundColor: "rgba(255, 255, 255, 0.22)", //
                       color: "#ffffff",
                     },
                   }),
             }}
           >
-            <Icon sx={{ fontSize: 20 }} />
+            <Icon sx={{ fontSize: 18 }} /> 
 
             {item.label}
           </Box>

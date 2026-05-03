@@ -10,6 +10,7 @@ import CreateListing from "../pages/vendor/CreateListing/CreateListing";
 import Bookings from "../pages/vendor/Bookings";
 import Dashboard from "../pages/vendor/Dashboard";
 import Availability from "../pages/vendor/Availability";
+import Settings from "../pages/vendor/Settings";
 import Login from "../pages/public/auth/Login";
 import Register from "../pages/public/auth/Register";
 import ForgotPassword from "../pages/public/auth/ForgotPassword";
@@ -49,6 +50,7 @@ function AppRouter() {
         <Route path="listings" element={<VendorListings />} />
         <Route path="listings/new" element={<CreateListing />} />
         <Route path="availability" element={<Availability />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       <Route path="/vendor/businessinfo" element={<BusinessInfo />} />

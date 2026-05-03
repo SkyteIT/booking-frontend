@@ -1,5 +1,5 @@
 // src/components/navbars/MainNavbar.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import icon2 from "../../assets/icons/icon2.png";
+import { useAuth } from "../../context/AuthContext";
 
 interface MainNavbarProps {
   isAuthPage?: boolean;
@@ -25,13 +26,11 @@ interface MainNavbarProps {
 
 const MainNavbar = ({ isAuthPage, variant = "main" }: MainNavbarProps) => {
   const navigate = useNavigate();
+  const { isAuthenticated, isVendor: isVendorUser, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileMenuOpen = Boolean(anchorEl);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() =>
-    Boolean(localStorage.getItem("authToken"))
-  );
 
-  const isVendor = variant === "vendor";
+  const isVendor = variant === "vendor" || isVendorUser;
 
 const colors = {
   appBarBg: "#ffffff",
@@ -50,21 +49,10 @@ const colors = {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    setIsAuthenticated(false);
+    logout();
     handleProfileClose();
     navigate("/login");
   };
-
-  useEffect(() => {
-    const syncAuthState = () => {
-      setIsAuthenticated(Boolean(localStorage.getItem("authToken")));
-    };
-
-    syncAuthState();
-    window.addEventListener("storage", syncAuthState);
-    return () => window.removeEventListener("storage", syncAuthState);
-  }, []);
 
   return (
     <AppBar
@@ -241,6 +229,13 @@ const colors = {
                   >
                     Account
                   </MenuItem>
+                    <MenuItem
+                      component={Link}
+                      to={isVendorUser ? "/customer/dashboard" : "/vendor/dashboard"}
+                      onClick={handleProfileClose}
+                    >
+                      {isVendorUser ? "Switch to customer portal" : "Switch to vendor portal"}
+                    </MenuItem>
                   <MenuItem
                     component={Link}
                     to="/settings"

@@ -38,7 +38,7 @@ export default function AvailabilityToolbar({
       <Stack direction="row" spacing={1} alignItems="center">
         <Button
           onClick={onPrevMonth}
-          sx={{ minWidth: 32, color: "#6B7280" }}
+          sx={{ minWidth: 32, color: "text.secondary" }}
         >
           <ChevronLeftRoundedIcon fontSize="small" />
         </Button>
@@ -47,7 +47,7 @@ export default function AvailabilityToolbar({
 
         <Button
           onClick={onNextMonth}
-          sx={{ minWidth: 32, color: "#6B7280" }}
+          sx={{ minWidth: 32, color: "text.secondary" }}
         >
           <ChevronLeftRoundedIcon fontSize="small" sx={{ transform: "rotate(180deg)" }} />
         </Button>
@@ -60,7 +60,7 @@ export default function AvailabilityToolbar({
           <Typography
             sx={{
               fontSize: 13,
-              color: "#6B7280",
+                color: "text.secondary",
             }}
           >
             {selectedCount} selected
@@ -71,7 +71,7 @@ export default function AvailabilityToolbar({
           onClick={onClear}
           sx={{
             textTransform: "none",
-            color: "#6B7280",
+            color: "text.secondary",
           }}
         >
           Clear
@@ -83,10 +83,10 @@ export default function AvailabilityToolbar({
             textTransform: "none",
             borderRadius: 2,
             px: 2,
-            backgroundColor: "#DC2626",
-            color: "#fff",
+            backgroundColor: "error.main",
+            color: "error.contrastText",
             "&:hover": {
-              backgroundColor: "#ac1919",
+              backgroundColor: "error.dark",
             },
           }}
         >
@@ -99,8 +99,9 @@ export default function AvailabilityToolbar({
             textTransform: "none",
             borderRadius: 2,
             px: 2,
-            border: "1px solid #E5E7EB",
-            color:"#0077b6",
+            border: "1px solid",
+            borderColor: "divider",
+            color: "primary.main",
           }}
         >
           Unblock

@@ -3,6 +3,7 @@ import {
   Button,
   InputAdornment,
   TextField,
+  Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -11,16 +12,23 @@ import TuneIcon from "@mui/icons-material/Tune";
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
 
   onDateRangeClick?: () => void;
   onFiltersClick?: () => void;
+  onClear?: () => void;
 };
 
 export default function BookingsToolbar({
   search,
   onSearchChange,
+  dateRange,
   onDateRangeClick,
   onFiltersClick,
+  onClear,
 }: Props) {
   return (
     <Box
@@ -44,7 +52,7 @@ export default function BookingsToolbar({
           maxWidth: 520,
           "& .MuiOutlinedInput-root": {
             borderRadius: 2,
-            bgcolor: "#fff",
+            bgcolor: "background.paper",
           },
         }}
         InputProps={{
@@ -58,21 +66,28 @@ export default function BookingsToolbar({
 
       {/* Actions */}
       <Box sx={{ display: "flex", gap: 1.5, flexShrink: 0 }}>
-        <Button
-          variant="outlined"
-          onClick={onDateRangeClick}
-          startIcon={<CalendarMonthIcon />}
-          sx={{
-            borderRadius: 2,
-            textTransform: "none",
-            px: 2,
-            borderColor: "#E5E7EB",
-            color: "#0F172A",
-            "&:hover": { borderColor: "#CBD5E1", bgcolor: "#F8FAFC" },
-          }}
-        >
-          Date Range
-        </Button>
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+          <Button
+            variant="outlined"
+            onClick={onDateRangeClick}
+            startIcon={<CalendarMonthIcon />}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              px: 2,
+              borderColor: "divider",
+              color: "text.primary",
+              "&:hover": { borderColor: "text.secondary", bgcolor: "secondary.light" },
+            }}
+          >
+            Date Range
+          </Button>
+          {dateRange?.startDate && dateRange?.endDate && (
+            <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5 }}>
+              {dateRange.startDate} - {dateRange.endDate}
+            </Typography>
+          )}
+        </Box>
 
         <Button
           variant="outlined"
@@ -82,12 +97,16 @@ export default function BookingsToolbar({
             borderRadius: 2,
             textTransform: "none",
             px: 2,
-            borderColor: "#E5E7EB",
-            color: "#0F172A",
-            "&:hover": { borderColor: "#CBD5E1", bgcolor: "#F8FAFC" },
+            borderColor: "divider",
+            color: "text.primary",
+            "&:hover": { borderColor: "text.secondary", bgcolor: "secondary.light" },
           }}
         >
           Filters
+        </Button>
+
+        <Button size="small" onClick={onClear}>
+          Clear
         </Button>
       </Box>
     </Box>

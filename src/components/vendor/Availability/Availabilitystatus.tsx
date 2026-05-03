@@ -21,10 +21,10 @@ export default function AvailabilityLegend() {
       sx={{ pb: 2, borderBottom: "1px solid", borderColor: "divider" }}
       flexWrap="wrap"
     >
-      <LegendItem color="#0077b6" label="Available" />
-      <LegendItem color="#9CA3AF" label="Booked" />
-      <LegendItem color="#DC2626" label="Blocked" />
-      <LegendItem color="#1D4ED8" label="Selected" />
+      <LegendItem color="primary.main" label="Available" />
+      <LegendItem color="grey.500" label="Booked" />
+      <LegendItem color="error.main" label="Blocked" />
+      <LegendItem color="primary.dark" label="Selected" />
     </Stack>
   );
 }

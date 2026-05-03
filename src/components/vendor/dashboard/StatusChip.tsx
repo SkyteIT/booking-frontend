@@ -1,45 +1,61 @@
-import { Chip } from "@mui/material";
+import { Box } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
+import type { Theme } from "@mui/material/styles";
 
 type Props = {
   label: string;
-  category: "Pending" | "Confirmed" | "Cancelled" | "Completed" | "Unknown";
+  category: string;
 };
 
-export default function StatusChip({ label, category }: Props) {
-  const styles = {
-    Confirmed: {
-      bgcolor: "#E9F9EF",
-      color: "#1B7A3A",
-    },
-    Pending: {
-      bgcolor: "#FFF6D9",
-      color: "#8A5A00",
-    },
-    Cancelled: {
-      bgcolor: "#FDE2E2",
-      color: "#B91C1C",
-    },
-    Completed: {
-      bgcolor: "#E6F4FF",
-      color: "#1D4ED8",
-    },
-    Unknown: {
-      bgcolor: "#F3F4F6",
-      color: "#374151",
-    },
-  } as const;
+function getStyles(category: string, theme: Theme) {
+  switch (category) {
+    case "Pending":
+      return {
+        bg: alpha(theme.palette.warning.main, 0.12),
+        color: theme.palette.warning.dark,
+        border: alpha(theme.palette.warning.main, 0.3),
+      };
+    case "Confirmed":
+      return {
+        bg: alpha(theme.palette.success.main, 0.12),
+        color: theme.palette.success.dark,
+        border: alpha(theme.palette.success.main, 0.3),
+      };
+    case "Cancelled":
+      return {
+        bg: alpha(theme.palette.error.main, 0.12),
+        color: theme.palette.error.dark,
+        border: alpha(theme.palette.error.main, 0.3),
+      };
+    default:
+      return {
+        bg: alpha(theme.palette.text.primary, 0.06),
+        color: theme.palette.text.secondary,
+        border: theme.palette.divider,
+      };
+  }
+}
 
-  const sx = styles[category] ?? styles.Unknown;
+export default function StatusChip({ label, category }: Props) {
+  const theme = useTheme();
+  const s = getStyles(category, theme);
 
   return (
-    <Chip
-      label={label}
-      size="small"
+    <Box
       sx={{
-        borderRadius: 999,
-        fontWeight: 700,
-        ...sx,
+        px: 1.25,
+        py: 0.4,
+        fontSize: 12,
+        fontWeight: 500, // 🔥 softer than 600
+        borderRadius: "999px",
+        bgcolor: s.bg,
+        color: s.color,
+        border: `1px solid ${s.border}`, // 🔥 adds structure
+        display: "inline-block",
+        lineHeight: 1.2,
       }}
-    />
+    >
+      {label}
+    </Box>
   );
 }

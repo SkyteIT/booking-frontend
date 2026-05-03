@@ -15,20 +15,14 @@ export type StatusCategory =
 
 export type VendorBookingDto = {
   bookingId: string;
-  listingId: string;
+  bookingNumber: string;
   listingTitle: string;
-
-  customerId: string;
   customerName: string;
-  customerEmail: string;
 
   startDateTime: string;
   endDateTime: string;
 
-  bookingStatus: BookingStatus | number;
-  statusLabel: string;
-  statusCategory: StatusCategory;
-
+  status: string; // enum from backend
   totalAmount: number;
   currency: string;
 

@@ -6,6 +6,7 @@ import { Snackbar, Alert } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { login as loginRequest } from "../../../services/authService";
 
 interface LoginFormData {
   email: string;
@@ -15,6 +16,31 @@ interface LoginFormData {
 interface LoginErrors {
   email?: string;
   password?: string;
+}
+
+function getAuthErrorMessage(error: unknown, fallback: string) {
+  const response = error as { response?: { data?: { message?: unknown; title?: unknown; errors?: Record<string, unknown> } } };
+  const message = response?.response?.data?.message;
+
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  const title = response?.response?.data?.title;
+  if (typeof title === "string" && title.trim()) {
+    return title;
+  }
+
+  const errors = response?.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    return Object.values(errors)
+      .flat()
+      .map(String)
+      .filter(Boolean)
+      .join(" ") || fallback;
+  }
+
+  return error instanceof Error ? error.message || fallback : fallback;
 }
 
 function Login(): JSX.Element {
@@ -27,6 +53,7 @@ function Login(): JSX.Element {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
+  const [errorSnackbar, setErrorSnackbar] = useState<string>("");
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -53,7 +80,7 @@ function Login(): JSX.Element {
     return newErrors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (loading) return;
 
@@ -61,18 +88,24 @@ function Login(): JSX.Element {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      setLoading(true);
-
-      setTimeout(() => {
-        localStorage.setItem("authToken", "demo-auth-token");
-        setLoading(false);
+      try {
+        setLoading(true);
+        const response = await loginRequest(formData.email.trim(), formData.password);
         setSuccessSnackbar(true);
 
-        // Redirect to landing page after 1.5s
         setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 1500);
-      }, 1500);
+          navigate(
+            String(response?.role ?? "").toLowerCase() === "vendor"
+              ? "/vendor/dashboard"
+              : "/customer/dashboard",
+            { replace: true }
+          );
+        }, 900);
+      } catch (error) {
+        setErrorSnackbar(getAuthErrorMessage(error, "Login failed. Please try again."));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -163,6 +196,17 @@ function Login(): JSX.Element {
         >
           <Alert severity="success" sx={{ width: "100%" }}>
             Login Successful!
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={Boolean(errorSnackbar)}
+          autoHideDuration={2500}
+          onClose={() => setErrorSnackbar("")}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="error" sx={{ width: "100%" }} onClose={() => setErrorSnackbar("")}>
+            {errorSnackbar}
           </Alert>
         </Snackbar>
       </div>

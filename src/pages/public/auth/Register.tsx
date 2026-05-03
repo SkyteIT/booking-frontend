@@ -5,6 +5,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { Snackbar, Alert } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { register as registerRequest } from "../../../services/authService";
 
 interface RegisterFormData {
   name: string;
@@ -18,6 +19,48 @@ interface RegisterErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+}
+
+function getAuthErrorMessage(error: unknown, fallback: string) {
+  const response = error as { response?: { data?: { message?: unknown; title?: unknown; errors?: Record<string, unknown> } } };
+  const message = response?.response?.data?.message;
+
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  const title = response?.response?.data?.title;
+  if (typeof title === "string" && title.trim()) {
+    return title;
+  }
+
+  const errors = response?.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    return Object.values(errors)
+      .flat()
+      .map(String)
+      .filter(Boolean)
+      .join(" ") || fallback;
+  }
+
+  return error instanceof Error ? error.message || fallback : fallback;
+}
+
+function splitFullName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) {
+    return { firstName: "", lastName: "" };
+  }
+
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: "" };
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(" "),
+  };
 }
 
 function Register(): JSX.Element {
@@ -45,6 +88,7 @@ function Register(): JSX.Element {
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
+  const [errorSnackbar, setErrorSnackbar] = useState<string>("");
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -61,6 +105,8 @@ function Register(): JSX.Element {
 
     if (!name) newErrors.name = "Full name is required";
     else if (name.length < 3) newErrors.name = "Name must be at least 3 characters";
+    else if (name.split(/\s+/).filter(Boolean).length < 2)
+      newErrors.name = "Please enter both first and last name";
 
     if (!email) newErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
@@ -77,7 +123,7 @@ function Register(): JSX.Element {
     return newErrors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (loading) return;
 
@@ -85,18 +131,31 @@ function Register(): JSX.Element {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      setLoading(true);
+      try {
+        setLoading(true);
+        const { firstName, lastName } = splitFullName(formData.name);
+        const response = await registerRequest({
+          firstName,
+          lastName,
+          email: formData.email.trim(),
+          password: formData.password,
+        });
 
-      setTimeout(() => {
-        localStorage.setItem("authToken", "demo-auth-token");
-        setLoading(false);
         setSuccessSnackbar(true);
 
-        // Redirect to landing page after 1.5s
         setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 1500);
-      }, 1500);
+          navigate(
+            String(response?.role ?? "").toLowerCase() === "vendor"
+              ? "/vendor/dashboard"
+              : "/customer/dashboard",
+            { replace: true }
+          );
+        }, 900);
+      } catch (error) {
+        setErrorSnackbar(getAuthErrorMessage(error, "Registration failed. Please try again."));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -201,6 +260,17 @@ function Register(): JSX.Element {
         >
           <Alert severity="success" sx={{ width: "100%" }}>
             Registration Successful!
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={Boolean(errorSnackbar)}
+          autoHideDuration={2500}
+          onClose={() => setErrorSnackbar("")}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="error" sx={{ width: "100%" }} onClose={() => setErrorSnackbar("")}>
+            {errorSnackbar}
           </Alert>
         </Snackbar>
       </div>

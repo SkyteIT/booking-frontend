@@ -9,10 +9,12 @@ import AvailabilityMonthGrid from "../../components/vendor/Availability/Availabi
 import Instruction from "../../components/vendor/Availability/Instruction";
 
 import { getAvailability, blockDates, unblockDates } from "../../services/Vendor/availability";
+import { toDateOnly } from "../../components/vendor/Availability/utils";
 import { getVendorListings } from "../../services/Vendor/listing";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import SnackbarAlert from "../../components/common/SnackbarAlert";
-import BookingDetailsDialog from "../../components/common/BookingDetailssDialog";
+import BookingDetailDialog from "../../components/common/BookingDetailDialog";
+import BookingsByDateDialog from "../../components/vendor/Availability/BookingsByDateDialog";
 
 type ListingCard = {
   id: string;
@@ -20,6 +22,68 @@ type ListingCard = {
   bookedCount: number;
   blockedCount: number;
 };
+
+function unwrapCollection<T>(data: any): T[] {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.$values)) return data.$values;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.result)) return data.result;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.calendar)) return data.calendar;
+  return [];
+}
+
+function getBookingCount(day: any) {
+  return Number(
+    day?.bookingCount ??
+    day?.bookedCount ??
+    day?.bookingTotal ??
+    day?.totalBookings ??
+    day?.bookingsCount ??
+    0
+  );
+}
+
+function isBlockedDay(day: any) {
+  return Boolean(day?.isBlocked || day?.status === 3 || day?.status === "Blocked");
+}
+
+function isPastDay(dateOnly: string) {
+  try {
+    const today = toDateOnly(new Date());
+    return dateOnly < today;
+  } catch {
+    return false;
+  }
+}
+
+function normalizeCalendarResponse(data: any) {
+  return unwrapCollection<any>(data);
+}
+
+function summarizeCalendar(calendarDays: any[]) {
+  const bookedDates = new Set<string>();
+  const blockedDates = new Set<string>();
+
+  for (const day of calendarDays) {
+    const dateKey = String(day?.date ?? "").slice(0, 10);
+
+    if (!dateKey) continue;
+
+    if (getBookingCount(day) > 0) {
+      bookedDates.add(dateKey);
+    }
+
+    if (isBlockedDay(day)) {
+      blockedDates.add(dateKey);
+    }
+  }
+
+  return {
+    bookedCount: bookedDates.size,
+    blockedCount: blockedDates.size,
+  };
+}
 
 export default function Availability() {
 
@@ -30,8 +94,9 @@ export default function Availability() {
   const [calendar, setCalendar] = useState<any[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
 
-  const [selectedDay, setSelectedDay] = useState<any | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [openDateDialog, setOpenDateDialog] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   
 
   const month = monthDate.getMonth() + 1;
@@ -68,7 +133,18 @@ export default function Availability() {
       }
 
       const data = await getAvailability(selectedListingId, month, year);
-      setCalendar(data);
+      const normalized = normalizeCalendarResponse(data);
+      setCalendar(normalized);
+      setListings((prev) =>
+        prev.map((listing) =>
+          listing.id === selectedListingId
+            ? {
+                ...listing,
+                ...summarizeCalendar(normalized),
+              }
+            : listing
+        )
+      );
       setSelectedDates([]);
 
     } catch (err: any) {
@@ -85,29 +161,33 @@ export default function Availability() {
   };
   // Load listings
   useEffect(() => {
-  console.log("useEffect for listings triggered");
+    getVendorListings()
+      .then((data) => {
+        const rows = unwrapCollection<any>(data);
 
-  const vendorId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-  console.log("vendorId:", vendorId);
+        const mapped = rows
+          .map((l: any) => ({
+            id: String(l.id ?? l.listingId ?? l.listingID ?? l.listing?.id ?? ""),
+            name: String(l.title ?? l.name ?? l.listingTitle ?? "Untitled listing"),
+            bookedCount: Number(l.bookedCount ?? l.bookingCount ?? l.totalBookings ?? 0),
+            blockedCount: Number(l.blockedCount ?? l.blockCount ?? l.totalBlocked ?? 0),
+          }))
+          .filter((item: ListingCard) => Boolean(item.id));
 
-  getVendorListings(vendorId)
-    .then((data) => {
-      console.log("API RESPONSE:", data);
+        setListings(mapped);
 
-      setListings(
-        data.map((l: any) => ({
-          id: l.id,
-          name: l.title,
-          bookedCount: 0,
-          blockedCount: 0,
-        }))
-      );
-    })
-    .catch((err) => {
-      console.error(" API ERROR:", err);
-    });
-
-}, []);
+        if (mapped.length > 0) {
+          setSelectedListingId((current) => current ?? mapped[0].id);
+        }
+      })
+      .catch((err) => {
+        console.error(" API ERROR:", err);
+        showMessage(
+          err?.response?.data?.message || "Failed to load your listings.",
+          "error"
+        );
+      });
+  }, []);
 
   // Load calendar
   useEffect(() => {
@@ -115,22 +195,45 @@ export default function Availability() {
 
     getAvailability(selectedListingId, month, year)
       .then((data) => {
-        setCalendar(data);
+        const normalized = normalizeCalendarResponse(data);
+        console.debug("Availability.load", { listing: selectedListingId, month, year, returned: normalized?.length });
+        setCalendar(normalized);
+        setListings((prev) =>
+          prev.map((listing) =>
+            listing.id === selectedListingId
+              ? {
+                  ...listing,
+                  ...summarizeCalendar(normalized),
+                }
+              : listing
+          )
+        );
       })
       .catch((err) => console.error("Availability error:", err));
 
   }, [selectedListingId, month, year]);
+
+  const refreshBookings = async () => {
+    if (!selectedListingId) return;
+
+    try {
+      const data = await getAvailability(selectedListingId, month, year);
+      setCalendar(normalizeCalendarResponse(data));
+    } catch (err) {
+      console.error("Availability refresh error:", err);
+    }
+  };
 
   return (
     <Stack spacing={3}>
 
       {/* HEADER */}
       <Box>
-        <Typography variant="h2" sx={{ fontWeight: 700 }}>
-          Availability Calendar
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+          Availability Management
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Manage availability for your listings
+          Manage your listing availability and view bookings
         </Typography>
       </Box>
 
@@ -167,10 +270,30 @@ export default function Availability() {
                   showMessage("Please select a listing first.", "warning");
                   return;
                 }
-                  if (selectedDates.length === 0) {
+                if (selectedDates.length === 0) {
                   showMessage("Please select dates to block.", "warning");
                   return;
                 }
+
+                // Validate selected dates: cannot block dates that already have bookings
+                const anyBooked = selectedDates.some((d) => {
+                  const found = calendar.find((c) => String(c?.date ?? "").startsWith(d));
+                  const cnt = getBookingCount(found);
+                  return cnt > 0;
+                });
+
+                if (anyBooked) {
+                  showMessage("One or more selected dates have bookings and cannot be blocked.", "error");
+                  return;
+                }
+
+                // Prevent blocking past dates
+                const anyPast = selectedDates.some((d) => isPastDay(d));
+                if (anyPast) {
+                  showMessage("One or more selected dates are in the past and cannot be blocked.", "warning");
+                  return;
+                }
+
                 setActionType("block");
                 setConfirmOpen(true);
 
@@ -185,6 +308,17 @@ export default function Availability() {
                 }
                 if (selectedDates.length === 0) {
                   showMessage("Please select dates to unblock.", "warning");
+                  return;
+                }
+
+                // Validate selected dates: at least one date must be currently blocked
+                const anyBlocked = selectedDates.some((d) => {
+                  const found = calendar.find((c) => String(c?.date ?? "").startsWith(d));
+                  return isBlockedDay(found);
+                });
+
+                if (!anyBlocked) {
+                  showMessage("No selected dates are blocked.", "warning");
                   return;
                 }
 
@@ -213,17 +347,29 @@ export default function Availability() {
                   showMessage("Please select a listing first.", "warning");
                   return;
                 }
+                // Prevent selecting past dates
+                if (isPastDay(date)) {
+                  showMessage("Cannot select past dates.", "warning");
+                  return;
+                }
 
                 const found = calendar.find((d) =>
                   d.date.startsWith(date)
                 );
+                const bookingCount = getBookingCount(found);
 
-                if (!found) return;
+                if (bookingCount > 0) {
+                  setSelectedDate(date);
+                  setOpenDateDialog(true);
+                  return;
+                }
 
-                //only open popup if bookings exist
-                if (found.bookingCount && found.bookingCount > 0) {
-                  setSelectedDay(found);
-                  setDetailsOpen(true);
+                if (found && isBlockedDay(found)) {
+                  setSelectedDates((prev) =>
+                    prev.includes(date)
+                      ? prev.filter((d) => d !== date)
+                      : [...prev, date]
+                  );
                   return;
                 }
 
@@ -248,10 +394,21 @@ export default function Availability() {
         onClose={handleCloseSnackbar}
       />
 
-      <BookingDetailsDialog
-        open={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
-        data={selectedDay}
+      <BookingDetailDialog
+        bookingId={selectedBookingId}
+        open={!!selectedBookingId}
+        onClose={() => setSelectedBookingId(null)}
+        onUpdated={refreshBookings}
+      />
+
+      <BookingsByDateDialog
+        date={selectedDate}
+        open={openDateDialog}
+        onClose={() => setOpenDateDialog(false)}
+        onSelectBooking={(id) => {
+          setSelectedBookingId(id);
+          setOpenDateDialog(false);
+        }}
       />
 
       <Instruction />

@@ -1,4 +1,5 @@
 import { Box, ButtonBase, Typography, Tooltip } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import { getMonthMeta, toDateOnly } from "./utils";
 
 // Accept any backend shape safely
@@ -6,6 +7,10 @@ type DayData = {
   date: string;
   status: any; 
   bookingCount?: number;
+  bookedCount?: number;
+  bookingTotal?: number;
+  totalBookings?: number;
+  bookingsCount?: number;
   availableCount?: number;
   isBlocked?: boolean;
 };
@@ -20,6 +25,21 @@ type Props = {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function getBookingCount(day: DayData | undefined) {
+  return Number(
+    day?.bookingCount ??
+    day?.bookedCount ??
+    day?.bookingTotal ??
+    day?.totalBookings ??
+    day?.bookingsCount ??
+    0
+  );
+}
+
+function isBlockedDay(day: DayData | undefined) {
+  return Boolean(day?.isBlocked || day?.status === 3 || day?.status === "Blocked");
+}
+
 export default function AvailabilityMonthGrid({
   monthDate,
   calendar,
@@ -32,19 +52,20 @@ export default function AvailabilityMonthGrid({
   function getState(dateOnly: string) {
     const found = calendar.find((d) => d.date.startsWith(dateOnly));
     const isSelected = selectedDates.includes(dateOnly);
+    const bookingCount = getBookingCount(found);
 
     if (!found) return isSelected ? "Selected" : "Available";
 
     // Status can be either a string or a number depending on backend implementation, so we check for both
-    if (found.isBlocked || found.status === 3 || found.status === "Blocked") {
+    if (isBlockedDay(found)) {
       if (isSelected) return "BlockedSelected";
       return "Blocked";
     }
-    if (found.availableCount === 0) {
-      return "Unavailable";
-    }
-    if (found.bookingCount && found.bookingCount > 0) {
+    if (bookingCount > 0) {
       return "Booked";
+    }
+    if (found.availableCount === 0) {
+      return "Full";
     }
 
     if (isSelected) {
@@ -58,8 +79,8 @@ export default function AvailabilityMonthGrid({
   function getCellStyles(state: string) {
     if (state === "Booked") {
       return {
-        bg: "#9CA3AF", // grey
-        hover: "#9CA3AF",
+        bg: grey[600],
+        hover: grey[700],
         text: "#fff",
         disabled: false,
         ring: "none",
@@ -68,9 +89,9 @@ export default function AvailabilityMonthGrid({
 
     if (state === "Blocked") {
       return {
-        bg: "#DC2626", // red
-        hover: "#B91C1C",
-        text: "#fff",
+        bg: "error.main",
+        hover: "error.dark",
+        text: "error.contrastText",
         disabled: false,
         ring: "none",
       };
@@ -78,27 +99,27 @@ export default function AvailabilityMonthGrid({
 
     if (state === "BlockedSelected") {
       return {
-        bg: "#B91C1C",
-        hover: "#991B1B",
-        text: "#fff",
+        bg: "error.dark",
+        hover: "error.dark",
+        text: "error.contrastText",
         disabled: false,
-        ring: "0 0 0 3px #FECACA",
+        ring: `0 0 0 3px ${grey[200]}`,
       };
     }
 
     if (state === "Selected") {
       return {
-        bg: "#066090", // dark blue
-        hover: "#0077b6",
-        text: "#fff",
+        bg: "primary.dark",
+        hover: "primary.main",
+        text: "primary.contrastText",
         disabled: false,
-        ring: "0 0 0 3px #93C5FD",
+        ring: `0 0 0 3px ${grey[300]}`,
       };
     }
     if (state === "Full") {
       return {
-        bg: "#374151", // dark gray (stronger than booked)
-        hover: "#374151",
+        bg: grey[700],
+        hover: grey[700],
         text: "#fff",
         disabled: true,
         ring: "none",
@@ -106,9 +127,9 @@ export default function AvailabilityMonthGrid({
     }
 
     return {
-      bg: "#0077b6", // available (blue)
-      hover: "#005a8d",
-      text: "#fff",
+      bg: "primary.main",
+      hover: "primary.dark",
+      text: "primary.contrastText",
       disabled: false,
       ring: "none",
     };
@@ -116,17 +137,18 @@ export default function AvailabilityMonthGrid({
 
   function getTooltip(dateOnly: string) {
     const found = calendar.find((d) => d.date.startsWith(dateOnly));
+    const bookingCount = getBookingCount(found);
 
     if (!found) return "Available";
 
-    if (found.isBlocked) return "Blocked";
+    if (isBlockedDay(found)) return "Blocked";
 
-    if (found.bookingCount && found.bookingCount > 0) {
-      return `View ${found.bookingCount} bookings`;
+    if (bookingCount > 0) {
+      return `View ${bookingCount} bookings`;
     }
 
     if (found.availableCount === 0) {
-      return `Fully booked (${found.bookingCount} bookings)`;
+      return `Fully booked (${bookingCount} bookings)`;
     }
 
     return "Available";
@@ -178,8 +200,7 @@ export default function AvailabilityMonthGrid({
             const dateOnly = toDateOnly(dateObj);
 
             const found = calendar.find((d) => d.date.startsWith(dateOnly));
-            const bookingCount = found?.bookingCount ?? 0;
-            const availableCount = found?.availableCount ?? 0;
+            const bookingCount = getBookingCount(found);
             const state = getState(dateOnly);
             const styles = getCellStyles(state);
 
@@ -220,10 +241,16 @@ export default function AvailabilityMonthGrid({
                       <span>{day}</span>
 
                       {bookingCount > 0 && (
-                        <Typography variant="caption" sx={{ fontSize: 10 }}>
-                          {availableCount === 0
-                            ? "Full"
-                            : `${availableCount} left`}
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          {bookingCount} booked
                         </Typography>
                       )}
                     </Box>

@@ -57,7 +57,7 @@ export default function SnackbarAlert({
       open={open}
       autoHideDuration={1500}
       onClose={onClose}
-      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
       TransitionComponent={SlideTransition}
       sx={{ mt: 1.25 }}
     >
