@@ -13,7 +13,7 @@ import "./application.css";
 const Categories = (): JSX.Element => {
   const navigate = useNavigate();
 
-  // ✅ correct context usage
+  //  correct context usage
   const { data, setData } = useVendorApplication();
 
   const selectedCategories: string[] = data.categories;

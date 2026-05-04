@@ -18,7 +18,7 @@ import "./application.css";
 const Review = () => {
   const navigate = useNavigate();
 
-  // ✅ SAFE context usage
+  //  SAFE context usage
   const { data, resetApplication } = useVendorApplication();
 
   const [checked, setChecked] = useState(false);

@@ -97,7 +97,7 @@ function Register(): JSX.Element {
           formData.email,
           formData.password
         );
-
+ 
         // Save JWT
         localStorage.setItem("token", data.token);
 

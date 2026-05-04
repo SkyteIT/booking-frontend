@@ -22,7 +22,7 @@ interface BusinessErrors {
 const BusinessInfo = (): JSX.Element => {
   const navigate = useNavigate();
 
-  // ✅ context
+  //  context
   const { data, setData } = useVendorApplication();
 
   const formData = data.businessInfo;
