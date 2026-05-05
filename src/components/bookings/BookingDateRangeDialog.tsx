@@ -6,6 +6,7 @@ import {
   Button,
   Stack,
   Typography,
+  Box,
 } from "@mui/material";
 import {
   DateRangePicker,
@@ -52,19 +53,38 @@ export default function BookingDateRangeDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: 4,
+
+          // 🔥 glass effect
+          bgcolor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(12px)",
+
+          border: "1px solid rgba(0,0,0,0.04)",
+          boxShadow: "0 20px 60px rgba(15,23,42,0.12)",
         },
       }}
     >
-      {/* 🔹 Header */}
-      <DialogTitle sx={{ pb: 0 }}>
-        <Typography variant="h6" sx={{ fontWeight: 500 }}>
+      {/* HEADER */}
+      <DialogTitle sx={{ pb: 1.5 }}>
+        <Typography
+          sx={{
+            fontSize: "1.1rem",
+            fontWeight: 700,
+          }}
+        >
           Select date range
+        </Typography>
+
+        <Typography
+          variant="caption"
+          sx={{ color: "text.secondary" }}
+        >
+          Filter bookings by date
         </Typography>
       </DialogTitle>
 
-      {/* 🔹 Content */}
-      <DialogContent sx={{ pt: 2 }}>
+      {/* CONTENT */}
+      <DialogContent sx={{ pt: 1, px: 3 }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Stack spacing={2}>
             <DateRangePicker
@@ -74,20 +94,43 @@ export default function BookingDateRangeDialog({
                 textField: {
                   size: "small",
                   fullWidth: true,
+                  sx: {
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                    },
+                  },
                 },
               }}
             />
           </Stack>
         </LocalizationProvider>
+
+        {/* subtle divider */}
+        <Box
+          sx={{
+            mt: 2,
+            height: 1,
+            bgcolor: "rgba(0,0,0,0.05)",
+            borderRadius: 2,
+          }}
+        />
       </DialogContent>
 
-      {/* 🔹 Actions */}
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      {/* ACTIONS */}
+      <DialogActions
+        sx={{
+          px: 3,
+          pb: 2,
+          pt: 1,
+          gap: 1,
+        }}
+      >
         <Button
           onClick={handleClear}
           sx={{
             textTransform: "none",
             fontWeight: 500,
+            color: "text.secondary",
           }}
         >
           Clear
@@ -98,6 +141,7 @@ export default function BookingDateRangeDialog({
           sx={{
             textTransform: "none",
             fontWeight: 500,
+            color: "text.secondary",
           }}
         >
           Cancel
@@ -105,13 +149,18 @@ export default function BookingDateRangeDialog({
 
         <Button
           variant="contained"
-          size="small"
           onClick={handleApply}
           disabled={isDisabled}
           sx={{
             textTransform: "none",
-            fontWeight: 500,
-            borderRadius: 2,
+            fontWeight: 600,
+            borderRadius: 2.5,
+            px: 2.5,
+
+            bgcolor: "primary.main",
+            "&:hover": {
+              bgcolor: "primary.dark",
+            },
           }}
         >
           Apply

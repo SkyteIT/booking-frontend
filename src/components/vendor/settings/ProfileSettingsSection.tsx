@@ -26,12 +26,14 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 			{/*Avatar Section */}
 			<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
 				<Avatar
+					src={form.profileImageUrl || undefined}
 					sx={(theme) => ({
 						width: 56,
 						height: 56,
 						bgcolor: alpha(theme.palette.primary.main, 0.08),
 						color: "primary.main",
 						border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+						objectFit: "cover",
 					})}
 				>
 					<PersonOutlineIcon />

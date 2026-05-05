@@ -13,6 +13,7 @@ export type ProfileForm = {
   phone: string;
   businessName: string;
   bio: string;
+  profileImageUrl?: string;
 };
 
 export type PayoutForm = {

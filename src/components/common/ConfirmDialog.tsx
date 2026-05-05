@@ -10,6 +10,7 @@ import {
   CircularProgress,
   Fade,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 
 type Props = {
@@ -50,17 +51,41 @@ export default function ConfirmDialog({
       fullWidth
       TransitionComponent={Fade}
       PaperProps={{
-        sx: {
-          borderRadius: 3,
-          p: 1,
-        },
+        sx: (theme) => ({
+          borderRadius: 4,
+
+          // 🔥 premium surface
+          bgcolor: "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(12px)",
+
+          border: "1px solid",
+          borderColor: "divider",
+
+          boxShadow: `0 25px 60px ${alpha(theme.palette.common.black, 0.12)}`,
+        }),
       }}
     >
       {/* HEADER */}
-      <DialogTitle sx={{ pb: 0 }}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <WarningAmberRoundedIcon color="warning" />
-          <Typography variant="h6" fontWeight={700}>
+      <DialogTitle sx={{ pb: 1 }}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+          
+          {/* Icon with soft background */}
+          <Box
+            sx={(theme) => ({
+              width: 36,
+              height: 36,
+              borderRadius: 2,
+              display: "grid",
+              placeItems: "center",
+
+              bgcolor: alpha(theme.palette.warning.main, 0.12),
+              color: "warning.main",
+            })}
+          >
+            <WarningAmberRoundedIcon fontSize="small" />
+          </Box>
+
+          <Typography sx={{ fontWeight: 700, fontSize: "1rem" }}>
             {title}
           </Typography>
         </Box>
@@ -68,38 +93,69 @@ export default function ConfirmDialog({
 
       {/* CONTENT */}
       <DialogContent sx={{ pt: 1 }}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            lineHeight: 1.6,
+          }}
+        >
           {message}
         </Typography>
       </DialogContent>
 
       {/* ACTIONS */}
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions
+        sx={{
+          px: 3,
+          pb: 2,
+          pt: 1,
+          gap: 1,
+        }}
+      >
         <Button
           onClick={onCancel}
           disabled={loading}
-          variant="outlined"
-          sx={{ borderRadius: 2, textTransform: "none" }}
+          sx={{
+            textTransform: "none",
+            fontWeight: 500,
+            color: "text.secondary",
+
+            "&:hover": {
+              color: "primary.main",
+              bgcolor: "transparent",
+            },
+          }}
         >
           Cancel
         </Button>
 
         <Button
           onClick={handleConfirmClick}
-          variant="contained"
-          color={confirmColor}
           disabled={loading}
-          sx={{
-            borderRadius: 2,
+          sx={(theme) => ({
             textTransform: "none",
-            px: 3,
             fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
+            borderRadius: 2.5,
+            px: 2.5,
+
+            // 🔥 unified button system
+            bgcolor:
+              confirmColor === "error"
+                ? theme.palette.error.main
+                : theme.palette.primary.main,
+
+            color: "#fff",
+
+            "&:hover": {
+              bgcolor:
+                confirmColor === "error"
+                  ? theme.palette.error.dark
+                  : theme.palette.primary.dark,
+            },
+          })}
         >
-          {loading && <CircularProgress size={18} color="inherit" />}
+          {loading && <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} />}
           {loading ? "Processing..." : confirmText}
         </Button>
       </DialogActions>

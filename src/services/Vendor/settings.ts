@@ -86,7 +86,11 @@ export const uploadVendorProfileImage = async (
 
   const res = await api.post<VendorProfileDto>(
     "/api/vendor/profile/upload-image",
-    formData
+    formData,{
+      headers: {
+        "Content-Type": "multipart/form-data",
+      }
+    }
   );
 
   return res.data;

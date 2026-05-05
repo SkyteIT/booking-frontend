@@ -1,10 +1,8 @@
 // src/layouts/MainLayout/MainLayout.tsx
 import { Box } from "@mui/material";
-import MainNavbar from "../../components/navbars/MainNavbar";
+import CustomerNavbar from "../../components/navbars/CustomerNavbar";
 import MainFooter from "../../components/footer/MainFooter";
 import { Outlet } from "react-router-dom";
-
-
 
 const MainLayout = () => {
   return (
@@ -15,8 +13,8 @@ const MainLayout = () => {
         minHeight: "100vh",
       }}
     >
-      {/* Navbar */}
-      <MainNavbar />
+      {/* ✅ Dynamic Navbar */}
+      <CustomerNavbar />
 
       {/* Page Content */}
       <Box

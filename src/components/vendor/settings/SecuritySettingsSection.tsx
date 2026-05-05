@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Stack, TextField, Typography } from "@mui/material";
+import { Box, Divider, Stack, TextField, Typography } from "@mui/material";
 import type { SecurityForm } from "./types";
 
 const inputSx = {
@@ -78,26 +78,7 @@ export default function SecuritySettingsSection({ form, onFieldChange }: Securit
                 mt: 2,
             }}
             >
-            <Button
-                variant="text"
-                sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                }}
-            >
-                Cancel
-            </Button>
-
-            <Button
-                variant="contained"
-                sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                borderRadius: 2,
-                }}
-            >
-                Save
-            </Button>
+            
         </Box>
       </Stack>
     </Box>

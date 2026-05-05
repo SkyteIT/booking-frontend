@@ -9,9 +9,10 @@ import {
   Stack,
   Typography,
   FormControl,
-  InputLabel,
+  Box,
 } from "@mui/material";
 import { useState } from "react";
+import { OutlinedInput } from "@mui/material";
 
 type Props = {
   open: boolean;
@@ -45,26 +46,48 @@ export default function BookingFilterDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: 4,
+
+          // 🔥 glass style
+          bgcolor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(12px)",
+
+          border: "1px solid rgba(0,0,0,0.04)",
+          boxShadow: "0 20px 60px rgba(15,23,42,0.12)",
         },
       }}
     >
-      {/* 🔹 Header */}
-      <DialogTitle sx={{ pb: 0 }}>
-        <Typography variant="h6" sx={{ fontWeight: 500 }}>
+      {/* HEADER */}
+      <DialogTitle sx={{ pb: 1.5 }}>
+        <Typography
+          sx={{
+            fontSize: "1.05rem",
+            fontWeight: 700,
+          }}
+        >
           Filter bookings
+        </Typography>
+
+        <Typography variant="caption" color="text.secondary">
+          Customize how bookings are sorted
         </Typography>
       </DialogTitle>
 
-      {/* 🔹 Content */}
-      <DialogContent sx={{ pt: 2 }}>
-        <Stack spacing={2}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Sort by</InputLabel>
+      {/* CONTENT */}
+      <DialogContent sx={{ pt: 2.5 }}>
+        <Stack spacing={4}>
+          <FormControl fullWidth margin="dense" variant="outlined">
             <Select
               value={sortBy}
-              label="Sort by"
               onChange={(e) => setSortBy(e.target.value)}
+              input={<OutlinedInput label="Sort by" />}
+              sx={{
+                borderRadius: 2.5,
+                "& .MuiSelect-select": {
+                  py: 1.4,
+                  fontWeight: 500,
+                },
+              }}
             >
               <MenuItem value="Newest">Newest</MenuItem>
               <MenuItem value="Oldest">Oldest</MenuItem>
@@ -73,15 +96,33 @@ export default function BookingFilterDialog({
             </Select>
           </FormControl>
         </Stack>
+
+        {/* subtle divider */}
+        <Box
+          sx={{
+            mt: 3,
+            height: 2,
+            bgcolor: "rgba(0,0,0,0.05)",
+            borderRadius: 2,
+          }}
+        />
       </DialogContent>
 
-      {/* 🔹 Actions */}
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      {/* ACTIONS */}
+      <DialogActions
+        sx={{
+          px: 3,
+          pb: 2,
+          pt: 1,
+          gap: 1,
+        }}
+      >
         <Button
           onClick={handleClear}
           sx={{
             textTransform: "none",
             fontWeight: 500,
+            color: "text.secondary",
           }}
         >
           Clear
@@ -92,6 +133,7 @@ export default function BookingFilterDialog({
           sx={{
             textTransform: "none",
             fontWeight: 500,
+            color: "text.secondary",
           }}
         >
           Cancel
@@ -99,12 +141,17 @@ export default function BookingFilterDialog({
 
         <Button
           variant="contained"
-          size="small"
           onClick={handleApply}
           sx={{
             textTransform: "none",
-            fontWeight: 500,
-            borderRadius: 2,
+            fontWeight: 600,
+            borderRadius: 2.5,
+            px: 2.5,
+
+            bgcolor: "primary.main",
+            "&:hover": {
+              bgcolor: "primary.dark",
+            },
           }}
         >
           Apply

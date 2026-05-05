@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import MainNavbar from "../../components/navbars/MainNavbar";
+import MainNavbar from "../../components/navbars/CustomerNavbar";
 import MainFooter from "../../components/footer/MainFooter";
 
 import DashboardSideBar from "../../components/sections/userDashboard/DashboardSideBar";

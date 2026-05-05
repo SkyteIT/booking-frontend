@@ -1,5 +1,6 @@
-import { Card, CardContent, Typography, Stack} from "@mui/material";
-import StatusChip from "../vendor/dashboard/StatusChip"; 
+import { Card, CardContent, Typography, Stack, Box } from "@mui/material";
+
+import StatusChip from "../vendor/dashboard/StatusChip";
 
 type Props = {
   booking: any;
@@ -11,29 +12,41 @@ export default function BookingCard({ booking, onClick }: Props) {
     <Card
       onClick={onClick}
       sx={{
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
-        boxShadow: "0 6px 16px rgba(0,0,0,0.04)",
+        borderRadius: 4,
+
+        // 🔥 glass surface
+        bgcolor: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(10px)",
+
+        border: "1px solid rgba(0,0,0,0.04)",
+        boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+
         cursor: "pointer",
-        transition: "all 0.2s ease",
+        transition: "all 0.25s cubic-bezier(0.4,0,0.2,1)",
 
         "&:hover": {
-          transform: "translateY(-1px)",
-          boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
+          transform: "translateY(-3px)",
+          boxShadow: "0 16px 40px rgba(15,23,42,0.08)",
         },
       }}
     >
-      <CardContent sx={{ p: 2 }}>
-        <Stack spacing={1.2}>
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack spacing={1.5}>
           
-          {/* 🔹 Top */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          {/* TOP */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, color: "text.primary" }}
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                color: "primary.main",
+              }}
             >
-              {booking.bookingNumber}
+              {(booking.bookingNumber ?? "").toUpperCase()}
             </Typography>
 
             <StatusChip
@@ -42,22 +55,39 @@ export default function BookingCard({ booking, onClick }: Props) {
             />
           </Stack>
 
-          {/* 🔹 Customer */}
-          <Typography sx={{ fontWeight: 500 }}>
-            {booking.customerName}
-          </Typography>
-
-          {/* 🔹 Date */}
-          <Typography variant="caption" color="text.secondary">
-            {new Date(booking.startDateTime).toLocaleDateString()} —{" "}
-            {new Date(booking.endDateTime).toLocaleDateString()}
-          </Typography>
-
-          {/* 🔹 Amount */}
+          {/* CUSTOMER */}
           <Typography
             sx={{
               fontWeight: 600,
               fontSize: "0.95rem",
+            }}
+          >
+            {booking.customerName}
+          </Typography>
+
+          {/* DATE */}
+          <Typography
+            variant="caption"
+            sx={{ color: "text.secondary" }}
+          >
+            {new Date(booking.startDateTime).toLocaleDateString()} —{" "}
+            {new Date(booking.endDateTime).toLocaleDateString()}
+          </Typography>
+
+          {/* DIVIDER (soft visual separation) */}
+          <Box
+            sx={{
+              height: 1,
+              bgcolor: "rgba(0,0,0,0.05)",
+              borderRadius: 2,
+            }}
+          />
+
+          {/* AMOUNT */}
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: "1rem",
               color: "text.primary",
             }}
           >

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -7,6 +7,7 @@ import GoogleIcon from "@mui/icons-material/Google";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { login as loginRequest } from "../../../services/authService";
+import { useAuth } from "../../../context/AuthContext"; // ✅ IMPORTANT
 
 interface LoginFormData {
   email: string;
@@ -19,17 +20,21 @@ interface LoginErrors {
 }
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
-  const response = error as { response?: { data?: { message?: unknown; title?: unknown; errors?: Record<string, unknown> } } };
-  const message = response?.response?.data?.message;
+  const response = error as {
+    response?: {
+      data?: {
+        message?: unknown;
+        title?: unknown;
+        errors?: Record<string, unknown>;
+      };
+    };
+  };
 
-  if (typeof message === "string" && message.trim()) {
-    return message;
-  }
+  const message = response?.response?.data?.message;
+  if (typeof message === "string" && message.trim()) return message;
 
   const title = response?.response?.data?.title;
-  if (typeof title === "string" && title.trim()) {
-    return title;
-  }
+  if (typeof title === "string" && title.trim()) return title;
 
   const errors = response?.response?.data?.errors;
   if (errors && typeof errors === "object") {
@@ -45,67 +50,98 @@ function getAuthErrorMessage(error: unknown, fallback: string) {
 
 function Login(): JSX.Element {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const location = useLocation();
+
+  const { refreshUser } = useAuth();
+
+  const nextPath = new URLSearchParams(location.search).get("next") ?? "";
+
+  const isSafeRedirect = (path: string) => path.startsWith("/");
+
+  const getRoleRedirect = (role?: string) => {
+    const normalizedRole = String(role ?? "").toLowerCase();
+
+    if (normalizedRole === "admin") return "/admin/dashboard";
+    if (normalizedRole === "vendor") return "/vendor/dashboard";
+    return "/";
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
-    password: ""
+    password: "",
   });
-  const [errors, setErrors] = useState<LoginErrors>({});
-  const [loading, setLoading] = useState<boolean>(false);
-  const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
-  const [errorSnackbar, setErrorSnackbar] = useState<string>("");
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const [errors, setErrors] = useState<LoginErrors>({});
+  const [loading, setLoading] = useState(false);
+  const [successSnackbar, setSuccessSnackbar] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState("");
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: undefined }));
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const validate = (): LoginErrors => {
     const newErrors: LoginErrors = {};
+
     const email = formData.email.trim();
     const password = formData.password.trim();
 
     if (!email) newErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
-      newErrors.email = "Enter a valid email address";
+      newErrors.email = "Enter a valid email";
 
     if (!password) newErrors.password = "Password is required";
     else if (password.length < 8)
-      newErrors.password = "Password must be at least 8 characters";
-    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password))
-      newErrors.password =
-        "Password must contain uppercase, lowercase and a number";
+      newErrors.password = "Min 8 characters required";
 
     return newErrors;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
 
     const validationErrors = validate();
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length === 0) {
-      try {
-        setLoading(true);
-        const response = await loginRequest(formData.email.trim(), formData.password);
-        setSuccessSnackbar(true);
+    if (Object.keys(validationErrors).length > 0) return;
 
-        setTimeout(() => {
-          navigate(
-            String(response?.role ?? "").toLowerCase() === "vendor"
-              ? "/vendor/dashboard"
-              : "/customer/dashboard",
-            { replace: true }
-          );
-        }, 900);
-      } catch (error) {
-        setErrorSnackbar(getAuthErrorMessage(error, "Login failed. Please try again."));
-      } finally {
-        setLoading(false);
-      }
+    try {
+      setLoading(true);
+
+      const authResponse = await loginRequest(formData.email.trim(), formData.password);
+
+      const currentUser = await refreshUser();
+
+      setSuccessSnackbar(true);
+
+      setTimeout(() => {
+        const role =
+          currentUser?.role ??
+          authResponse.role ??
+          (typeof authResponse.user === "object" && authResponse.user
+            ? String((authResponse.user as { role?: string }).role ?? "")
+            : "");
+
+        const roleRedirect = getRoleRedirect(role);
+        const redirectTarget =
+          isSafeRedirect(nextPath) && nextPath !== "/"
+            ? nextPath
+            : roleRedirect;
+
+        navigate(redirectTarget, { replace: true });
+      }, 800);
+    } catch (error) {
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Login failed. Please try again.")
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,16 +150,17 @@ function Login(): JSX.Element {
       <div className="auth-card">
         <h2 className="title center">Welcome Back</h2>
         <p className="subtitle center">
-          Please enter your details to sign in to your account.
+          Sign in to continue
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
+          {/* EMAIL */}
           <div className="input-group">
-            <label>Email Address</label>
+            <label>Email</label>
             <input
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder="Enter email"
               value={formData.email}
               onChange={handleChange}
               className={errors.email ? "input-error" : ""}
@@ -131,24 +168,25 @@ function Login(): JSX.Element {
             {errors.email && <p className="error-text">{errors.email}</p>}
           </div>
 
-          <div className="input-group password-group">
+          {/* PASSWORD */}
+          <div className="input-group">
             <label>Password</label>
-            <div className="password-wrapper styled">
+
+            <div className="password-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Enter your password"
+                placeholder="Enter password"
                 value={formData.password}
                 onChange={handleChange}
                 className={errors.password ? "input-error" : ""}
               />
-              <span
-                className="eye-icon"
-                onClick={() => setShowPassword(prev => !prev)}
-              >
+
+              <span onClick={() => setShowPassword((p) => !p)}>
                 {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
               </span>
             </div>
+
             {errors.password && (
               <p className="error-text">{errors.password}</p>
             )}
@@ -162,10 +200,6 @@ function Login(): JSX.Element {
             type="submit"
             className="primary-btn"
             disabled={loading}
-            style={{
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? "not-allowed" : "pointer"
-            }}
           >
             {loading ? "Signing In..." : "Sign In"}
           </button>
@@ -182,32 +216,35 @@ function Login(): JSX.Element {
 
         <p className="bottom-text">
           Don’t have an account?{" "}
-          <Link to="/register" className="bold-link">
+          <Link
+            to={
+              isSafeRedirect(nextPath)
+                ? `/register?next=${encodeURIComponent(nextPath)}`
+                : "/register"
+            }
+          >
             Sign Up
           </Link>
         </p>
 
-        {/* ✅ Success Snackbar */}
+        {/* SUCCESS */}
         <Snackbar
           open={successSnackbar}
           autoHideDuration={2000}
           onClose={() => setSuccessSnackbar(false)}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          <Alert severity="success" sx={{ width: "100%" }}>
-            Login Successful!
-          </Alert>
+          <Alert severity="success">Login Successful!</Alert>
         </Snackbar>
 
+        {/* ERROR */}
         <Snackbar
           open={Boolean(errorSnackbar)}
           autoHideDuration={2500}
           onClose={() => setErrorSnackbar("")}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          <Alert severity="error" sx={{ width: "100%" }} onClose={() => setErrorSnackbar("")}>
-            {errorSnackbar}
-          </Alert>
+          <Alert severity="error">{errorSnackbar}</Alert>
         </Snackbar>
       </div>
     </AuthLayout>

@@ -1,4 +1,7 @@
 import { Card, Typography, Box } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
+
 import PersonIcon from "@mui/icons-material/Person";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -9,34 +12,54 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 
 const DashboardSidebar = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const isVendor =
+    String(user?.role ?? "").toLowerCase() === "vendor";
+
+  // ✅ BASE MENU
   const menuItems = [
-    { label: "Dashboard", icon: <DashboardIcon fontSize="small" /> },
-    { label: "My Bookings", icon: <CalendarMonthIcon fontSize="small" /> },
-    { label: "My Reviews", icon: <StarIcon fontSize="small" /> },
-    { label: "Payment Methods", icon: <CreditCardIcon fontSize="small" /> },
-    { label: "Notifications", icon: <NotificationsIcon fontSize="small" /> },
-    { label: "Settings", icon: <SettingsIcon fontSize="small" /> },
-    { label: "Vendor Dashboard", icon: <StorefrontIcon fontSize="small" /> },
+    { label: "Dashboard", icon: <DashboardIcon fontSize="small" />, path: "/customer/dashboard" },
+    { label: "My Bookings", icon: <CalendarMonthIcon fontSize="small" />, path: "/customer/bookings" },
+    { label: "My Reviews", icon: <StarIcon fontSize="small" />, path: "/customer/reviews" },
+    { label: "Payment Methods", icon: <CreditCardIcon fontSize="small" />, path: "/customer/payments" },
+    { label: "Notifications", icon: <NotificationsIcon fontSize="small" />, path: "/customer/notifications" },
+    { label: "Settings", icon: <SettingsIcon fontSize="small" />, path: "/settings" },
   ];
+
+  // ✅ ADD VENDOR ONLY IF ROLE = VENDOR
+  if (isVendor) {
+    menuItems.push({
+      label: "Vendor Dashboard",
+      icon: <StorefrontIcon fontSize="small" />,
+      path: "/vendor/dashboard",
+    });
+  }
 
   return (
     <Card className="sidebar-card" sx={{ p: 3 }}>
+      {/* 🔹 PROFILE */}
       <Box textAlign="center">
         <Box className="user-avatar">
           <PersonIcon />
         </Box>
 
-        <Typography fontWeight={600}>--</Typography>
+        <Typography fontWeight={600}>
+          {user?.firstName ?? "--"}
+        </Typography>
 
         <Typography variant="body2" color="text.secondary">
-          --
+          {user?.email ?? "--"}
         </Typography>
       </Box>
 
+      {/* 🔹 MENU */}
       <Box mt={3}>
         {menuItems.map((item, index) => (
           <Box
             key={item.label}
+            onClick={() => navigate(item.path)}
             className={`sidebar-menu-item ${index === 0 ? "active" : ""}`}
             sx={{
               display: "flex",
@@ -46,6 +69,9 @@ const DashboardSidebar = () => {
               px: 1,
               borderRadius: 2,
               cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#f5f5f5",
+              },
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>

@@ -2,6 +2,7 @@
 import { createTheme } from '@mui/material/styles';
 
 
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -40,8 +41,10 @@ const theme = createTheme({
       primary: '#111827',     // app main text
       secondary: '#6B7280',   // app muted text
     },
+    
     divider: '#E5E7EB',       // app border
   },
+  
 
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -50,37 +53,32 @@ const theme = createTheme({
       fontSize: '2rem',       // --text-2xl equivalent
       fontWeight: 500,        // --font-weight-medium
       lineHeight: 1.5,
-      color: '#111827',
     },
     h2: {
       fontSize: '1.5rem',     // --text-xl equivalent
       fontWeight: 500,
       lineHeight: 1.5,
-      color: '#111827',
     },
     h3: {
       fontSize: '1.25rem',    // --text-lg equivalent
       fontWeight: 500,
       lineHeight: 1.5,
-      color: '#111827',
     },
     h4: {
       fontSize: '1rem',       // --text-base
       fontWeight: 500,
       lineHeight: 1.5,
-      color: '#111827',
     },
     body1: {
       fontSize: '1rem',
       fontWeight: 400,        // --font-weight-normal
       lineHeight: 1.5,
-      color: '#111827',
     },
     body2: {
       fontSize: '0.875rem',
       fontWeight: 400,
       lineHeight: 1.5,
-      color: '#6B7280',       // app muted text
+      // use palette.text.secondary by default
     },
     button: {
       fontSize: '1rem',
@@ -90,7 +88,7 @@ const theme = createTheme({
     },
     caption: {
       fontSize: '0.875rem',
-      color: '#64748B',
+      // use palette.text.secondary by default
     },
   },
 
@@ -106,7 +104,7 @@ const theme = createTheme({
         },
         body: {
           backgroundColor: '#ffffff',   // app background
-          color: '#111827',             // app main text
+          // let theme.palette.text.primary control text color
           WebkitFontSmoothing: 'antialiased',
           MozOsxFontSmoothing: 'grayscale',
         },
@@ -117,9 +115,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '8px',          // --radius
-          padding: '10px 24px',
+          padding: '8px 18px',
           boxShadow: 'none',
           fontWeight: 500,
+          transition: 'all 0.2s ease',
           '&:hover': {
             boxShadow: 'none',
           },
@@ -140,12 +139,15 @@ const theme = createTheme({
         },
       },
     },
+    
+      // theme.ts
+   
 
     MuiCard: {
       styleOverrides: {
         root: {
           backgroundColor: '#ffffff',   // app card
-          color: '#111827',             // app card text
+          // color inherited from theme.palette.text.primary
           borderRadius: '8px',          // --radius
           border: '1px solid #E5E7EB',  // app border
           boxShadow: '0px 4px 16px rgba(0,0,0,0.06)',
@@ -189,7 +191,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: '#ffffff',   // app background
-          color: '#111827',             // app foreground
+          // foreground color inherited from theme
           boxShadow: '0px 1px 0px #E5E7EB', // app border
         },
       },

@@ -8,13 +8,13 @@ import {
   Typography,
 } from "@mui/material";
 
+
 import StatusChip from "../vendor/dashboard/StatusChip";
 import type { VendorBookingDto } from "./BookingTypes";
 
 type Props = {
   rows: VendorBookingDto[];
   emptyText?: string;
-  showEmail?: boolean;
   onRowClick?: (id: string) => void;
 };
 
@@ -34,92 +34,120 @@ export default function BookingsTable({
   onRowClick,
 }: Props) {
   return (
-    <Box sx={{ overflowX: "auto" }}>
+    <Box
+      sx={{
+        overflowX: "auto",
+
+        // 🔥 container
+        borderRadius: 4,
+        bgcolor: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(10px)",
+        border: "1px solid rgba(0,0,0,0.04)",
+        boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+      }}
+    >
       <Table size="small" sx={{ minWidth: 950 }}>
+        {/* HEADER */}
         <TableHead>
-          <TableRow>
-            <TableCell sx={{ color: "text.secondary", fontWeight: 700 }}>
-              Booking ID
-            </TableCell>
-            <TableCell sx={{ color: "text.secondary", fontWeight: 700 }}>
-              Listing
-            </TableCell>
-            <TableCell sx={{ color: "text.secondary", fontWeight: 700 }}>
-              Customer
-            </TableCell>
-            <TableCell sx={{ color: "text.secondary", fontWeight: 700 }}>
-              Dates
-            </TableCell>
-            <TableCell sx={{ color: "text.secondary", fontWeight: 700 }}>
-              Status
-            </TableCell>
-            <TableCell
-              sx={{ color: "text.secondary", fontWeight: 700 }}
-              align="right"
-            >
-              Amount
-            </TableCell>
+          <TableRow sx={{ bgcolor: "rgba(0,0,0,0.02)" }}>
+            {[
+              "Booking ID",
+              "Listing",
+              "Customer",
+              "Dates",
+              "Status",
+              "Amount",
+            ].map((h) => (
+              <TableCell
+                key={h}
+                align={h === "Amount" ? "right" : "left"}
+                sx={{
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  color: "text.secondary",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  borderBottom: "1px solid rgba(0,0,0,0.05)",
+                }}
+              >
+                {h}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
 
+        {/* BODY */}
         <TableBody>
-  {rows.map((r) => (
-    <TableRow 
-      key={r.bookingId} 
-      hover
-      onClick={() => onRowClick?.(r.bookingId)}
-      sx ={{ "& td":{
-        py: 2},cursor: onRowClick ? "pointer" : "default" }}
-      >
-      
-      {/* Booking ID */}
-      <TableCell sx={{ color: "primary.main", fontWeight: 800 }}>
-        {(r.bookingNumber ?? "").toUpperCase()}
-      </TableCell>
+          {rows.map((r) => (
+            <TableRow
+              key={r.bookingId}
+              hover
+              onClick={() => onRowClick?.(r.bookingId)}
+              sx={{
+                cursor: onRowClick ? "pointer" : "default",
+                transition: "all 0.2s ease",
 
-      {/* Listing */}
-      <TableCell>
-        <Typography sx={{ fontWeight: 700 }}>
-          {r.listingTitle}
-        </Typography>
-      </TableCell>
+                "& td": {
+                  py: 2.2,
+                  borderBottom: "1px solid rgba(0,0,0,0.04)",
+                },
 
-      {/* Customer */}
-      <TableCell>
-        <Typography sx={{ fontWeight: 600 }}>
-          {r.customerName}
-        </Typography>
-      </TableCell>
+                "&:hover": {
+                  bgcolor: "rgba(0,0,0,0.02)",
+                  transform: "scale(1.002)",
+                },
+              }}
+            >
+              {/* Booking ID */}
+              <TableCell sx={{ color: "primary.main", fontWeight: 700 }}>
+                {(r.bookingNumber ?? "").toUpperCase()}
+              </TableCell>
 
-      {/* Dates */}
-      <TableCell>
-        {formatDateRange(r.startDateTime, r.endDateTime)}
-      </TableCell>
+              {/* Listing */}
+              <TableCell>
+                <Typography sx={{ fontWeight: 600 }}>
+                  {r.listingTitle}
+                </Typography>
+              </TableCell>
 
-      {/* Status */}
-      <TableCell>
-        <StatusChip
-          label={r.status}
-          category={r.status}
-        />
-      </TableCell>
+              {/* Customer */}
+              <TableCell>
+                <Typography sx={{ fontWeight: 500 }}>
+                  {r.customerName}
+                </Typography>
+              </TableCell>
 
-      {/* Amount */}
-      <TableCell align="right" sx={{ fontWeight: 800 }}>
-        {formatMoney(r.currency, r.totalAmount)}
-      </TableCell>
+              {/* Dates */}
+              <TableCell sx={{ color: "text.secondary" }}>
+                {formatDateRange(r.startDateTime, r.endDateTime)}
+              </TableCell>
 
-    </TableRow>
-  ))}
+              {/* Status */}
+              <TableCell>
+                <StatusChip
+                  label={r.status}
+                  category={r.status}
+                />
+              </TableCell>
 
-  {rows.length === 0 && (
-    <TableRow>
-      <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
-        {emptyText}
-      </TableCell>
-    </TableRow>
-  )}
-</TableBody>
+              {/* Amount */}
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                {formatMoney(r.currency, r.totalAmount)}
+              </TableCell>
+            </TableRow>
+          ))}
+
+          {/* EMPTY */}
+          {rows.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={6} sx={{ textAlign: "center", py: 5 }}>
+                <Typography color="text.secondary">
+                  {emptyText}
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
       </Table>
     </Box>
   );

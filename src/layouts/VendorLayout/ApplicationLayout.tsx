@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Box, Container } from "@mui/material";
-import MainNavbar from "../../components/navbars/MainNavbar";
+import MainNavbar from "../../components/navbars/CustomerNavbar";
 import MainFooter from "../../components/footer/MainFooter";
 import StepperBar from "../../components/navbars/StepperBar";
 

@@ -2,25 +2,19 @@ import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import theme from "../../theme/theme";
 
-const COLORS = [theme.palette.warning.main, theme.palette.info.main, theme.palette.error.main];
+const COLORS = [theme.palette.warning.main, theme.palette.info.main, theme.palette.error.main, theme.palette.success.main];
 
-export default function BookingStatusChart({ bookings }: any) {
+export default function BookingStatusChart({ stats }: { stats?: any }) {
+  const safeStats = stats ?? {};
+
   const data = [
-    {
-      name: "Pending",
-      value: bookings.filter((b: any) => b.status === "Pending").length,
-    },
-    {
-      name: "Confirmed",
-      value: bookings.filter((b: any) => b.status === "Confirmed").length,
-    },
-    {
-      name: "Rejected",
-      value: bookings.filter((b: any) => b.status === "Rejected").length,
-    },
+   { name: "Pending", value: safeStats.pending ?? 0 },
+   { name: "Confirmed", value: safeStats.confirmed ?? 0 },
+    { name: "Cancelled", value: safeStats.cancelled ?? safeStats.rejected ?? 0 },
+   { name: "Completed", value: safeStats.completed ?? 0 },
   ];
 
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const total = safeStats.total ?? 0;
 
   return (
     <Card sx={{ borderRadius: 3 }}>
