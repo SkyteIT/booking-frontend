@@ -4,6 +4,7 @@ import { searchListings, type SearchListing } from "../../../../services/searchS
 import { fetchCategories } from "../../../../services/categoryService";
 import { parseSearchFilters } from "../utils/searchParams";
 
+// Category type from API
 interface ApiCategory {
   id: string;
   name: string;
@@ -11,46 +12,54 @@ interface ApiCategory {
 }
 
 export const useSearchResults = () => {
+  // URL search params (q, category, price, etc.)
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // State for listings (search results)
   const [listings, setListings] = useState<SearchListing[]>([]);
+
+  // All categories from API
   const [allCategories, setAllCategories] = useState<ApiCategory[]>([]);
+
+  // Track if categories finished loading
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+
+  // Loading & error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Convert URL params → filter object
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
-  // Load categories from the API once on mount.
-  // Even if this fails we mark categoriesLoaded=true so the search can still
-  // run — the user just won't see category filter chips, which is acceptable.
+  // Load categories once when component mounts
   useEffect(() => {
     fetchCategories()
       .then((data) => setAllCategories(Array.isArray(data) ? data : []))
-      .catch(() => setAllCategories([]))
-      .finally(() => setCategoriesLoaded(true)); // always unblock the search
+      .catch(() => setAllCategories([])) // fallback if error
+      .finally(() => setCategoriesLoaded(true)); // allow search to run
   }, []);
 
-  // Only show ACTIVE categories in the filter sidebar
+  // Only keep active categories
   const categories = useMemo(
     () => allCategories.filter((c) => c.isActive),
     [allCategories]
   );
 
-  // Run search whenever filters or categories are ready.
+  // Run search when filters or categories change
   useEffect(() => {
-    if (!categoriesLoaded) return;
+    if (!categoriesLoaded) return; // wait until categories loaded
 
     setLoading(true);
     setError(null);
 
-    // Resolve selected category names → IDs for the API call.
-    // Only resolve against active categories so Inactive ones never reach the API.
+    // Convert category names → category IDs for API
     const selectedCategoryIds = filters.categories
       .map((name) =>
         categories.find((c) => c.name.toLowerCase() === name.toLowerCase())?.id
       )
       .filter((id): id is string => Boolean(id));
 
+    // API call: search listings
     searchListings({
       searchTerm: filters.q || undefined,
       categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
@@ -66,16 +75,14 @@ export const useSearchResults = () => {
       .finally(() => setLoading(false));
   }, [filters, categories, categoriesLoaded]);
 
-  // Commits the search query to the URL (triggers API via the useEffect above).
-  // Call this only on explicit user action (button click / Enter), NOT on every keystroke.
+  // Update search query in URL
   const setQuery = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
     value.trim() ? next.set("q", value.trim()) : next.delete("q");
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
-  // Price filters: also committed only on explicit action (blur or Enter)
-  // so we don't fire an API call on every digit the user types.
+  // Set minimum price filter
   const setMinPrice = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
     const n = value.replace(/[^0-9]/g, "");
@@ -83,6 +90,7 @@ export const useSearchResults = () => {
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
+  // Set maximum price filter
   const setMaxPrice = useCallback((value: string) => {
     const next = new URLSearchParams(searchParams);
     const n = value.replace(/[^0-9]/g, "");
@@ -90,10 +98,12 @@ export const useSearchResults = () => {
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
+  // Add/remove category filter
   const toggleCategory = useCallback((categoryName: string) => {
     const next = new URLSearchParams(searchParams);
     const current = filters.categories;
     const isSelected = current.includes(categoryName);
+
     const updated = isSelected
       ? current.filter((c) => c !== categoryName)
       : [...current, categoryName];
@@ -101,15 +111,18 @@ export const useSearchResults = () => {
     updated.length > 0
       ? next.set("category", updated.join(","))
       : next.delete("category");
+
     setSearchParams(next);
   }, [searchParams, setSearchParams, filters.categories]);
 
+  // Clear all category filters
   const clearCategories = useCallback(() => {
     const next = new URLSearchParams(searchParams);
     next.delete("category");
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
+  // Set minimum rating filter
   const setMinRating = useCallback((rating?: number) => {
     const next = new URLSearchParams(searchParams);
     rating !== undefined
@@ -118,12 +131,14 @@ export const useSearchResults = () => {
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
+  // Clear all filters
   const clearFilters = useCallback(() => {
     const next = new URLSearchParams(searchParams);
-    ["category", "minPrice", "maxPrice", "minRating"].forEach((k) => next.delete(k));
+    ["q", "category", "minPrice", "maxPrice", "minRating", "maxRating"].forEach((k) => next.delete(k));
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
+  // Return values and functions
   return {
     filters,
     listings,

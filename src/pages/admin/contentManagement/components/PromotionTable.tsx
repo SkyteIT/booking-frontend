@@ -1,17 +1,5 @@
 // src/pages/admin/contentManagement/components/PromotionTable.tsx
-import {
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Typography,
-  Chip,
-  IconButton,
-  Box,
-  LinearProgress,
-} from "@mui/material";
+import {Paper,Table,TableHead,TableRow,TableCell,TableBody,Typography,Chip,IconButton,Box,LinearProgress,} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";

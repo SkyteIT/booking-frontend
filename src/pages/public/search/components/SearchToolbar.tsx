@@ -1,14 +1,7 @@
 // Top toolbar: contains search text input and current result count.
 // It is presentational and forwards text changes via callback props.
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  InputAdornment,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, InputAdornment, Paper, TextField, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
 interface SearchToolbarProps {

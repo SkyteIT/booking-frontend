@@ -96,16 +96,12 @@ export default function ContentManagement() {
   }
 
   async function handleDeleteBannerConfirm() {
-    if (deleteBannerId !== null) {
-      await removeBanner(deleteBannerId);
-    }
+    if (deleteBannerId !== null) await removeBanner(deleteBannerId);
     setDeleteBannerId(null);
   }
 
   async function handleDeletePromotionConfirm() {
-    if (deletePromotionId !== null) {
-      await removePromotion(deletePromotionId);
-    }
+    if (deletePromotionId !== null) await removePromotion(deletePromotionId);
     setDeletePromotionId(null);
   }
 
@@ -348,7 +344,11 @@ export default function ContentManagement() {
                 <Box component="span" fontWeight={700} color="#F59E0B">
                   {categoryToDelete?.listings} listing(s)
                 </Box>{" "}
-                will be saved and automatically restored when you re-add this category and restart the server.
+                will be parked safely and{" "}
+                <Box component="span" fontWeight={700} color="#10B981">
+                  automatically restored
+                </Box>{" "}
+                when you re-add a category with the same name.
               </>
             ) : (
               "This action cannot be undone."

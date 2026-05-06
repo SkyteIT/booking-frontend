@@ -2,7 +2,7 @@
 import { useState } from "react";
 import {
   Box, Typography, TextField, Button, Paper, Switch,
-  FormControlLabel, MenuItem, IconButton, Chip, InputAdornment,
+  FormControlLabel, MenuItem, IconButton, Chip, InputAdornment, Alert,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
@@ -127,7 +127,6 @@ export default function AddCategory() {
       });
       navigate("/admin/content");
     } catch (err: any) {
-      // Use the server's error message if available (e.g. "already exists")
       const serverMsg =
         err?.response?.data?.error ||
         err?.response?.data?.message ||
@@ -555,7 +554,6 @@ export default function AddCategory() {
           >
             <Typography fontWeight={600} mb={2}>Category Preview</Typography>
 
-            {/* Icon preview */}
             {form.icon && (
               <Box
                 sx={{
@@ -585,7 +583,6 @@ export default function AddCategory() {
               </Box>
             ))}
 
-            {/* Feature chips */}
             <Box display="flex" gap={0.5} flexWrap="wrap" mt={1}>
               {form.dateSelection && (
                 <Chip label="Date" size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11 }} />
@@ -615,7 +612,8 @@ export default function AddCategory() {
               • Use clear, recognizable icons (emoji work great)<br />
               • "Instant Confirmation" is best for fixed-availability services<br />
               • Enable Availability Calendar for accommodation & rentals<br />
-              • Custom fields help vendors provide category-specific info
+              • Custom fields help vendors provide category-specific info<br />
+              • Re-adding a deleted category automatically restores all its previous listings
             </Typography>
           </Paper>
         </Box>
