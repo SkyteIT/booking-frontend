@@ -27,6 +27,7 @@ import VendorManagement from "../pages/admin/VendorManagement/VendorManagement";
 import DashboardAdmin from "../pages/admin/Dashboard";
 import AdminSectionPlaceholder from "../pages/admin/AdminSectionPlaceholder";
 import { useAuth } from "../context/AuthContext";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 type RoleGateProps = {
   allowedRole: "admin" | "vendor";
@@ -47,11 +48,12 @@ function RoleGate({ allowedRole, children }: RoleGateProps) {
   const { user, loading } = useAuth();
 
   if (loading) return null;
+  if (loading) return <LoadingSpinner />;
 
   const role = String(user?.role ?? "").toLowerCase();
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (role !== allowedRole) {

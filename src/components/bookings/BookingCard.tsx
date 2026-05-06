@@ -14,7 +14,7 @@ export default function BookingCard({ booking, onClick }: Props) {
       sx={{
         borderRadius: 4,
 
-        // 🔥 glass surface
+        // glass surface
         bgcolor: "rgba(255,255,255,0.85)",
         backdropFilter: "blur(10px)",
 
@@ -43,7 +43,7 @@ export default function BookingCard({ booking, onClick }: Props) {
               sx={{
                 fontWeight: 700,
                 fontSize: "0.9rem",
-                color: "primary.main",
+                color: "primary.main",// booking number color
               }}
             >
               {(booking.bookingNumber ?? "").toUpperCase()}

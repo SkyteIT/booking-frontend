@@ -32,7 +32,7 @@ export default function BookingsToolbar({
     <Box
       sx={{
         display: "flex",
-        gap: 2,
+        gap: 3,
         alignItems: "center",
         justifyContent: "space-between",
 
@@ -41,7 +41,7 @@ export default function BookingsToolbar({
 
         borderRadius: 4,
 
-        // 🔥 glass container
+        // glass container
         bgcolor: "rgba(255,255,255,0.85)",
         backdropFilter: "blur(10px)",
 
@@ -49,7 +49,7 @@ export default function BookingsToolbar({
         boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
       }}
     >
-      {/* 🔍 SEARCH */}
+      {/* SEARCH */}
       <TextField
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}

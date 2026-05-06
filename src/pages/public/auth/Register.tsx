@@ -1,25 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState, useEffect } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Snackbar, Alert } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { register as registerRequest } from "../../../services/authService";
-
-interface RegisterFormData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-interface RegisterErrors {
-  name?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-}
+import { registerSchema, type RegisterFormData } from "../../../utils/validationSchemas";
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
   const response = error as { response?: { data?: { message?: unknown; title?: unknown; errors?: Record<string, unknown> } } };
@@ -79,83 +67,40 @@ function Register(): JSX.Element {
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  const [formData, setFormData] = useState<RegisterFormData>({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  });
-  const [errors, setErrors] = useState<RegisterErrors>({});
-  const [loading, setLoading] = useState<boolean>(false);
   const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
   const [errorSnackbar, setErrorSnackbar] = useState<string>("");
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: undefined }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onBlur",
+  });
 
-  const validate = (): RegisterErrors => {
-    const newErrors: RegisterErrors = {};
-    const name = formData.name.trim();
-    const email = formData.email.trim();
-    const password = formData.password.trim();
-    const confirmPassword = formData.confirmPassword.trim();
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      const { firstName, lastName } = splitFullName(data.name);
+      const response = await registerRequest({
+        firstName,
+        lastName,
+        email: data.email,
+        password: data.password,
+      });
 
-    if (!name) newErrors.name = "Full name is required";
-    else if (name.length < 3) newErrors.name = "Name must be at least 3 characters";
-    else if (name.split(/\s+/).filter(Boolean).length < 2)
-      newErrors.name = "Please enter both first and last name";
+      setSuccessSnackbar(true);
 
-    if (!email) newErrors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
-      newErrors.email = "Enter a valid email address";
-
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
-    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password))
-      newErrors.password = "Password must contain uppercase, lowercase and a number";
-
-    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
-
-    return newErrors;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    if (loading) return;
-
-    const validationErrors = validate();
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length === 0) {
-      try {
-        setLoading(true);
-        const { firstName, lastName } = splitFullName(formData.name);
-        const response = await registerRequest({
-          firstName,
-          lastName,
-          email: formData.email.trim(),
-          password: formData.password,
-        });
-
-        setSuccessSnackbar(true);
-
-        setTimeout(() => {
-          navigate(
-            String(response?.role ?? "").toLowerCase() === "vendor"
-              ? "/vendor/dashboard"
-              : "/customer/dashboard",
-            { replace: true }
-          );
-        }, 900);
-      } catch (error) {
-        setErrorSnackbar(getAuthErrorMessage(error, "Registration failed. Please try again."));
-      } finally {
-        setLoading(false);
-      }
+      setTimeout(() => {
+        navigate(
+          String(response?.role ?? "").toLowerCase() === "vendor"
+            ? "/vendor/dashboard"
+            : "/customer/dashboard",
+          { replace: true }
+        );
+      }, 900);
+    } catch (error) {
+      setErrorSnackbar(getAuthErrorMessage(error, "Registration failed. Please try again."));
     }
   };
 
@@ -167,19 +112,17 @@ function Register(): JSX.Element {
           Please fill in the details to create your account.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Full Name */}
           <div className="input-group">
             <label>Full Name</label>
             <input
               type="text"
-              name="name"
               placeholder="Enter your full name"
-              value={formData.name}
-              onChange={handleChange}
+              {...register("name")}
               className={errors.name ? "input-error" : ""}
             />
-            {errors.name && <p className="error-text">{errors.name}</p>}
+            {errors.name && <p className="error-text">{errors.name.message}</p>}
           </div>
 
           {/* Email */}
@@ -187,13 +130,11 @@ function Register(): JSX.Element {
             <label>Email Address</label>
             <input
               type="email"
-              name="email"
               placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register("email")}
               className={errors.email ? "input-error" : ""}
             />
-            {errors.email && <p className="error-text">{errors.email}</p>}
+            {errors.email && <p className="error-text">{errors.email.message}</p>}
           </div>
 
           {/* Password */}
@@ -202,17 +143,15 @@ function Register(): JSX.Element {
             <div className="password-wrapper styled">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register("password")}
                 className={errors.password ? "input-error" : ""}
               />
               <span className="eye-icon" onClick={() => setShowPassword(prev => !prev)}>
                 {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
               </span>
             </div>
-            {errors.password && <p className="error-text">{errors.password}</p>}
+            {errors.password && <p className="error-text">{errors.password.message}</p>}
           </div>
 
           {/* Confirm Password */}
@@ -221,10 +160,8 @@ function Register(): JSX.Element {
             <div className="password-wrapper styled">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
                 placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                {...register("confirmPassword")}
                 className={errors.confirmPassword ? "input-error" : ""}
               />
               <span
@@ -235,12 +172,12 @@ function Register(): JSX.Element {
               </span>
             </div>
             {errors.confirmPassword && (
-              <p className="error-text">{errors.confirmPassword}</p>
+              <p className="error-text">{errors.confirmPassword.message}</p>
             )}
           </div>
 
-          <button type="submit" className="primary-btn" disabled={loading}>
-            {loading ? "Creating Account..." : "Sign Up"}
+          <button type="submit" className="primary-btn" disabled={isSubmitting}>
+            {isSubmitting ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
@@ -277,5 +214,6 @@ function Register(): JSX.Element {
     </AuthLayout>
   );
 }
+
 
 export default Register;

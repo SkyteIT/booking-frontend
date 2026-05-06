@@ -38,6 +38,7 @@ export default function Settings() {
     saving,
     snackbar,
     setSnackbar,
+    validationErrors,
     handleProfileChange,
     handlePayoutChange,
     handleSecurityChange,
@@ -91,6 +92,7 @@ export default function Settings() {
                   form={profileForm}
                   onFieldChange={handleProfileChange}
                   onUploadPhoto={handleProfileImageUpload}
+                  errors={validationErrors}
                 />
               )}
 
@@ -104,6 +106,7 @@ export default function Settings() {
                   <PayoutSettingsSection
                     form={payoutForm}
                     onFieldChange={handlePayoutChange}
+                    errors={validationErrors}
                   />
                 </>
               )}
@@ -112,6 +115,7 @@ export default function Settings() {
                 <SecuritySettingsSection
                   form={securityForm}
                   onFieldChange={handleSecurityChange}
+                  errors={validationErrors}
                 />
               )}
 
@@ -119,6 +123,7 @@ export default function Settings() {
                 <LocalizationSettingsSection
                   form={localizationForm}
                   onFieldChange={handleLocalizationChange}
+                  errors={validationErrors}
                 />
               )}
 

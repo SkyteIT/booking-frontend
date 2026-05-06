@@ -38,7 +38,7 @@ export default function BookingsTable({
       sx={{
         overflowX: "auto",
 
-        // 🔥 container
+        // container
         borderRadius: 4,
         bgcolor: "rgba(255,255,255,0.85)",
         backdropFilter: "blur(10px)",

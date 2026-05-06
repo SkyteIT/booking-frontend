@@ -1,23 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Snackbar, Alert } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { login as loginRequest } from "../../../services/authService";
 import { useAuth } from "../../../context/AuthContext"; // ✅ IMPORTANT
-
-interface LoginFormData {
-  email: string;
-  password: string;
-}
-
-interface LoginErrors {
-  email?: string;
-  password?: string;
-}
+import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
   const response = error as {
@@ -67,54 +59,21 @@ function Login(): JSX.Element {
   };
 
   const [showPassword, setShowPassword] = useState(false);
-
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: "",
-  });
-
-  const [errors, setErrors] = useState<LoginErrors>({});
-  const [loading, setLoading] = useState(false);
   const [successSnackbar, setSuccessSnackbar] = useState(false);
   const [errorSnackbar, setErrorSnackbar] = useState("");
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur",
+  });
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
-
-  const validate = (): LoginErrors => {
-    const newErrors: LoginErrors = {};
-
-    const email = formData.email.trim();
-    const password = formData.password.trim();
-
-    if (!email) newErrors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
-      newErrors.email = "Enter a valid email";
-
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 8)
-      newErrors.password = "Min 8 characters required";
-
-    return newErrors;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (loading) return;
-
-    const validationErrors = validate();
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) return;
-
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      setLoading(true);
-
-      const authResponse = await loginRequest(formData.email.trim(), formData.password);
+      const authResponse = await loginRequest(data.email, data.password);
 
       const currentUser = await refreshUser();
 
@@ -140,8 +99,6 @@ function Login(): JSX.Element {
       setErrorSnackbar(
         getAuthErrorMessage(error, "Login failed. Please try again.")
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -153,19 +110,17 @@ function Login(): JSX.Element {
           Sign in to continue
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* EMAIL */}
           <div className="input-group">
             <label>Email</label>
             <input
               type="email"
-              name="email"
               placeholder="Enter email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register("email")}
               className={errors.email ? "input-error" : ""}
             />
-            {errors.email && <p className="error-text">{errors.email}</p>}
+            {errors.email && <p className="error-text">{errors.email.message}</p>}
           </div>
 
           {/* PASSWORD */}
@@ -175,10 +130,8 @@ function Login(): JSX.Element {
             <div className="password-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
                 placeholder="Enter password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register("password")}
                 className={errors.password ? "input-error" : ""}
               />
 
@@ -188,7 +141,7 @@ function Login(): JSX.Element {
             </div>
 
             {errors.password && (
-              <p className="error-text">{errors.password}</p>
+              <p className="error-text">{errors.password.message}</p>
             )}
           </div>
 
@@ -199,9 +152,9 @@ function Login(): JSX.Element {
           <button
             type="submit"
             className="primary-btn"
-            disabled={loading}
+            disabled={isSubmitting}
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
         </form>
 

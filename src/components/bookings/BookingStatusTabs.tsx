@@ -23,6 +23,7 @@ const tabs: BookingStatusFilter[] = [
 
 export default function BookingsStatusTabs({ value, onChange }: Props) {
   return (
+    // glassy container
     <Box
       sx={{
         display: "inline-flex",
@@ -57,7 +58,7 @@ export default function BookingsStatusTabs({ value, onChange }: Props) {
                 fontWeight: 600,
                 fontSize: "0.85rem",
                 minHeight: 36,
-                px: 2,
+                px: 1.5,
                 borderRadius: 999,
 
                 transition:

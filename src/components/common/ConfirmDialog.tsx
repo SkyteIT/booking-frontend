@@ -54,7 +54,7 @@ export default function ConfirmDialog({
         sx: (theme) => ({
           borderRadius: 4,
 
-          // 🔥 premium surface
+          // glass container
           bgcolor: "rgba(255,255,255,0.95)",
           backdropFilter: "blur(12px)",
 
@@ -139,7 +139,7 @@ export default function ConfirmDialog({
             borderRadius: 2.5,
             px: 2.5,
 
-            // 🔥 unified button system
+            // glass container
             bgcolor:
               confirmColor === "error"
                 ? theme.palette.error.main

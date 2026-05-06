@@ -1,64 +1,33 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import type { ChangeEvent, FormEvent } from "react";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../utils/validationSchemas";
 
 function ForgotPassword(): JSX.Element {
-  const [email, setEmail] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
 
-  const validateEmail = (value: string): string => {
-    const trimmedEmail = value.trim();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    mode: "onBlur",
+  });
 
-    if (!trimmedEmail) {
-      return "Email is required";
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    try {
+      // TODO: Call your forgot password API endpoint when backend is ready
+      // await api.post("/api/auth/forgot-password", { email: data.email });
+      
+      setMessage(`Password reset link sent to ${data.email} ✅`);
+      reset();
+    } catch {
+      setMessage("Failed to send reset link. Please try again.");
     }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmedEmail)) {
-      return "Enter a valid email address";
-    }
-
-    return "";
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    const value = e.target.value;
-    setEmail(value);
-
-    // Clear error while typing
-    if (error) {
-      setError("");
-    }
-
-    if (message) {
-      setMessage("");
-    }
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-
-    if (loading) return;
-
-    setError("");
-    setMessage("");
-
-    const validationError = validateEmail(email);
-
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
-      setMessage("Password reset link sent to your email ✅");
-      setEmail("");
-    }, 1500);
   };
 
   return (
@@ -75,31 +44,30 @@ function ForgotPassword(): JSX.Element {
           No worries, we'll send you reset instructions.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="input-group">
             <label>Email Address</label>
             <input
               type="email"
               placeholder="Enter your email"
-              value={email}
-              onChange={handleChange}
-              className={error ? "input-error" : ""}
+              {...register("email")}
+              className={errors.email ? "input-error" : ""}
             />
 
-            {error && <p className="error-text">{error}</p>}
+            {errors.email && <p className="error-text">{errors.email.message}</p>}
             {message && <p className="success-text">{message}</p>}
           </div>
 
           <button
             type="submit"
             className="primary-btn"
-            disabled={loading}
+            disabled={isSubmitting}
             style={{
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? "not-allowed" : "pointer"
+              opacity: isSubmitting ? 0.7 : 1,
+              cursor: isSubmitting ? "not-allowed" : "pointer"
             }}
           >
-            {loading ? "Sending..." : "Reset Password"}
+            {isSubmitting ? "Sending..." : "Reset Password"}
           </button>
         </form>
       </div>

@@ -115,7 +115,7 @@ async function handleUpdate(status: string) {
         PaperProps={{
             sx: {
             borderRadius: 4,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
             },
         }}
     >
@@ -124,6 +124,7 @@ async function handleUpdate(status: string) {
             fontWeight: 700,
             fontSize: "1.2rem",
             borderBottom: "1px solid #f3f4f6",
+            color: "primary.main",
             }}
         >
             Booking Details
@@ -143,7 +144,9 @@ async function handleUpdate(status: string) {
                 
                 {/* Header */}
                 <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography variant="h3" sx={{ fontWeight: 400
+                  
+                 }}>
                     {data.bookingNumber}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -197,7 +200,7 @@ async function handleUpdate(status: string) {
                     <Box
                     sx={{
                         mt: 0.5,
-                        px: 1.5,
+                        px: 2,
                         py: 0.4,
                         borderRadius: 2,
                         fontSize: "0.75rem",

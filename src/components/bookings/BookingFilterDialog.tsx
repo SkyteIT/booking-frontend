@@ -10,6 +10,7 @@ import {
   Typography,
   FormControl,
   Box,
+  InputLabel,
 } from "@mui/material";
 import { useState } from "react";
 import { OutlinedInput } from "@mui/material";
@@ -48,8 +49,8 @@ export default function BookingFilterDialog({
         sx: {
           borderRadius: 4,
 
-          // 🔥 glass style
-          bgcolor: "rgba(255,255,255,0.9)",
+          // glass style
+          bgcolor: "rgba(255,255,255,0.85)",
           backdropFilter: "blur(12px)",
 
           border: "1px solid rgba(0,0,0,0.04)",
@@ -77,6 +78,7 @@ export default function BookingFilterDialog({
       <DialogContent sx={{ pt: 2.5 }}>
         <Stack spacing={4}>
           <FormControl fullWidth margin="dense" variant="outlined">
+            <InputLabel id="sort-by-label">Sort by</InputLabel>
             <Select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}

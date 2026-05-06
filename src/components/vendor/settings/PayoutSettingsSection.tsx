@@ -5,11 +5,13 @@ import type { PayoutForm } from "./types";
 type PayoutSettingsSectionProps = {
   form: PayoutForm;
   onFieldChange: (field: keyof PayoutForm, value: string) => void;
+  errors?: Record<string, string>;
 };
 
 export default function PayoutSettingsSection({
   form,
   onFieldChange,
+  errors = {},
 }: PayoutSettingsSectionProps) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -46,6 +48,8 @@ export default function PayoutSettingsSection({
         fullWidth
         size="small"
         margin="dense"
+        error={!!errors.bankName}
+        helperText={errors.bankName}
         InputLabelProps={{
           sx: {
             color: "text.secondary",
@@ -61,6 +65,8 @@ export default function PayoutSettingsSection({
         fullWidth
         size="small"
         margin="dense"
+        error={!!errors.accountHolderName}
+        helperText={errors.accountHolderName}
         InputLabelProps={{
           sx: {
             color: "text.secondary",
@@ -83,6 +89,8 @@ export default function PayoutSettingsSection({
           fullWidth
           size="small"
           margin="dense"
+          error={!!errors.accountNumber}
+          helperText={errors.accountNumber}
           InputLabelProps={{
             sx: {
               color: "text.secondary",
@@ -98,6 +106,8 @@ export default function PayoutSettingsSection({
           fullWidth
           size="small"
           margin="dense"
+          error={!!errors.branch}
+          helperText={errors.branch}
           InputLabelProps={{
             sx: {
               color: "text.secondary",

@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "../services/authService";
+import tokenStorage from "../services/tokenStorage";
 
 export type AuthUser = {
   id?: string;
@@ -41,23 +42,83 @@ function parseJwt(token: string) {
   }
 }
 
+// Refresh scheduling: use httpOnly refresh cookie via /api/auth/refresh-token
+function msUntilRefresh(token: string | null, refreshBeforeMs = 5 * 60 * 1000) {
+  if (!token) return null;
+  const decoded = parseJwt(token);
+  const exp = decoded?.exp ? Number(decoded.exp) * 1000 : null;
+  if (!exp) return null;
+
+  const now = Date.now();
+  const ms = exp - now - refreshBeforeMs;
+  return ms > 0 ? ms : 0;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [vendorApplicationSubmitted, setVendorApplicationSubmitted] = useState(false);
 
+  const refreshTimerRef = useRef<number | null>(null);
+
+  const scheduleRefreshFromToken = useCallback(() => {
+    const token = tokenStorage.getToken();
+    const ms = msUntilRefresh(token);
+
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
+    if (ms === null) return;
+
+    // schedule refresh
+    refreshTimerRef.current = window.setTimeout(async () => {
+      try {
+        // call refresh endpoint using cookie (backend must set httpOnly refresh cookie on login)
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh-token`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error("refresh failed");
+
+        const data = await res.json();
+        const newToken = data?.token ?? data?.accessToken;
+        if (newToken) {
+          // update storage and reschedule
+          tokenStorage.setToken(newToken);
+          scheduleRefreshFromToken();
+        } else {
+          throw new Error("no token in refresh response");
+        }
+      } catch {
+        tokenStorage.removeToken();
+        setUser(null);
+        try {
+          window.location.href = "/login";
+        } catch (_) {}
+      }
+    }, ms);
+  }, []);
+
+  const cancelScheduledRefresh = useCallback(() => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+  }, []);
+
 
 
   const logout = useCallback(() => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("token");
+    cancelScheduledRefresh();
+    tokenStorage.removeToken();
     setUser(null);
     setVendorApplicationSubmitted(false);
-  }, []);
+  }, [cancelScheduledRefresh]);
   const refreshUser = useCallback(async () => {
-  const token =
-    localStorage.getItem("authToken") ||
-    localStorage.getItem("token");
+  const token = tokenStorage.getToken();
 
   if (!token) {
     setUser(null);
@@ -85,18 +146,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: role,
     });
 
+    // schedule token refresh based on decoded exp
+    scheduleRefreshFromToken();
+
     return {
       ...currentUser,
       role,
     };
-  } catch {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("token");
-    setUser(null);
-    return null;
-  } finally {
-    setLoading(false);
-  }
+    } catch {
+      tokenStorage.removeToken();
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
 }, []);
 
   useEffect(() => {

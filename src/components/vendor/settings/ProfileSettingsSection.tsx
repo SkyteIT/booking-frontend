@@ -9,9 +9,10 @@ type ProfileSettingsSectionProps = {
 	form: ProfileForm;
 	onFieldChange: (field: keyof ProfileForm, value: string) => void;
 	onUploadPhoto?: (file: File) => void | Promise<void>;
+	errors?: Record<string, string>;
 };
 
-export default function ProfileSettingsSection({ form, onFieldChange, onUploadPhoto }: ProfileSettingsSectionProps) {
+export default function ProfileSettingsSection({ form, onFieldChange, onUploadPhoto, errors = {} }: ProfileSettingsSectionProps) {
 	const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
 		if (file && onUploadPhoto) {
@@ -75,6 +76,8 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 					fullWidth
 					size="small"
 					margin="dense"
+					error={!!errors.firstName}
+					helperText={errors.firstName}
 					InputLabelProps={{
 						sx: {
 							color: "text.secondary",
@@ -91,6 +94,8 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 					fullWidth
 					size="small"
 					margin="dense"
+					error={!!errors.lastName}
+					helperText={errors.lastName}
 					InputLabelProps={{
 						sx: {
 							color: "text.secondary",
@@ -108,6 +113,8 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 				fullWidth
 				size="small"
 				margin="dense"
+				error={!!errors.email}
+				helperText={errors.email}
 				InputProps={{ readOnly: true }}
 				InputLabelProps={{
 					sx: {
@@ -125,6 +132,8 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 				fullWidth
 				size="small"
 				margin="dense"
+				error={!!errors.phone}
+				helperText={errors.phone}
 				InputLabelProps={{
 					sx: {
 						color: "text.secondary",
@@ -141,6 +150,8 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 				fullWidth
 				size="small"
 				margin="dense"
+				error={!!errors.businessName}
+				helperText={errors.businessName}
 				InputLabelProps={{
 					sx: {
 						color: "text.secondary",
@@ -159,6 +170,8 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 				minRows={3}
                 size="small"
 				margin="dense"
+				error={!!errors.bio}
+				helperText={errors.bio}
 				InputLabelProps={{
 					sx: {
 						color: "text.secondary",

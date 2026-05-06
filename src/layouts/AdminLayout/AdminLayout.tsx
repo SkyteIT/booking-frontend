@@ -3,8 +3,11 @@ import { Outlet } from "react-router-dom";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
 import AdminNavbar from "../../components/navbars/AdminNavbar";
 import MainFooter from "../../components/footer/MainFooter";
+import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function AdminLayout() {
+  const { loading } = useAuth();
   return (
     <Box
       sx={{
@@ -13,6 +16,8 @@ export default function AdminLayout() {
       }}
     >
       <AdminNavbar />
+
+      {loading && <LoadingSpinner />}
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box

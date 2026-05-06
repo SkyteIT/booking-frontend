@@ -24,9 +24,14 @@ import {
   defaultLocalizationForm,
   defaultSecurityForm,
   resolveAssetUrl,
-  validateProfileForm,
   type SnackbarState,
 } from "./vendorSettings";
+import {
+  profileSettingsSchema,
+  payoutSettingsSchema,
+  securitySettingsSchema,
+  localizationSettingsSchema,
+} from "../../../utils/validationSchemas";
 
 export function useVendorSettings() {
   const [activeSection, setActiveSection] = useState<SettingSection>("profile");
@@ -37,6 +42,7 @@ export function useVendorSettings() {
   const [payoutSource, setPayoutSource] = useState<"api" | "local">("api");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: "",
@@ -123,14 +129,22 @@ export function useVendorSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
+      setValidationErrors({});
 
       switch (activeSection) {
         case "profile": {
-          const validationError = validateProfileForm(profileForm);
-          if (validationError) {
+          // Validate using zod schema
+          const validationResult = profileSettingsSchema.safeParse(profileForm);
+          if (!validationResult.success) {
+            const errors: Record<string, string> = {};
+            validationResult.error.issues.forEach((issue) => {
+              const fieldName = issue.path[0] as string;
+              errors[fieldName] = issue.message;
+            });
+            setValidationErrors(errors);
             setSnackbar({
               open: true,
-              message: validationError,
+              message: "Please fix the validation errors",
               severity: "error",
             });
             return;
@@ -151,7 +165,24 @@ export function useVendorSettings() {
           break;
         }
 
-        case "payout":
+        case "payout": {
+          // Validate using zod schema
+          const validationResult = payoutSettingsSchema.safeParse(payoutForm);
+          if (!validationResult.success) {
+            const errors: Record<string, string> = {};
+            validationResult.error.issues.forEach((issue) => {
+              const fieldName = issue.path[0] as string;
+              errors[fieldName] = issue.message;
+            });
+            setValidationErrors(errors);
+            setSnackbar({
+              open: true,
+              message: "Please fix the validation errors",
+              severity: "error",
+            });
+            return;
+          }
+
           try {
             await updateVendorPayout(payoutForm);
             setPayoutSource("api");
@@ -169,8 +200,26 @@ export function useVendorSettings() {
             });
           }
           break;
+        }
 
-        case "security":
+        case "security": {
+          // Validate using zod schema
+          const validationResult = securitySettingsSchema.safeParse(securityForm);
+          if (!validationResult.success) {
+            const errors: Record<string, string> = {};
+            validationResult.error.issues.forEach((issue) => {
+              const fieldName = issue.path[0] as string;
+              errors[fieldName] = issue.message;
+            });
+            setValidationErrors(errors);
+            setSnackbar({
+              open: true,
+              message: "Please fix the validation errors",
+              severity: "error",
+            });
+            return;
+          }
+
           await changePassword(securityForm);
           setSecurityForm(defaultSecurityForm);
           setSnackbar({
@@ -179,8 +228,26 @@ export function useVendorSettings() {
             severity: "success",
           });
           break;
+        }
 
-        case "localization":
+        case "localization": {
+          // Validate using zod schema
+          const validationResult = localizationSettingsSchema.safeParse(localizationForm);
+          if (!validationResult.success) {
+            const errors: Record<string, string> = {};
+            validationResult.error.issues.forEach((issue) => {
+              const fieldName = issue.path[0] as string;
+              errors[fieldName] = issue.message;
+            });
+            setValidationErrors(errors);
+            setSnackbar({
+              open: true,
+              message: "Please fix the validation errors",
+              severity: "error",
+            });
+            return;
+          }
+
           await updateLocalizationSettings(localizationForm);
           setSnackbar({
             open: true,
@@ -188,6 +255,7 @@ export function useVendorSettings() {
             severity: "success",
           });
           break;
+        }
 
         default:
           setSnackbar({
@@ -196,10 +264,10 @@ export function useVendorSettings() {
             severity: "success",
           });
       }
-    } catch {
+    } catch (error) {
       setSnackbar({
         open: true,
-        message: "Failed to save settings",
+        message: error instanceof Error ? error.message : "Failed to save settings",
         severity: "error",
       });
     } finally {
@@ -219,6 +287,7 @@ export function useVendorSettings() {
     saving,
     snackbar,
     setSnackbar,
+    validationErrors,
     handleProfileChange,
     handlePayoutChange,
     handleSecurityChange,

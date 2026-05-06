@@ -3,8 +3,11 @@ import { Box } from "@mui/material";
 import CustomerNavbar from "../../components/navbars/CustomerNavbar";
 import MainFooter from "../../components/footer/MainFooter";
 import { Outlet } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const MainLayout = () => {
+  const { loading } = useAuth();
   return (
     <Box
       sx={{
@@ -15,6 +18,8 @@ const MainLayout = () => {
     >
       {/* ✅ Dynamic Navbar */}
       <CustomerNavbar />
+
+      {loading && <LoadingSpinner />}
 
       {/* Page Content */}
       <Box

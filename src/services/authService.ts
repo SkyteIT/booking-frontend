@@ -1,5 +1,6 @@
 // src/services/authService.ts
 import api from "./api";
+import tokenStorage from "./tokenStorage";
 
 type AuthResponse = {
   token?: string;
@@ -13,8 +14,7 @@ const saveAuthToken = (response: AuthResponse) => {
   const token = response.token ?? response.accessToken;
 
   if (token) {
-    localStorage.setItem("authToken", token);
-    localStorage.setItem("token", token);
+    tokenStorage.setToken(token);
   }
 };
 

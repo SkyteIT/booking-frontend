@@ -55,8 +55,8 @@ export default function BookingDateRangeDialog({
         sx: {
           borderRadius: 4,
 
-          // 🔥 glass effect
-          bgcolor: "rgba(255,255,255,0.9)",
+          // glass effect
+          bgcolor: "rgba(255,255,255,0.85)",
           backdropFilter: "blur(12px)",
 
           border: "1px solid rgba(0,0,0,0.04)",
@@ -108,9 +108,9 @@ export default function BookingDateRangeDialog({
         {/* subtle divider */}
         <Box
           sx={{
-            mt: 2,
-            height: 1,
-            bgcolor: "rgba(0,0,0,0.05)",
+            mt: 3,
+            height: 2,
+            bgcolor: "rgba(136, 22, 22, 0.05)",
             borderRadius: 2,
           }}
         />

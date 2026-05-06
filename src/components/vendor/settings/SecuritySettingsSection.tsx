@@ -11,9 +11,10 @@ const inputSx = {
 type SecuritySettingsSectionProps = {
   form: SecurityForm;
   onFieldChange: (field: keyof SecurityForm, value: string) => void;
+  errors?: Record<string, string>;
 };
 
-export default function SecuritySettingsSection({ form, onFieldChange }: SecuritySettingsSectionProps) {
+export default function SecuritySettingsSection({ form, onFieldChange, errors = {} }: SecuritySettingsSectionProps) {
   return (
     <Box>
       <Stack spacing={3}>
@@ -34,6 +35,8 @@ export default function SecuritySettingsSection({ form, onFieldChange }: Securit
               margin="dense"
               value={form.currentPassword}
               onChange={(e) => onFieldChange("currentPassword", e.target.value)}
+              error={!!errors.currentPassword}
+              helperText={errors.currentPassword}
               sx={inputSx}
             />
 
@@ -45,6 +48,8 @@ export default function SecuritySettingsSection({ form, onFieldChange }: Securit
               margin="dense"
               value={form.newPassword}
               onChange={(e) => onFieldChange("newPassword", e.target.value)}
+              error={!!errors.newPassword}
+              helperText={errors.newPassword}
               sx={inputSx}
             />
 
@@ -56,6 +61,8 @@ export default function SecuritySettingsSection({ form, onFieldChange }: Securit
               margin="dense"
               value={form.confirmPassword}
               onChange={(e) => onFieldChange("confirmPassword", e.target.value)}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
               sx={inputSx}
             />
           </Stack>

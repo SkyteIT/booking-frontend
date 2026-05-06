@@ -3,10 +3,14 @@ import { Box, Container } from "@mui/material";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import MainFooter from "../../components/footer/MainFooter";
 import VendorNavbar from "../../components/navbars/VendorNavbar";
+import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function VendorLayout() {
+  const { loading } = useAuth();
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      {loading && <LoadingSpinner />}
       
       {/* 🔹 Navbar */}
       <VendorNavbar />
