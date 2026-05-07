@@ -37,7 +37,7 @@ function Register(): JSX.Element {
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-
+//enter data 
   const [formData, setFormData] = useState<RegisterFormData>({
     name: "",
     email: "",
@@ -48,7 +48,7 @@ function Register(): JSX.Element {
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
-
+ 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -80,7 +80,7 @@ function Register(): JSX.Element {
 
     return newErrors;
   };
-
+//
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (loading) return;

@@ -40,8 +40,9 @@ const Documents = (): JSX.Element => {
     field: "businessLicense" | "insuranceCertificate" | "taxDocument"
   ) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+      const file = e.target.files[0]; //file upload
 
+      //save file to context
       setData(prev => ({
         ...prev,
         documents: {

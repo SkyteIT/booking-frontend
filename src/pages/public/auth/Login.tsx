@@ -30,11 +30,13 @@ function Login(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
 
+  
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: undefined }));
   };
+  
 
   const validate = (): LoginErrors => {
     const newErrors: LoginErrors = {};
@@ -81,7 +83,7 @@ function Login(): JSX.Element {
 
       } catch (error: unknown) {
         console.error(error);
-
+      //error handling for invalid credentials
         setErrors({
           email: "Invalid email or password",
           password: "Invalid email or password"

@@ -26,6 +26,7 @@ const Review = () => {
 
   const handleSubmit = async () => {
     try {
+      //create form data
       const formData = new FormData();
   
       // ======================
@@ -67,17 +68,20 @@ const Review = () => {
         formData.append("taxDocument", data.documents.taxDocument);
       }
   
-      // ======================
+     
       // API CALL
-      // ======================
-      await fetch("http://localhost:5037/api/vendor-register/submit", {
+      
+      const response = await fetch("http://localhost:5037/api/vendor-register/submit", {
         method: "POST",
         body: formData
       });
-  
-      // ======================
+      
+      if (!response.ok) {
+        throw new Error("Submission failed");
+      }
+      
       // SUCCESS
-      // ======================
+     
       resetApplication();
       setOpenSnackbar(true);
   

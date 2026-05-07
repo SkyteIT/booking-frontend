@@ -3,9 +3,8 @@ import {
     useContext,
     useEffect,
     useState,
-    ReactNode,
   } from "react";
-  
+  import type { ReactNode } from "react";
   type User = {
     name: string;
     email: string;
@@ -57,7 +56,7 @@ import {
                 return;
               }
           
-              // 🔥 SAFE MAPPING (IMPORTANT FIX)
+              //  SAFE MAPPING (IMPORTANT FIX)
               setUser({
                 name: data.name ?? `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim(),
                 email: data.email,

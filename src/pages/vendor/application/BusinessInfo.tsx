@@ -22,7 +22,7 @@ interface BusinessErrors {
 const BusinessInfo = (): JSX.Element => {
   const navigate = useNavigate();
 
-  //  context
+  //  get context data
   const { data, setData } = useVendorApplication();
 
   const formData = data.businessInfo;
@@ -149,7 +149,7 @@ const BusinessInfo = (): JSX.Element => {
                 Business Type
               </Typography>
               <TextField
-                placeholder="LLC, Corporation, etc."
+                placeholder="Travel & Accomdation,Transport,Activities etc."
                 fullWidth
                 variant="outlined"
                 value={formData.businessType}

@@ -21,7 +21,7 @@ function App() {
   return (
     <VendorApplicationProvider>
     <BrowserRouter>
-      {/* ✅ WRAP EVERYTHING WITH PROVIDER */}
+      {/*  WRAP EVERYTHING WITH PROVIDER */}
       
         <Routes>
 

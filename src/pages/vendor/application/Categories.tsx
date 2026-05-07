@@ -39,7 +39,7 @@ const Categories = (): JSX.Element => {
   const categories = [
     "Vehicles",
     "Equipment",
-    "Real Estate",
+    "Hotels & Resorts",
     "Event Spaces",
     "Sports & Recreation",
     "Electronics",
@@ -51,6 +51,8 @@ const Categories = (): JSX.Element => {
   const handleSelect = (category: string) => {
     let updated: string[];
 
+
+//for multi select logic
     if (selectedCategories.includes(category)) {
       updated = selectedCategories.filter(
         (item) => item !== category

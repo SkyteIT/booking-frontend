@@ -37,10 +37,6 @@ export interface VendorApplicationData {
   documents: DocumentsData;
 }
 
-/* =======================
-   DEFAULT STATE
-======================= */
-
 const defaultState: VendorApplicationData = {
   businessInfo: {
     businessName: "",
@@ -91,9 +87,11 @@ export const VendorApplicationProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  //Initialize state
   const [data, setData] =
     useState<VendorApplicationData>(() => {
       try {
+        //Attempt to load saved data from localStorage
         const saved =
           localStorage.getItem("vendor_application");
 
@@ -105,7 +103,8 @@ export const VendorApplicationProvider = ({
       }
     });
 
-  /* persist */
+  // Whenever data changes, save it to localStorage
+  
   useEffect(() => {
     localStorage.setItem(
       "vendor_application",
@@ -128,10 +127,8 @@ export const VendorApplicationProvider = ({
   );
 };
 
-/* =======================
-   HOOK
-======================= */
-
+/*HOOK*/
+//how pages access shared data
 export const useVendorApplication = () => {
     const context = useContext(VendorApplicationContext);
   
