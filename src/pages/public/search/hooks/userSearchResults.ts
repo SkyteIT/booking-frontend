@@ -1,26 +1,84 @@
-// Main feature hook (business logic):
-// 1) reads filters from URL params
-// 2) filters listings
-// 3) exposes simple handlers that update URL params.
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { MOCK_LISTINGS } from "../data/mockListings";
+import { getListings } from "../../../../services/Vendor/listingService";
+import type { ListingResponse } from "../../../../services/Vendor/listingService";
 import { filterListings } from "../utils/filterListings";
 import { CATEGORIES, parseSearchFilters } from "../utils/searchParams";
-import type { ListingCategory } from "../utils/types";
+import type { Listing, ListingCategory } from "../utils/types";
 
 const ratingOptions = [3, 4, 4.5] as const;
 
-// Central hook for the search page:
-// reads filters from URL, filters data, and exposes update handlers.
+// Helper to map API response to frontend Listing type
+const mapApiListing = (api: ListingResponse): Listing => {
+  const typeLabels: Record<number, string> = {
+    0: "Hotel",
+    1: "Restaurant",
+    2: "Event",
+    3: "CarRental",
+    4: "Activity"
+  };
+
+  let categoryLabel = "Other";
+  if (typeof api.type === "number") {
+    categoryLabel = typeLabels[api.type] || "Other";
+  } else if (typeof api.type === "string") {
+    // Backend returns string labels like "Hotel", "Restaurant" etc. due to JsonStringEnumConverter
+    categoryLabel = api.type;
+  }
+
+  const unitMap: Record<string, string> = {
+    Hotel: "night",
+    Restaurant: "person",
+    Event: "ticket",
+    CarRental: "day",
+    Activity: "session"
+  };
+
+  const priceUnit = unitMap[categoryLabel] || "unit";
+
+  return {
+    id: api.id,
+    title: api.title,
+    category: categoryLabel,
+    location: api.location || "Online",
+    price: api.basePrice,
+    priceUnit: priceUnit,
+    rating: api.rating,
+    reviews: api.bookingsCount,
+    image: api.primaryImage || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+    isAvailable: api.isActive
+  };
+};
+
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getListings();
+        setListings(data.map(mapApiListing));
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching listings:", err);
+        setError("Failed to load listings.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
   const filteredListings = useMemo(
-    () => filterListings(MOCK_LISTINGS, filters),
-    [filters],
+    () => filterListings(listings, filters),
+    [listings, filters],
   );
 
   // Updates the main text query (`q`) in URL params.
@@ -121,6 +179,8 @@ export const useSearchResults = () => {
   return {
     filters,
     filteredListings,
+    loading,
+    error,
     categories: CATEGORIES,
     ratingOptions,
     setQuery,

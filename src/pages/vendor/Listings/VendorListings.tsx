@@ -260,6 +260,8 @@ const VendorListings = () => {
                       variant="contained"
                       fullWidth
                       startIcon={<EditIcon sx={{ fontSize: "1.1rem" }} />}
+                      component={Link}
+                      to={`/vendor/listings/edit/${listing.id}`}
                       sx={{
                         backgroundColor: "#0F5A8A",
                         borderRadius: "10px",

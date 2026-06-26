@@ -3,13 +3,11 @@
 import type { ListingCategory, SearchFilters } from "./types";
 
 export const CATEGORIES: ListingCategory[] = [
-  "Hotels",
-  "Restaurants",
-  "Events",
-  "Activities",
-  "Car Rentals",
-  "Apartments",
-  "Equipment",
+  "Event",
+  "CarRental",
+  "Activity",
+  "Restaurant",
+  "Hotel",
 ];
 
 // Converts URL text value to number; returns undefined for empty/invalid values.
@@ -36,9 +34,7 @@ export const parseSearchFilters = (
     .map((item) => item.trim())
     .filter(Boolean);
 
-  const categories = categoryFromUrl.filter((category): category is ListingCategory =>
-    CATEGORIES.includes(category as ListingCategory),
-  );
+  const categories = categoryFromUrl;
 
   return {
     q: searchParams.get("q") || "",

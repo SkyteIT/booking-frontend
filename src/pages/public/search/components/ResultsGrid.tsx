@@ -13,7 +13,7 @@ const ResultsGrid = ({ listings }: ResultsGridProps) => {
     <>
       <Grid container spacing={2.3}>
         {listings.map((listing) => (
-          <Grid key={listing.id} size={{ xs: 12, sm: 6 }}>
+          <Grid key={listing.id} size={{ xs: 12, sm: 6, md: 4 }}>
             <ListingCard
               id={listing.id}
               image={listing.image}

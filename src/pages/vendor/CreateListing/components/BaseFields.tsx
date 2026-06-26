@@ -22,11 +22,11 @@ interface BaseFieldsProps {
 }
 
 const categories = [
-  "Hotels",
-  "Restaurants",
-  "Activities",
-  "Events",
-  "Car Rentals",
+  "Hotel",
+  "Restaurant",
+  "Activity",
+  "Event",
+  "CarRental",
 ] as const;
 
 const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {

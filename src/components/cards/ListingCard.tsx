@@ -15,7 +15,7 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 interface ListingCardProps {
-  id?: number;
+  id?: string | number;
   image: string;
   title: string;
   category: string;

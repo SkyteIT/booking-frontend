@@ -1,6 +1,6 @@
 // src/utils/types.ts
 
-export type ListingCategory = 'Hotels' | 'Restaurants' | 'Activities' | 'Events' | 'Car Rentals';
+export type ListingCategory = 'Hotel' | 'Restaurant' | 'Activity' | 'Event' | 'CarRental';
 
 export interface TicketType {
     type: string;

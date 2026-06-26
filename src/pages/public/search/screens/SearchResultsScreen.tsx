@@ -1,15 +1,17 @@
 // Screen component: wires hook data/actions into presentational components.
 // It coordinates layout only and avoids business logic.
-import { Box, Container, Grid } from "@mui/material";
+import { Box, Container, Grid, CircularProgress, Alert } from "@mui/material";
 import SearchToolbar from "../components/SearchToolbar";
 import FiltersSidebar from "../components/FiltersSidebar";
 import ResultsGrid from "../components/ResultsGrid";
-import { useSearchResults } from "../hooks/useSearchResults";
+import { useSearchResults } from "../hooks/userSearchResults";
 
 const SearchResultsScreen = () => {
   const {
     filters,
     filteredListings,
+    loading,
+    error,
     categories,
     ratingOptions,
     setQuery,
@@ -30,8 +32,14 @@ const SearchResultsScreen = () => {
           onQueryChange={setQuery}
         />
 
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: "12px" }}>
+            {error}
+          </Alert>
+        )}
+
         <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, md: 3 }}>
+          <Grid size={{ xs: 12, md: 2.5 }}>
             <FiltersSidebar
               categories={categories}
               selectedCategories={filters.categories}
@@ -48,8 +56,14 @@ const SearchResultsScreen = () => {
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 9 }}>
-            <ResultsGrid listings={filteredListings} />
+          <Grid size={{ xs: 12, md: 9.5 }}>
+            {loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+                <CircularProgress sx={{ color: "#0F5A8A" }} />
+              </Box>
+            ) : (
+              <ResultsGrid listings={filteredListings} />
+            )}
           </Grid>
         </Grid>
       </Container>

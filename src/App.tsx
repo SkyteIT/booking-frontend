@@ -71,6 +71,7 @@ function App() {
                     <Route path="dashboard" element={<VendorDashboard />} />
                     <Route path="listings" element={<VendorListings />} />
                     <Route path="listings/new" element={<CreateListing />} />
+                    <Route path="listings/edit/:id" element={<CreateListing />} />
                     <Route
                       path="*"
                       element={<Navigate to="/vendor/dashboard" replace />}

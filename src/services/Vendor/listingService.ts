@@ -160,16 +160,30 @@ export const getCurrentVendor = async (): Promise<VendorDto> => {
 
 export interface ListingResponse {
   id: string;
+  vendorId: string;
+  categoryId: string;
   title: string;
+  description?: string;
   basePrice: number;
   currency: string;
   categoryName: string;
+  location: string;
   type: number;
   status: string;
   rating: number;
   bookingsCount: number;
   primaryImage?: string;
+  images: string[];
+  tags: string[];
+  cancellationPolicy?: string;
   isActive: boolean;
+
+  // Detail fields
+  hotelDetails?: HotelDetailsDto;
+  restaurantDetails?: RestaurantDetailsDto;
+  carRentalDetails?: CarRentalDetailsDto;
+  activityDetails?: ActivityDetailsDto;
+  eventDetails?: EventDetailsDto;
 }
 
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
@@ -183,4 +197,39 @@ export const getVendorListings = async (): Promise<ListingResponse[]> => {
     throw new Error("Failed to fetch vendor listings");
   }
   return response.json();
+};
+
+export const getListings = async (): Promise<ListingResponse[]> => {
+  const response = await fetch(`${API_BASE_URL}/Listings`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch listings");
+  }
+  return response.json();
+};
+
+export const getListingById = async (id: string): Promise<ListingResponse> => {
+  const response = await fetch(`${API_BASE_URL}/Listings/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch listing details");
+  }
+  return response.json();
+};
+
+export const updateListing = async (id: string, data: CreateListingRequest) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_BASE_URL}/Listings/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to update listing");
+  }
+
+  return response.ok;
 };
