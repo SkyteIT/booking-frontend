@@ -109,6 +109,7 @@ function AppRouter() {
         <Route path="bookings" element={<Bookings />} />
         <Route path="listings" element={<VendorListings />} />
         <Route path="listings/new" element={<CreateListing />} />
+        <Route path="listings/edit/:id" element={<CreateListing />} />
         <Route path="availability" element={<Availability />} />
         <Route path="settings" element={<Settings />} />
       </Route>

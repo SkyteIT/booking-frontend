@@ -3,9 +3,7 @@
 import ApartmentOutlinedIcon from "@mui/icons-material/ApartmentOutlined";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
-import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
 import HikingOutlinedIcon from "@mui/icons-material/HikingOutlined";
-import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
 import RestaurantOutlinedIcon from "@mui/icons-material/RestaurantOutlined";
 import { Button, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
@@ -17,13 +15,11 @@ import {
 } from "./styles";
 
 const categoryIconMap: Record<ListingCategory, ReactNode> = {
-  Hotels: <ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Restaurants: <RestaurantOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Events: <ConfirmationNumberOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Activities: <HikingOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  "Car Rentals": <DirectionsCarOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Apartments: <HomeWorkOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Equipment: <HandymanOutlinedIcon sx={{ fontSize: "1rem" }} />,
+  Hotel: <ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />,
+  Restaurant: <RestaurantOutlinedIcon sx={{ fontSize: "1rem" }} />,
+  Event: <ConfirmationNumberOutlinedIcon sx={{ fontSize: "1rem" }} />,
+  Activity: <HikingOutlinedIcon sx={{ fontSize: "1rem" }} />,
+  CarRental: <DirectionsCarOutlinedIcon sx={{ fontSize: "1rem" }} />,
 };
 
 interface CategoryFilterSectionProps {

@@ -5,6 +5,14 @@ import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
 
+interface BusinessFormData {
+  businessName: string;
+  businessType: string;
+  taxId: string;
+  website: string;
+  address: string;
+}
+
 interface BusinessErrors {
   businessName?: string;
   businessType?: string;
@@ -15,49 +23,45 @@ interface BusinessErrors {
 
 const BusinessInfo = (): JSX.Element => {
   const navigate = useNavigate();
-
-  //  get context data
   const { data, setData } = useVendorApplication();
 
-  const formData = data.businessInfo;
+  const [formData, setFormData] = useState<BusinessFormData>({
+    businessName: data.businessInfo.businessName || "",
+    businessType: data.businessInfo.businessType || "",
+    taxId: data.businessInfo.taxId || "",
+    website: data.businessInfo.website || "",
+    address: data.businessInfo.address || "",
+  });
 
   const [errors, setErrors] = useState<BusinessErrors>({});
 
   // --- BACK BUTTON HANDLER ---
   useEffect(() => {
+    // Push fake state to prevent going back
     window.history.pushState(null, "", window.location.href);
 
     const handleBack = (event: PopStateEvent) => {
       event.preventDefault();
-      navigate("/", { replace: true });
+      navigate("/", { replace: true }); // Always go to landing page
     };
 
     window.addEventListener("popstate", handleBack);
 
-    return () =>
+    return () => {
       window.removeEventListener("popstate", handleBack);
+    };
   }, [navigate]);
+  // --- END BACK BUTTON HANDLER ---
 
-  // --- HANDLE CHANGE ---
-  const handleChange = (
-    field: keyof typeof formData,
-    value: string
-  ) => {
-    setData(prev => ({
+  const handleChange = (field: keyof BusinessFormData, value: string) => {
+    setFormData((prev) => ({
       ...prev,
-      businessInfo: {
-        ...prev.businessInfo,
-        [field]: value
-      }
+      [field]: value,
     }));
 
-    setErrors(prev => ({
-      ...prev,
-      [field]: undefined
-    }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  // --- VALIDATION ---
   const validate = (): BusinessErrors => {
     const newErrors: BusinessErrors = {};
 
@@ -67,31 +71,22 @@ const BusinessInfo = (): JSX.Element => {
     const website = formData.website.trim();
     const address = formData.address.trim();
 
-    if (!name)
-      newErrors.businessName = "Business name is required";
+    if (!name) newErrors.businessName = "Business name is required";
     else if (name.length < 3)
-      newErrors.businessName =
-        "Business name must be at least 3 characters";
+      newErrors.businessName = "Business name must be at least 3 characters";
 
-    if (!type)
-      newErrors.businessType = "Business type is required";
-
-    if (!taxId)
-      newErrors.taxId = "Tax ID / EIN is required";
+    if (!type) newErrors.businessType = "Business type is required";
+    if (!taxId) newErrors.taxId = "Tax ID / EIN is required";
 
     if (
       website &&
-      !/^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(
-        website
-      )
+      !/^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(website)
     ) {
       newErrors.website = "Enter a valid website URL";
     }
 
-    if (!address)
-      newErrors.address = "Business address is required";
-    else if (address.length < 5)
-      newErrors.address = "Address is too short";
+    if (!address) newErrors.address = "Business address is required";
+    else if (address.length < 5) newErrors.address = "Address is too short";
 
     return newErrors;
   };
@@ -102,6 +97,11 @@ const BusinessInfo = (): JSX.Element => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
+      // Save to context
+      setData((prev) => ({
+        ...prev,
+        businessInfo: formData,
+      }));
       navigate("/vendor/contactinfo");
     }
   };
@@ -109,74 +109,49 @@ const BusinessInfo = (): JSX.Element => {
   return (
     <ApplicationLayout activeStep={0}>
       <Container className="vendor-container">
-        <Typography className="vendor-title">
-          Business Information
-        </Typography>
+        <Typography className="vendor-title">Business Information</Typography>
 
         <Box className="vendor-form-card">
           <Box className="vendor-form">
-
-            {/* BUSINESS NAME */}
             <Box>
-              <Typography className="field-label">
-                Business Name
-              </Typography>
+              <Typography className="field-label">Business Name</Typography>
               <TextField
                 placeholder="Acme Rentals LLC"
                 fullWidth
                 variant="outlined"
                 value={formData.businessName}
-                onChange={(e) =>
-                  handleChange(
-                    "businessName",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleChange("businessName", e.target.value)}
                 error={!!errors.businessName}
                 helperText={errors.businessName}
               />
             </Box>
 
-            {/* BUSINESS TYPE */}
             <Box>
-              <Typography className="field-label">
-                Business Type
-              </Typography>
+              <Typography className="field-label">Business Type</Typography>
               <TextField
                 placeholder="Travel & Accomdation,Transport,Activities etc."
                 fullWidth
                 variant="outlined"
                 value={formData.businessType}
-                onChange={(e) =>
-                  handleChange(
-                    "businessType",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleChange("businessType", e.target.value)}
                 error={!!errors.businessType}
                 helperText={errors.businessType}
               />
             </Box>
 
-            {/* TAX ID */}
             <Box>
-              <Typography className="field-label">
-                Tax ID / EIN
-              </Typography>
+              <Typography className="field-label">Tax ID / EIN</Typography>
               <TextField
                 placeholder="12-3456789"
                 fullWidth
                 variant="outlined"
                 value={formData.taxId}
-                onChange={(e) =>
-                  handleChange("taxId", e.target.value)
-                }
+                onChange={(e) => handleChange("taxId", e.target.value)}
                 error={!!errors.taxId}
                 helperText={errors.taxId}
               />
             </Box>
 
-            {/* WEBSITE */}
             <Box>
               <Typography className="field-label">
                 Business Website (optional)
@@ -186,44 +161,30 @@ const BusinessInfo = (): JSX.Element => {
                 fullWidth
                 variant="outlined"
                 value={formData.website}
-                onChange={(e) =>
-                  handleChange("website", e.target.value)
-                }
+                onChange={(e) => handleChange("website", e.target.value)}
                 error={!!errors.website}
                 helperText={errors.website}
               />
             </Box>
 
-            {/* ADDRESS */}
             <Box className="full-width">
-              <Typography className="field-label">
-                Business Address
-              </Typography>
+              <Typography className="field-label">Business Address</Typography>
               <TextField
                 placeholder="123 Main St, City, State, ZIP"
                 fullWidth
                 variant="outlined"
                 value={formData.address}
-                onChange={(e) =>
-                  handleChange("address", e.target.value)
-                }
+                onChange={(e) => handleChange("address", e.target.value)}
                 error={!!errors.address}
                 helperText={errors.address}
               />
             </Box>
-
           </Box>
 
           {/* BUTTONS */}
           <Box className="vendor-actions">
-            <Button className="back">
-              Back
-            </Button>
-
-            <Button
-              className="continue"
-              onClick={handleContinue}
-            >
+            <Button className="back">Back</Button>
+            <Button className="continue" onClick={handleContinue}>
               Continue
             </Button>
           </Box>

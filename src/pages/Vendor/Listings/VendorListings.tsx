@@ -6,9 +6,9 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
 import StarIcon from "@mui/icons-material/Star";
 import {
-  Box,
   Container,
   Typography,
+  Box,
   Button,
   Grid,
   Card,
@@ -21,57 +21,56 @@ import {
   IconButton,
   Chip,
   Stack,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const mockListings = [
-  {
-    id: 1,
-    title: "Tesla Model 3",
-    category: "Vehicles",
-    price: "$99/day",
-    bookings: 12,
-    rating: 4.9,
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 2,
-    title: "Canon EOS R5",
-    category: "Electronics",
-    price: "$75/day",
-    bookings: 8,
-    rating: 5.0,
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 3,
-    title: "Beach House Villa",
-    category: "Real Estate",
-    price: "$400/night",
-    bookings: 24,
-    rating: 4.8,
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 4,
-    title: "DJ Equipment Set",
-    category: "Equipment",
-    price: "$150/day",
-    bookings: 0,
-    rating: 0,
-    status: "Draft",
-    image:
-      "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80",
-  },
-];
+import { getVendorListings } from "../../../services/Vendor/listingService";
+import type { ListingResponse } from "../../../services/Vendor/listingService";
 
 const VendorListings = () => {
+  const [listings, setListings] = useState<ListingResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setLoading(true);
+        const data = await getVendorListings();
+        setListings(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching listings:", err);
+        setError("Failed to load your listings. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
+  const filteredListings = listings.filter((listing) => {
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "live" ? listing.isActive : !listing.isActive);
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress sx={{ color: "#0F5A8A" }} />
+        <Typography sx={{ mt: 2, color: "#64748B" }}>Loading your listings...</Typography>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       {/* Header Section */}
@@ -107,12 +106,18 @@ const VendorListings = () => {
             textTransform: "none",
             fontSize: "0.95rem",
             fontWeight: 600,
-            "&:hover": { backgroundColor: "#0F5A8A" },
+            "&:hover": { backgroundColor: "#0D4D76" },
           }}
         >
           Create new Listing
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 4, borderRadius: "12px" }}>
+          {error}
+        </Alert>
+      )}
 
       {/* Filter Bar */}
       <Box
@@ -131,6 +136,8 @@ const VendorListings = () => {
         <TextField
           placeholder="Search listings..."
           size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           sx={{ flexGrow: 1, minWidth: "200px" }}
           InputProps={{
             startAdornment: (
@@ -142,25 +149,14 @@ const VendorListings = () => {
           }}
         />
         <Select
-          defaultValue="Category"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
           size="small"
           sx={{ minWidth: "140px", borderRadius: "10px" }}
         >
-          <MenuItem value="Category">Category</MenuItem>
-          <MenuItem value="Vehicles">Vehicles</MenuItem>
-          <MenuItem value="Electronics">Electronics</MenuItem>
-          <MenuItem value="Real Estate">Real Estate</MenuItem>
-          <MenuItem value="Equipment">Equipment</MenuItem>
-        </Select>
-        <Select
-          defaultValue="Status"
-          size="small"
-          sx={{ minWidth: "120px", borderRadius: "10px" }}
-        >
-          <MenuItem value="Status">Status</MenuItem>
-          <MenuItem value="Active">Active</MenuItem>
-          <MenuItem value="Draft">Draft</MenuItem>
-          <MenuItem value="Inactive">Inactive</MenuItem>
+          <MenuItem value="all">All Status</MenuItem>
+          <MenuItem value="live">Live</MenuItem>
+          <MenuItem value="inactive">Inactive</MenuItem>
         </Select>
         <Button
           variant="outlined"
@@ -170,6 +166,8 @@ const VendorListings = () => {
             textTransform: "none",
             borderColor: "#E2E8F0",
             color: "#64748B",
+            px: 2,
+            "&:hover": { borderColor: "#CBD5E1", backgroundColor: "#F8FAFC" },
           }}
         >
           More Filters
@@ -177,120 +175,121 @@ const VendorListings = () => {
       </Box>
 
       {/* Listings Grid */}
-      <Grid container spacing={4}>
-        {mockListings.map((listing) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={listing.id}>
-            <Card
-              sx={{
-                borderRadius: "20px",
-                overflow: "hidden",
-                border: "1px solid #E2E8F0",
-                boxShadow: "0px 4px 20px rgba(0,0,0,0.04)",
-                transition: "transform 0.2s ease, boxShadow 0.2s ease",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: "0px 12px 30px rgba(0,0,0,0.08)",
-                },
-              }}
-            >
-              <Box sx={{ position: "relative" }}>
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={listing.image}
-                  alt={listing.title}
-                />
-                <Chip
-                  label={listing.status}
-                  size="small"
-                  sx={{
-                    position: "absolute",
-                    top: 16,
-                    right: 16,
-                    backgroundColor:
-                      listing.status === "Active" ? "#DCFCE7" : "#F1F5F9",
-                    color: listing.status === "Active" ? "#166534" : "#475569",
-                    fontWeight: 600,
-                    fontSize: "0.75rem",
-                    border: "none",
-                  }}
-                />
-              </Box>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 700, mb: 0.5, color: "#1E293B" }}
-                >
-                  {listing.title}
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#64748B", mb: 2 }}>
-                  {listing.category}
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3,
-                  }}
-                >
+      {filteredListings.length === 0 ? (
+        <Box sx={{ textAlign: "center", py: 10, bgcolor: "#ffffff", borderRadius: "20px", border: "1px dashed #E2E8F0" }}>
+          <Typography variant="h6" color="text.secondary">No listings found</Typography>
+          <Typography color="text.secondary">Try adjusting your search or filters.</Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {filteredListings.map((listing) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={listing.id}>
+              <Card
+                sx={{
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "0px 4px 20px rgba(0,0,0,0.04)",
+                  transition: "transform 0.2s ease, boxShadow 0.2s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0px 12px 30px rgba(0,0,0,0.08)",
+                  },
+                }}
+              >
+                <Box sx={{ position: "relative" }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={listing.primaryImage || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"}
+                    alt={listing.title}
+                  />
+                  <Chip
+                    label={listing.isActive ? "Live" : "Inactive"}
+                    size="small"
+                    sx={{
+                      position: "absolute",
+                      top: 16,
+                      right: 16,
+                      backgroundColor: listing.isActive ? "#DCFCE7" : "#F1F5F9",
+                      color: listing.isActive ? "#166534" : "#475569",
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      border: "none",
+                    }}
+                  />
+                </Box>
+                <CardContent sx={{ p: 3 }}>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 800, color: "#0F5A8A" }}
+                    sx={{ fontWeight: 700, mb: 0.5, color: "#1E293B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                   >
-                    {listing.price}
+                    {listing.title}
                   </Typography>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Typography variant="caption" sx={{ color: "#64748B" }}>
-                      {listing.bookings} bookings
+                  <Typography variant="body2" sx={{ color: "#64748B", mb: 2 }}>
+                    {listing.categoryName}
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 800, color: "#0F5A8A" }}
+                    >
+                      {listing.currency} {listing.price}
                     </Typography>
-                    {listing.rating > 0 && (
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Typography variant="caption" sx={{ color: "#64748B" }}>
+                        {listing.totalReviews} reviews
+                      </Typography>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                         <StarIcon sx={{ fontSize: "1rem", color: "#FBBF24" }} />
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 600, color: "#1E293B" }}
-                        >
-                          {listing.rating}
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#1E293B" }}>
+                          {listing.averageRating > 0 ? listing.averageRating.toFixed(1) : "New"}
                         </Typography>
                       </Box>
-                    )}
-                  </Stack>
-                </Box>
+                    </Stack>
+                  </Box>
 
-                <Stack direction="row" spacing={1}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={<EditIcon sx={{ fontSize: "1.1rem" }} />}
-                    sx={{
-                      backgroundColor: "#0F5A8A",
-                      borderRadius: "10px",
-                      textTransform: "none",
-                      fontWeight: 600,
-                      "&:hover": { backgroundColor: "#0F5A8A" },
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <IconButton
-                    sx={{
-                      border: "1px solid #E2E8F0",
-                      borderRadius: "10px",
-                      color: "#64748B",
-                    }}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      startIcon={<EditIcon sx={{ fontSize: "1.1rem" }} />}
+                      component={Link}
+                      to={`/vendor/listings/edit/${listing.id}`}
+                      sx={{
+                        backgroundColor: "#0F5A8A",
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        "&:hover": { backgroundColor: "#0D4D76" },
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <IconButton
+                      sx={{
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "10px",
+                        color: "#64748B",
+                      }}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Container>
   );
 };

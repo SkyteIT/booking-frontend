@@ -1,26 +1,54 @@
 // Main feature hook (business logic):
-// 1) reads filters from URL params
-// 2) filters listings
-// 3) exposes simple handlers that update URL params.
-import { useMemo } from "react";
+// 1) fetches listings from the backend
+// 2) reads filters from URL params
+// 3) filters listings
+// 4) exposes simple handlers that update URL params.
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { MOCK_LISTINGS } from "../data/mockListings";
+import { getListings } from "../../../../services/Vendor/listingService";
 import { filterListings } from "../utils/filterListings";
+import { mapApiListing } from "../utils/mapApiListing";
 import { CATEGORIES, parseSearchFilters } from "../utils/searchParams";
-import type { ListingCategory } from "../utils/types";
+import type { Listing, ListingCategory } from "../utils/types";
 
 const ratingOptions = [3, 4, 4.5] as const;
 
-// Central hook for the search page:
-// reads filters from URL, filters data, and exposes update handlers.
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getListings();
+        if (cancelled) return;
+        setListings(data.map(mapApiListing));
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error fetching listings:", err);
+        setError("Failed to load listings.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
   const filteredListings = useMemo(
-    () => filterListings(MOCK_LISTINGS, filters),
-    [filters],
+    () => filterListings(listings, filters),
+    [listings, filters],
   );
 
   // Updates the main text query (`q`) in URL params.
@@ -121,6 +149,8 @@ export const useSearchResults = () => {
   return {
     filters,
     filteredListings,
+    loading,
+    error,
     categories: CATEGORIES,
     ratingOptions,
     setQuery,
