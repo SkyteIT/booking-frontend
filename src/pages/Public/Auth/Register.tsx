@@ -1,11 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Snackbar, Alert } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { Snackbar, Alert } from "@mui/material";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { register as registerRequest } from "../../../services/authService";
 import { registerSchema, type RegisterFormData } from "../../../utils/validationSchemas";
 

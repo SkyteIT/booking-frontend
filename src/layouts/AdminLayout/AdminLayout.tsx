@@ -1,10 +1,10 @@
 import { Box, Container } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
-import AdminNavbar from "../../components/navbars/AdminNavbar";
-import MainFooter from "../../components/footer/MainFooter";
-import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import MainFooter from "../../components/footer/MainFooter";
+import AdminNavbar from "../../components/navbars/AdminNavbar";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminLayout() {
   const { loading } = useAuth();

@@ -1,15 +1,13 @@
-import { Box, Grid, Stack, Typography } from "@mui/material";
-import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
-
-import StatCard from "../../../components/Vendor/Dashboard/StatCard";
-import RevenueOverviewCard from "../../../components/Vendor/Dashboard/RevenueOverviewCard";
-import RecentActivityCard from "../../../components/Vendor/Dashboard/RecentActivityCard";
-import UpcomingBookingsCard from "../../../components/Vendor/Dashboard/UpcomingBookingsCard";
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import BookingStatusChart from "../../../components/Bookings/BookingStatusChart";
-
+import RecentActivityCard from "../../../components/Vendor/Dashboard/RecentActivityCard";
+import RevenueOverviewCard from "../../../components/Vendor/Dashboard/RevenueOverviewCard";
+import StatCard from "../../../components/Vendor/Dashboard/StatCard";
+import UpcomingBookingsCard from "../../../components/Vendor/Dashboard/UpcomingBookingsCard";
 import { useVendorDashboard } from "./useVendorDashboard";
 
 export default function Dashboard() {

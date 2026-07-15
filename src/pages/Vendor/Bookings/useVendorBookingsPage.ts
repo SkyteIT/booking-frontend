@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useVendorBookings } from "../../../hooks/useVendorBookings";
 import type { BookingStatusFilter } from "../../../components/Bookings/BookingStatusTabs";
+import { useVendorBookings } from "../../../hooks/useVendorBookings";
 import { useFilteredBookings } from "./vendorBookings";
 
 export function useVendorBookingsPage() {

@@ -1,3 +1,4 @@
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
   AppBar,
   Toolbar,
@@ -12,9 +13,8 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import icon2 from "../../assets/icons/icon2.png";
+import { useAuth } from "../../context/AuthContext";
 
 export default function VendorNavbar() {
   const navigate = useNavigate();

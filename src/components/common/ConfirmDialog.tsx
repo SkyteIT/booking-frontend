@@ -1,4 +1,4 @@
-import React from "react";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +11,7 @@ import {
   Fade,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import React from "react";
 
 type Props = {
   open: boolean;

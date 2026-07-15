@@ -1,5 +1,4 @@
 import { Card, CardContent, Typography, Stack, Box } from "@mui/material";
-
 import StatusChip from "../Vendor/Dashboard/StatusChip";
 
 type Props = {

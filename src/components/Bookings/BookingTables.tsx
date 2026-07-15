@@ -7,8 +7,6 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-
-
 import StatusChip from "../Vendor/Dashboard/StatusChip";
 import type { VendorBookingDto } from "./BookingTypes";
 

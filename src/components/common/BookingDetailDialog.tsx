@@ -1,3 +1,7 @@
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import {
   Dialog,
   DialogTitle,
@@ -11,12 +15,8 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getBookingDetail, updateBookingStatus } from "../../services/Bookings/booking";
-import SnackbarAlert from "./SnackbarAlert";
 import type { VendorBookingDto } from "../Bookings/BookingTypes";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import SnackbarAlert from "./SnackbarAlert";
 
 type VendorBookingDetailDto = VendorBookingDto & {
   customerEmail?: string;

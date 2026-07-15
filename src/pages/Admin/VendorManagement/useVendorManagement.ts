@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-
-import {getVendorApplications, getVendorApplicationById, reviewVendorApplication } from "../../../services/Admin/vendor";
 import type { VendorManagementTab } from "../../../components/Admin/VendorManagement/VendorManagementTabs";
+import {getVendorApplications, getVendorApplicationById, reviewVendorApplication } from "../../../services/Admin/vendor";
 
 type SnackbarState = {
   open: boolean;

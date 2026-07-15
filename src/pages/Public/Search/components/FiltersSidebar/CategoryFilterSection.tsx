@@ -1,13 +1,13 @@
 // Category filter section: renders all category options and handles
 // single-click add/remove behavior through callbacks from the hook.
-import { Button, Stack, Typography } from "@mui/material";
 import ApartmentOutlinedIcon from "@mui/icons-material/ApartmentOutlined";
-import RestaurantOutlinedIcon from "@mui/icons-material/RestaurantOutlined";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
-import HikingOutlinedIcon from "@mui/icons-material/HikingOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
+import HikingOutlinedIcon from "@mui/icons-material/HikingOutlined";
 import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
+import RestaurantOutlinedIcon from "@mui/icons-material/RestaurantOutlined";
+import { Button, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import type { ListingCategory } from "../../utils/types";
 import {

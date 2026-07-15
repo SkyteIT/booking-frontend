@@ -1,5 +1,5 @@
-import api from "../api";
 import type { AxiosError } from "axios";
+import api from "../api";
 
 //types
 

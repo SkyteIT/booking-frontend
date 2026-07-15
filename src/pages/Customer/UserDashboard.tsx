@@ -1,12 +1,11 @@
 import { Box } from "@mui/material";
-import MainNavbar from "../../components/navbars/CustomerNavbar";
 import MainFooter from "../../components/footer/MainFooter";
-
+import MainNavbar from "../../components/navbars/CustomerNavbar";
 import DashboardSideBar from "../../components/sections/userDashboard/DashboardSideBar";
-import WelcomeCard from "../../components/sections/userDashboard/WelcomeCard";
-import VendorBanner from "../../components/sections/userDashboard/VendorBanner";
 import StatsCards from "../../components/sections/userDashboard/StatsCards";
 import UpcomingBookings from "../../components/sections/userDashboard/UpcomingBookings";
+import VendorBanner from "../../components/sections/userDashboard/VendorBanner";
+import WelcomeCard from "../../components/sections/userDashboard/WelcomeCard";
 
 import "../../components/sections/userDashboard/userDashboard.css";
 

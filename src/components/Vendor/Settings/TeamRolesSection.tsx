@@ -1,6 +1,6 @@
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { Avatar, Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 const mockMembers = [
   { id: 1, name: "John Smith", email: "john@acmerentals.com", role: "Owner" },

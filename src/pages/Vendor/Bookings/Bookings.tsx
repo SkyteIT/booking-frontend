@@ -7,14 +7,12 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-
+import BookingCard from "../../../components/Bookings/BookingCard";
+import BookingDateRangeDialog from "../../../components/Bookings/BookingDateRangeDialog";
+import BookingFilterDialog from "../../../components/Bookings/BookingFilterDialog";
 import BookingsStatusTabs from "../../../components/Bookings/BookingStatusTabs";
 import BookingsToolbar from "../../../components/Bookings/BookingToolbar";
-import BookingFilterDialog from "../../../components/Bookings/BookingFilterDialog";
-import BookingDateRangeDialog from "../../../components/Bookings/BookingDateRangeDialog";
 import BookingDetailDialog from "../../../components/common/BookingDetailDialog";
-import BookingCard from "../../../components/Bookings/BookingCard";
-
 import { useVendorBookingsPage } from "./useVendorBookingsPage";
 
 export default function Bookings() {

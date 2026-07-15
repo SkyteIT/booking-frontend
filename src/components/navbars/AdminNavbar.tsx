@@ -1,3 +1,5 @@
+import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import {
   AppBar,
   Avatar,
@@ -11,12 +13,10 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import icon2 from "../../assets/icons/icon2.png";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminNavbar() {
   const navigate = useNavigate();

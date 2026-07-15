@@ -1,5 +1,5 @@
 // src/components/sections/landing/FAQSection.tsx
-import { useState } from "react";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Box,
   Container,
@@ -9,7 +9,7 @@ import {
   AccordionDetails,
   Grid,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useState } from "react";
 
 const faqs = [
   {

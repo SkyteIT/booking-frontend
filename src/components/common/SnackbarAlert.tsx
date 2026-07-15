@@ -1,9 +1,9 @@
-import { Box, Snackbar, Alert } from "@mui/material";
-import Slide from "@mui/material/Slide";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import { Box, Snackbar, Alert } from "@mui/material";
+import Slide from "@mui/material/Slide";
 
 function SlideTransition(props: any) {
   return <Slide {...props} direction="left" />;

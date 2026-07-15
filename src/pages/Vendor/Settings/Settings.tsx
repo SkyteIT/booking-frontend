@@ -1,3 +1,4 @@
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import {
   Box,
   Button,
@@ -8,21 +9,17 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
-
-import SettingsSideNav from "../../../components/Vendor/Settings/SettingsSideNav";
-import ProfileSettingsSection from "../../../components/Vendor/Settings/ProfileSettingsSection";
-import PayoutSettingsSection from "../../../components/Vendor/Settings/PayoutSettingsSection";
-import TeamRolesSection from "../../../components/Vendor/Settings/TeamRolesSection";
-import SecuritySettingsSection from "../../../components/Vendor/Settings/SecuritySettingsSection";
+import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import LocalizationSettingsSection from "../../../components/Vendor/Settings/LocalizationSettingsSection";
 import NotificationsSection from "../../../components/Vendor/Settings/NotificationsSection";
-import SnackbarAlert from "../../../components/common/SnackbarAlert";
-
+import PayoutSettingsSection from "../../../components/Vendor/Settings/PayoutSettingsSection";
+import ProfileSettingsSection from "../../../components/Vendor/Settings/ProfileSettingsSection";
+import SecuritySettingsSection from "../../../components/Vendor/Settings/SecuritySettingsSection";
 import {
   sectionMetaMap,
 } from "../../../components/Vendor/Settings/settingsConfig";
-
+import SettingsSideNav from "../../../components/Vendor/Settings/SettingsSideNav";
+import TeamRolesSection from "../../../components/Vendor/Settings/TeamRolesSection";
 import { useVendorSettings } from "./useVendorSettings";
 
 export default function Settings() {

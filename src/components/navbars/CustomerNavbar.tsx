@@ -1,3 +1,4 @@
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
   AppBar,
   Toolbar,
@@ -11,13 +12,11 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { alpha, useTheme } from "@mui/material/styles";
+import { useState } from "react";
+import { Link, useNavigate , useLocation } from "react-router-dom";
 import icon2 from "../../assets/icons/icon2.png";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import CartButton from "../buttons/CartButton";
 
 

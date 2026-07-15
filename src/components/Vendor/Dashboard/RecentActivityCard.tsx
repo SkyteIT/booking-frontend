@@ -1,3 +1,4 @@
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import {
   Box,
   Card,
@@ -7,7 +8,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import { alpha } from "@mui/material/styles";
 import type { ActivityItem } from "./types";
 

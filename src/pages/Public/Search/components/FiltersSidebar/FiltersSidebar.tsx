@@ -1,8 +1,8 @@
 // Parent sidebar component: composes all filter sections
 // and passes down current filter values + action handlers.
 import { Paper } from "@mui/material";
-import FiltersHeader from "./FiltersHeader";
 import CategoryFilterSection from "./CategoryFilterSection";
+import FiltersHeader from "./FiltersHeader";
 import PriceRangeFilterSection from "./PriceRangeFilterSection";
 import RatingFilterSection from "./RatingFilterSection";
 import type { FiltersSidebarProps } from "./types";

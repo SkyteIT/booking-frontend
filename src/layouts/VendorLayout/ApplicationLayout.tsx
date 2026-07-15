@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
 import { Box, Container } from "@mui/material";
-import MainNavbar from "../../components/navbars/CustomerNavbar";
+import type { ReactNode } from "react";
 import MainFooter from "../../components/footer/MainFooter";
+import MainNavbar from "../../components/navbars/CustomerNavbar";
 import StepperBar from "../../components/navbars/StepperBar";
 
 interface ApplicationLayoutProps {

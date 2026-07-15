@@ -1,12 +1,12 @@
 // ViewProduct page — reads :id from the URL, finds the matching
 // listing from mock data, then composes the three sub-components.
-import { useParams, useNavigate } from "react-router-dom";
-import { Box, Container, Button, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { Box, Container, Button, Typography } from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
 import { MOCK_LISTINGS } from "../Search/data/mockListings";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
-import ProductDetails from "./components/ProductDetails/ProductDetails";
 import PriceCard from "./components/PriceCard/PriceCard";
+import ProductDetails from "./components/ProductDetails/ProductDetails";
 
 const ViewProduct = () => {
   const { id } = useParams<{ id: string }>();

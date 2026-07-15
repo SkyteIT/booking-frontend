@@ -1,9 +1,9 @@
 // Screen component: wires hook data/actions into presentational components.
 // It coordinates layout only and avoids business logic.
 import { Box, Container, Grid } from "@mui/material";
-import SearchToolbar from "../components/SearchToolbar";
 import FiltersSidebar from "../components/FiltersSidebar";
 import ResultsGrid from "../components/ResultsGrid";
+import SearchToolbar from "../components/SearchToolbar";
 import { useSearchResults } from "../hooks/useSearchResults";
 
 const SearchResultsScreen = () => {

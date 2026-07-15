@@ -1,4 +1,12 @@
-import { NavLink, useLocation } from "react-router-dom";
+
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import SettingsIcon from "@mui/icons-material/Settings";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import {
   Box,
   useTheme,
@@ -7,15 +15,7 @@ import {
   BottomNavigationAction,
   Paper,
 } from "@mui/material";
-
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import Inventory2Icon from "@mui/icons-material/Inventory2";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import SettingsIcon from "@mui/icons-material/Settings";
-import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import { NavLink, useLocation } from "react-router-dom";
 
 const menuItems = [
   { path: "/vendor/dashboard", label: "Dashboard", icon: DashboardIcon },

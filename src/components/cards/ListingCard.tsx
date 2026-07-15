@@ -1,6 +1,6 @@
 // src/components/cards/ListingCard.tsx
 // Added useNavigate — clicking a card routes to /listing/:id
-import { useNavigate } from "react-router-dom";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import {
   Box,
   Card,
@@ -12,7 +12,7 @@ import {
   Rating,
   Button,
 } from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import { useNavigate } from "react-router-dom";
 
 interface ListingCardProps {
   id?: number;

@@ -1,15 +1,13 @@
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
-
-import ListingSelector from "../../../components/Vendor/Availability/ListingSelector";
-import AvailabilityToolbar from "../../../components/Vendor/Availability/AvailabilityToolbar";
-import AvailabilityLegend from "../../../components/Vendor/Availability/Availabilitystatus";
-import AvailabilityMonthGrid from "../../../components/Vendor/Availability/AvailabilityMonthGrid";
-import Instruction from "../../../components/Vendor/Availability/Instruction";
+import BookingDetailDialog from "../../../components/common/BookingDetailDialog";
 import ConfirmDialog from "../../../components/common/ConfirmDialog";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
-import BookingDetailDialog from "../../../components/common/BookingDetailDialog";
+import AvailabilityMonthGrid from "../../../components/Vendor/Availability/AvailabilityMonthGrid";
+import AvailabilityLegend from "../../../components/Vendor/Availability/Availabilitystatus";
+import AvailabilityToolbar from "../../../components/Vendor/Availability/AvailabilityToolbar";
 import BookingsByDateDialog from "../../../components/Vendor/Availability/BookingsByDateDialog";
-
+import Instruction from "../../../components/Vendor/Availability/Instruction";
+import ListingSelector from "../../../components/Vendor/Availability/ListingSelector";
 import { useVendorAvailability } from "./useVendorAvailability";
 
 export default function Availability() {

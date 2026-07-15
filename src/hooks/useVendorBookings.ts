@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getBookings } from "../services/Bookings/booking";
 import type { VendorBookingDto } from "../components/Bookings/BookingTypes";
+import { getBookings } from "../services/Bookings/booking";
 
 type UseVendorBookingsParams = {
   initialPageSize?: number;

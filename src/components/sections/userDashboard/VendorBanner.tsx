@@ -1,6 +1,6 @@
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import { useAuth } from "../../../context/AuthContext";
 
 const VendorBanner = () => {

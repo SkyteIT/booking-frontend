@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ActivityItem } from "../../../components/Vendor/Dashboard/types";
-import { getDashboard } from "../../../services/Bookings/booking";
 import { useVendorBookings } from "../../../hooks/useVendorBookings";
+import { getDashboard } from "../../../services/Bookings/booking";
 import { getBookingStats } from "../../../services/Vendor/dashboard";
 import { buildActivityItems, calculateRevenuemetrics } from "./vendorDashboard";
 

@@ -21,18 +21,18 @@ import {
   uploadVendorProfileImage,
 } from "../../../services/Vendor/settings";
 import {
-  defaultLocalizationForm,
-  defaultSecurityForm,
-  resolveAssetUrl,
-  type SnackbarState,
-} from "./vendorSettings";
-import {
   profileSettingsSchema,
   payoutSettingsSchema,
   securitySettingsSchema,
   localizationSettingsSchema,
 } from "../../../utils/validationSchemas";
 import { zodErrorToFieldErrors } from "../../../utils/zodUtils";
+import {
+  defaultLocalizationForm,
+  defaultSecurityForm,
+  resolveAssetUrl,
+  type SnackbarState,
+} from "./vendorSettings";
 
 export function useVendorSettings() {
   const [activeSection, setActiveSection] = useState<SettingSection>("profile");

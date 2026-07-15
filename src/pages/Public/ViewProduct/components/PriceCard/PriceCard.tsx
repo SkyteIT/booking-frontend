@@ -1,6 +1,6 @@
 // Sticky booking card: price, date inputs, guest picker,
 // what's included checklist, and Book Now CTA.
-import { useState } from "react";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import {
   Box,
   Typography,
@@ -12,7 +12,7 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { useState } from "react";
 import type { Listing } from "../../../Search/utils/types";
 
 const INCLUDED = [

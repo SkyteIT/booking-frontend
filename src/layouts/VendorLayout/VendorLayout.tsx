@@ -1,10 +1,10 @@
-import { Outlet } from "react-router-dom";
 import { Box, Container } from "@mui/material";
-import VendorSidebar from "../../components/Vendor/VendorSidebar";
+import { Outlet } from "react-router-dom";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
 import VendorNavbar from "../../components/navbars/VendorNavbar";
+import VendorSidebar from "../../components/Vendor/VendorSidebar";
 import { useAuth } from "../../context/AuthContext";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function VendorLayout() {
   const { loading } = useAuth();

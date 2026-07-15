@@ -1,10 +1,10 @@
 // src/layouts/MainLayout/MainLayout.tsx
 import { Box } from "@mui/material";
-import CustomerNavbar from "../../components/navbars/CustomerNavbar";
-import MainFooter from "../../components/footer/MainFooter";
 import { Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import MainFooter from "../../components/footer/MainFooter";
+import CustomerNavbar from "../../components/navbars/CustomerNavbar";
+import { useAuth } from "../../context/AuthContext";
 
 const MainLayout = () => {
   const { loading } = useAuth();

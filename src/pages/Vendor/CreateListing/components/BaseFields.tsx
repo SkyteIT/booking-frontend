@@ -1,9 +1,9 @@
 // src/pages/Vendor/CreateListing/components/BaseFields.tsx
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import InfoIcon from "@mui/icons-material/Info";
 import { Box, TextField, Select, MenuItem, FormControl, InputLabel, Typography } from "@mui/material";
 import type { UseFormRegister, Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import InfoIcon from "@mui/icons-material/Info";
 import type { ListingFormData } from "../../../../utils/types";
 
 interface BaseFieldsProps {

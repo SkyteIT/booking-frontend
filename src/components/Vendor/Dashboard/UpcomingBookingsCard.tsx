@@ -1,4 +1,3 @@
-import { alpha } from "@mui/material/styles";
 import {
   Box,
   Card,
@@ -7,8 +6,8 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router-dom";
-
 import BookingsTable from "../../Bookings/BookingTables";
 import type { VendorBookingDto } from "../../Bookings/BookingTypes";
 

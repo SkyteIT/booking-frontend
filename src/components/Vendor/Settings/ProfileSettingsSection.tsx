@@ -1,8 +1,8 @@
-import type { ChangeEvent } from "react";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { Avatar, Box, Button, Stack, TextField, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import type { ChangeEvent } from "react";
 import type { ProfileForm } from "./types";
 
 type ProfileSettingsSectionProps = {

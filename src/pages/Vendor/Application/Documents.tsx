@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { Container, Typography, Box, Button } from "@mui/material";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
-import DescriptionIcon from "@mui/icons-material/Description";
 import "./application.css";
 
 const Documents = (): JSX.Element => {

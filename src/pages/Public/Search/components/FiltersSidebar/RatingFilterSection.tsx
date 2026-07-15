@@ -1,7 +1,7 @@
 // Rating section: allows selecting a minimum rating threshold
 // or resetting back to "All Ratings".
-import { Button, Stack, Typography } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
+import { Button, Stack, Typography } from "@mui/material";
 import {
   filterTitleSx,
   getOptionButtonStateSx,

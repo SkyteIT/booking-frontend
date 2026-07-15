@@ -7,8 +7,8 @@ import {
   Box,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import type { SettingSection } from "./types";
 import { settingTabs } from "./settingsConfig";
+import type { SettingSection } from "./types";
 
 type SettingsSideNavProps = {
   activeSection: SettingSection;

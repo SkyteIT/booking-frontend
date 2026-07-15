@@ -1,5 +1,10 @@
 // Shows title, location, rating, category badge, about section,
 // amenities grid and guest reviews — all driven by the Listing prop.
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PoolIcon from "@mui/icons-material/Pool";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
+import WifiIcon from "@mui/icons-material/Wifi";
 import {
   Box,
   Typography,
@@ -8,11 +13,6 @@ import {
   Divider,
   Avatar,
 } from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import WifiIcon from "@mui/icons-material/Wifi";
-import PoolIcon from "@mui/icons-material/Pool";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
-import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import type { Listing } from "../../../Search/utils/types";
 
 // Static amenities — swap out per category in a real app

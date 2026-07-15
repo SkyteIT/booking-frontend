@@ -1,5 +1,7 @@
 // src/pages/Vendor/CreateListing/CreateListing.tsx
-import { useForm } from "react-hook-form";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SaveIcon from "@mui/icons-material/Save";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Box,
   Container,
@@ -9,17 +11,15 @@ import {
   CardContent,
   Link as MuiLink,
 } from "@mui/material";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SaveIcon from "@mui/icons-material/Save";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import type { ListingFormData, ListingCategory } from "../../../utils/types";
+import ActivityFields from "./components/ActivityFields";
 import BaseFields from "./components/BaseFields";
+import CarRentalFields from "./components/CarRentalFields";
+import EventFields from "./components/EventFields";
 import HotelFields from "./components/HotelFields";
 import RestaurantFields from "./components/RestaurantFields";
-import ActivityFields from "./components/ActivityFields";
-import EventFields from "./components/EventFields";
-import CarRentalFields from "./components/CarRentalFields";
-import type { ListingFormData, ListingCategory } from "../../../utils/types";
 
 const CreateListing = () => {
   const {

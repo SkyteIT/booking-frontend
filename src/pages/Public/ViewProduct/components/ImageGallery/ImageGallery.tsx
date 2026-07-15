@@ -1,7 +1,7 @@
 // Displays the hero image with thumbnail strip below.
 // Active thumbnail is highlighted; clicking switches the main image.
-import { useState } from "react";
 import { Box } from "@mui/material";
+import { useState } from "react";
 import type { Listing } from "../../../Search/utils/types";
 
 // Extra side images derived from the listing's single image using Unsplash params.

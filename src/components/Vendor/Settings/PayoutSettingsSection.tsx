@@ -1,5 +1,5 @@
-import { Alert, Box, TextField, Typography } from "@mui/material";
 import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
+import { Alert, Box, TextField, Typography } from "@mui/material";
 import type { PayoutForm } from "./types";
 
 type PayoutSettingsSectionProps = {
