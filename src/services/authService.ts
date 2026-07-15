@@ -40,7 +40,7 @@ export const register = async (payload: {
 };
 
 export const loginWithGoogle = async (credential: string) => {
-  const res = await api.post<AuthResponse>("/api/auth/google", { token: credential });
+  const res = await api.post<AuthResponse>("/api/auth/google-login", { idToken: credential });
 
   saveAuthToken(res.data);
 
