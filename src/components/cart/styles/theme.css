@@ -120,17 +120,26 @@
 }
 
 @layer base {
+  /* MATERIAL UI MIGRATION: Commented out Tailwind @apply directives */
+  
   * {
-    @apply border-border outline-ring/50;
+    /* @apply border-border outline-ring/50; */
+    /* Material UI replacement: border color and outline handled by MUI theme.palette */
+    border-color: var(--border);
+    outline-color: var(--ring);
   }
 
   body {
-    @apply bg-background text-foreground;
+    /* @apply bg-background text-foreground; */
+    /* Material UI replacement: CssBaseline + theme provider handles this */
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  * Material UI Theme: Use theme.ts and sx prop instead of Tailwind utility classes
+  * COMMENTED @apply directives below - Material UI replaces Tailwind @apply pattern
   */
 
   html {

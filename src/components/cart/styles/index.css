@@ -1,3 +1,7 @@
+/* Material UI Conversion - Commented Tailwind imports */
 @import './fonts.css';
-@import './tailwind.css';
+/* @import './tailwind.css'; */  /* COMMENTED: Tailwind removed - using Material UI instead */
 @import './theme.css';
+
+/* Material UI styles will be applied via MUI theme and sx props */
+/* No additional global CSS needed for Material UI base styling */
