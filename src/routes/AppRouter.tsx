@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";

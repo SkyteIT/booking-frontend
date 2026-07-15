@@ -6,7 +6,7 @@ import { Snackbar, Alert } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext"; // ✅ IMPORTANT
+import { useAuth } from "../../../context/useAuth"; // ✅ IMPORTANT
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { login as loginRequest } from "../../../services/authService";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";

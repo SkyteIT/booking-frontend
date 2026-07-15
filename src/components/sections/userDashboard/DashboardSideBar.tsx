@@ -9,7 +9,7 @@ import StarIcon from "@mui/icons-material/Star";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import { Card, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/useAuth";
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();

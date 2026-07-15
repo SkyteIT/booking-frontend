@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import "./auth.css";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 type AuthLayoutProps = {
   children: ReactNode;

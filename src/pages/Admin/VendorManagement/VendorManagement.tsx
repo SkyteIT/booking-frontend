@@ -20,8 +20,6 @@ export default function VendorManagement() {
     setSortOptions,
     page,
     setPage,
-    pageSize,
-    setPageSize,
     pageCount,
     selectedStatusLabel,
     selectedVendor,

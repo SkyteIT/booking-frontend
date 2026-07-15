@@ -4,7 +4,7 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
 import VendorNavbar from "../../components/navbars/VendorNavbar";
 import VendorSidebar from "../../components/Vendor/VendorSidebar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function VendorLayout() {
   const { loading } = useAuth();

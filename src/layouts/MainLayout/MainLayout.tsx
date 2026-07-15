@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
 import CustomerNavbar from "../../components/navbars/CustomerNavbar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 const MainLayout = () => {
   const { loading } = useAuth();

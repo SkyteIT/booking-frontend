@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import icon2 from "../../assets/icons/icon2.png";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function VendorNavbar() {
   const navigate = useNavigate();

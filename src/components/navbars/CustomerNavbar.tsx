@@ -16,7 +16,7 @@ import { alpha, useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import { Link, useNavigate , useLocation } from "react-router-dom";
 import icon2 from "../../assets/icons/icon2.png";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import CartButton from "../buttons/CartButton";
 
 

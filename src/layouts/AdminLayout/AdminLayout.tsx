@@ -4,7 +4,7 @@ import AdminSidebar from "../../components/Admin/AdminSidebar";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
 import AdminNavbar from "../../components/navbars/AdminNavbar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function AdminLayout() {
   const { loading } = useAuth();

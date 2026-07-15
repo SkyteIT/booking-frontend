@@ -1,34 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "../services/authService";
 import { refreshAccessToken } from "../services/tokenRefresh";
 import tokenStorage from "../services/tokenStorage";
 import { getJwtExpiryMs, parseJwt } from "../utils/jwt";
-
-export type AuthUser = {
-  id?: string;
-  userId?: string;
-  email?: string;
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  role?: string;
-  profileImageUrl?: string;
-  [key: string]: unknown;
-};
-
-type AuthContextValue = {
-  user: AuthUser | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  isVendor: boolean;
-  vendorApplicationSubmitted: boolean;
-  refreshUser: () => Promise<AuthUser | null>;
-  markVendorApplicationSubmitted: () => void;
-  logout: () => void;
-};
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+import { AuthContext } from "./AuthContextObject";
+import type { AuthContextValue, AuthUser } from "./AuthContextObject";
 
 const VENDOR_APPLICATION_STATUS_PREFIX = "vendorApplicationSubmitted";
 
@@ -141,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-}, []);
+}, [scheduleRefreshFromToken]);
 
   useEffect(() => {
     void refreshUser();
@@ -182,14 +159,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-
-  return context;
 }
