@@ -2,11 +2,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Snackbar, Alert } from "@mui/material";
+import { GoogleLogin } from "@react-oauth/google";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/useAuth";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import { register as registerRequest } from "../../../services/authService";
+import { register as registerRequest, loginWithGoogle } from "../../../services/authService";
 import { registerSchema, type RegisterFormData } from "../../../utils/validationSchemas";
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
@@ -53,6 +55,7 @@ function splitFullName(fullName: string) {
 
 function Register(): JSX.Element {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
     window.history.replaceState(null, "", "/register");
@@ -101,6 +104,34 @@ function Register(): JSX.Element {
       }, 900);
     } catch (error) {
       setErrorSnackbar(getAuthErrorMessage(error, "Registration failed. Please try again."));
+    }
+  };
+
+  const handleGoogleSignUp = async (credential?: string) => {
+    if (!credential) {
+      setErrorSnackbar("Google sign-up failed. Please try again.");
+      return;
+    }
+
+    try {
+      const authResponse = await loginWithGoogle(credential);
+      const currentUser = await refreshUser();
+
+      setSuccessSnackbar(true);
+
+      setTimeout(() => {
+        const role = currentUser?.role ?? authResponse.role;
+        navigate(
+          String(role ?? "").toLowerCase() === "vendor"
+            ? "/vendor/dashboard"
+            : "/customer/dashboard",
+          { replace: true }
+        );
+      }, 900);
+    } catch (error) {
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Google sign-up failed. Please try again.")
+      );
     }
   };
 
@@ -180,6 +211,17 @@ function Register(): JSX.Element {
             {isSubmitting ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
+
+        <div className="divider">
+          <span>OR</span>
+        </div>
+
+        <GoogleLogin
+          onSuccess={(credentialResponse) =>
+            handleGoogleSignUp(credentialResponse.credential)
+          }
+          onError={() => setErrorSnackbar("Google sign-up failed. Please try again.")}
+        />
 
         <p className="bottom-text">
           Already have an account?{" "}

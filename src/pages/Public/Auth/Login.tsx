@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import GoogleIcon from "@mui/icons-material/Google";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Snackbar, Alert } from "@mui/material";
+import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth"; // ✅ IMPORTANT
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import { login as loginRequest } from "../../../services/authService";
+import { login as loginRequest, loginWithGoogle } from "../../../services/authService";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
@@ -71,6 +71,14 @@ function Login(): JSX.Element {
     mode: "onBlur",
   });
 
+  const redirectAfterLogin = (role?: string) => {
+    const roleRedirect = getRoleRedirect(role);
+    const redirectTarget =
+      isSafeRedirect(nextPath) && nextPath !== "/" ? nextPath : roleRedirect;
+
+    navigate(redirectTarget, { replace: true });
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       const authResponse = await loginRequest(data.email, data.password);
@@ -87,17 +95,33 @@ function Login(): JSX.Element {
             ? String((authResponse.user as { role?: string }).role ?? "")
             : "");
 
-        const roleRedirect = getRoleRedirect(role);
-        const redirectTarget =
-          isSafeRedirect(nextPath) && nextPath !== "/"
-            ? nextPath
-            : roleRedirect;
-
-        navigate(redirectTarget, { replace: true });
+        redirectAfterLogin(role);
       }, 800);
     } catch (error) {
       setErrorSnackbar(
         getAuthErrorMessage(error, "Login failed. Please try again.")
+      );
+    }
+  };
+
+  const handleGoogleLogin = async (credential?: string) => {
+    if (!credential) {
+      setErrorSnackbar("Google login failed. Please try again.");
+      return;
+    }
+
+    try {
+      const authResponse = await loginWithGoogle(credential);
+      const currentUser = await refreshUser();
+
+      setSuccessSnackbar(true);
+
+      setTimeout(() => {
+        redirectAfterLogin(currentUser?.role ?? authResponse.role);
+      }, 800);
+    } catch (error) {
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Google login failed. Please try again.")
       );
     }
   };
@@ -162,10 +186,12 @@ function Login(): JSX.Element {
           <span>OR</span>
         </div>
 
-        <button className="google-btn">
-          <GoogleIcon sx={{ fontSize: 20 }} />
-          Continue with Google
-        </button>
+        <GoogleLogin
+          onSuccess={(credentialResponse) =>
+            handleGoogleLogin(credentialResponse.credential)
+          }
+          onError={() => setErrorSnackbar("Google login failed. Please try again.")}
+        />
 
         <p className="bottom-text">
           Don’t have an account?{" "}
