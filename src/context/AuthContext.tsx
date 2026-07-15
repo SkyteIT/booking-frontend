@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "../services/authService";
+import { refreshAccessToken } from "../services/tokenRefresh";
 import tokenStorage from "../services/tokenStorage";
+import { getJwtExpiryMs, parseJwt } from "../utils/jwt";
 
 export type AuthUser = {
   id?: string;
@@ -34,19 +36,10 @@ function getVendorApplicationStorageKey(user: AuthUser | null) {
   const identifier = String(user?.userId ?? user?.id ?? user?.email ?? "guest").toLowerCase();
   return `${VENDOR_APPLICATION_STATUS_PREFIX}:${identifier}`;
 }
-function parseJwt(token: string) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-}
-
 // Refresh scheduling: use httpOnly refresh cookie via /api/auth/refresh-token
 function msUntilRefresh(token: string | null, refreshBeforeMs = 5 * 60 * 1000) {
   if (!token) return null;
-  const decoded = parseJwt(token);
-  const exp = decoded?.exp ? Number(decoded.exp) * 1000 : null;
+  const exp = getJwtExpiryMs(token);
   if (!exp) return null;
 
   const now = Date.now();
@@ -72,32 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (ms === null) return;
 
-    // schedule refresh
+    // schedule refresh; routed through the shared refreshAccessToken() so
+    // this proactive timer and the axios 401 interceptor never race two
+    // concurrent refresh calls against a token-rotating backend
     refreshTimerRef.current = window.setTimeout(async () => {
-      try {
-        // call refresh endpoint using cookie (backend must set httpOnly refresh cookie on login)
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh-token`, {
-          method: "POST",
-          credentials: "include",
-        });
+      const newToken = await refreshAccessToken();
 
-        if (!res.ok) throw new Error("refresh failed");
-
-        const data = await res.json();
-        const newToken = data?.token ?? data?.accessToken;
-        if (newToken) {
-          // update storage and reschedule
-          tokenStorage.setToken(newToken);
-          scheduleRefreshFromToken();
-        } else {
-          throw new Error("no token in refresh response");
-        }
-      } catch {
-        tokenStorage.removeToken();
+      if (newToken) {
+        scheduleRefreshFromToken();
+      } else {
         setUser(null);
-        try {
-          window.location.href = "/login";
-        } catch (_) {}
+        window.location.href = "/login";
       }
     }, ms);
   }, []);
@@ -135,10 +113,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Decode JWT to get role
     const decoded = parseJwt(token);
 
-    const role =
+    const role = String(
       decoded?.[
         "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-      ] ?? decoded?.role;
+      ] ??
+        decoded?.role ??
+        ""
+    );
 
     // Merge role into user
     setUser({

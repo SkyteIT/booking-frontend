@@ -1,4 +1,5 @@
 import axios from "axios";
+import { refreshAccessToken } from "./tokenRefresh";
 import tokenStorage from "./tokenStorage";
 
 const api = axios.create({
@@ -33,27 +34,17 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      try {
-        // Call refresh endpoint using cookie (withCredentials) so backend can read httpOnly refresh token
-        const refreshUrl = `${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh-token`;
-        const refreshRes = await axios.post(refreshUrl, {}, { withCredentials: true });
+      const newToken = await refreshAccessToken();
 
-        const newToken = refreshRes?.data?.token ?? refreshRes?.data?.accessToken;
-        if (newToken) {
-          tokenStorage.setToken(newToken);
-          // update header and retry original request
-          originalRequest.headers = originalRequest.headers ?? {};
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        // failed to refresh — clear tokens and let upstream handle redirect/login
-        tokenStorage.removeToken();
-        // Optional: reload to login route
-        try {
-          window.location.href = "/login";
-        } catch (_) {}
+      if (newToken) {
+        // update header and retry original request
+        originalRequest.headers = originalRequest.headers ?? {};
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
       }
+
+      // refresh failed — tokens already cleared by refreshAccessToken()
+      window.location.href = "/login";
     }
 
     return Promise.reject(error);
