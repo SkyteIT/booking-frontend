@@ -129,10 +129,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   try {
     setLoading(true);
 
-    // 🔹 Get user from API
+    // Get user from API
     const currentUser = (await getCurrentUser()) as AuthUser;
 
-    // 🔥 Decode JWT to get role
+    // Decode JWT to get role
     const decoded = parseJwt(token);
 
     const role =
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
       ] ?? decoded?.role;
 
-    // 🔥 Merge role into user
+    // Merge role into user
     setUser({
       ...currentUser,
       role: role,

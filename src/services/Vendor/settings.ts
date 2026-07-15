@@ -1,9 +1,7 @@
 import api from "../api";
 import type { AxiosError } from "axios";
 
-/* ==============================
-   TYPES
-============================== */
+//types
 
 export type VendorProfileDto = {
   firstName?: string;
@@ -59,9 +57,7 @@ export type ChangePasswordDto = {
   confirmPassword: string;
 };
 
-/* ==============================
-   PROFILE
-============================== */
+//profile
 
 export const getVendorProfile = async (): Promise<VendorProfileDto> => {
   const res = await api.get<VendorProfileDto>("/api/vendor/profile");

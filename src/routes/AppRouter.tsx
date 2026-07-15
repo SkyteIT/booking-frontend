@@ -38,7 +38,7 @@ function getRoleHomePath(role: string) {
   const normalizedRole = role.toLowerCase();
 
   if (normalizedRole === "admin") return "/admin/dashboard";
-  if (normalizedRole === "vendor") return "/";
+  if (normalizedRole === "vendor") return "/vendor/dashboard";
   if (normalizedRole === "customer") return "/";
 
   return "/";

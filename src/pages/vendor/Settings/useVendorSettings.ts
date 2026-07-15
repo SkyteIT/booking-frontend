@@ -32,6 +32,7 @@ import {
   securitySettingsSchema,
   localizationSettingsSchema,
 } from "../../../utils/validationSchemas";
+import { zodErrorToFieldErrors } from "../../../utils/zodUtils";
 
 export function useVendorSettings() {
   const [activeSection, setActiveSection] = useState<SettingSection>("profile");
@@ -136,12 +137,7 @@ export function useVendorSettings() {
           // Validate using zod schema
           const validationResult = profileSettingsSchema.safeParse(profileForm);
           if (!validationResult.success) {
-            const errors: Record<string, string> = {};
-            validationResult.error.issues.forEach((issue) => {
-              const fieldName = issue.path[0] as string;
-              errors[fieldName] = issue.message;
-            });
-            setValidationErrors(errors);
+            setValidationErrors(zodErrorToFieldErrors(validationResult.error));
             setSnackbar({
               open: true,
               message: "Please fix the validation errors",
@@ -169,12 +165,7 @@ export function useVendorSettings() {
           // Validate using zod schema
           const validationResult = payoutSettingsSchema.safeParse(payoutForm);
           if (!validationResult.success) {
-            const errors: Record<string, string> = {};
-            validationResult.error.issues.forEach((issue) => {
-              const fieldName = issue.path[0] as string;
-              errors[fieldName] = issue.message;
-            });
-            setValidationErrors(errors);
+            setValidationErrors(zodErrorToFieldErrors(validationResult.error));
             setSnackbar({
               open: true,
               message: "Please fix the validation errors",
@@ -206,12 +197,7 @@ export function useVendorSettings() {
           // Validate using zod schema
           const validationResult = securitySettingsSchema.safeParse(securityForm);
           if (!validationResult.success) {
-            const errors: Record<string, string> = {};
-            validationResult.error.issues.forEach((issue) => {
-              const fieldName = issue.path[0] as string;
-              errors[fieldName] = issue.message;
-            });
-            setValidationErrors(errors);
+            setValidationErrors(zodErrorToFieldErrors(validationResult.error));
             setSnackbar({
               open: true,
               message: "Please fix the validation errors",
@@ -234,12 +220,7 @@ export function useVendorSettings() {
           // Validate using zod schema
           const validationResult = localizationSettingsSchema.safeParse(localizationForm);
           if (!validationResult.success) {
-            const errors: Record<string, string> = {};
-            validationResult.error.issues.forEach((issue) => {
-              const fieldName = issue.path[0] as string;
-              errors[fieldName] = issue.message;
-            });
-            setValidationErrors(errors);
+            setValidationErrors(zodErrorToFieldErrors(validationResult.error));
             setSnackbar({
               open: true,
               message: "Please fix the validation errors",

@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-// 🔹 Email validation
+//  Email validation
 export const emailSchema = z
   .string()
   .min(1, "Email is required")
   .email("Enter a valid email address");
 
-// 🔹 Password validation (min 8, uppercase, lowercase, number)
+// Password validation (min 8, uppercase, lowercase, number)
 export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
@@ -14,7 +14,7 @@ export const passwordSchema = z
   .regex(/[a-z]/, "Password must contain a lowercase letter")
   .regex(/\d/, "Password must contain a number");
 
-// 🔹 Login Schema
+//  Login Schema
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, "Password is required"),
@@ -22,7 +22,7 @@ export const loginSchema = z.object({
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 
-// 🔹 Register Schema
+// Register Schema
 export const registerSchema = z.object({
   name: z
     .string()
@@ -39,14 +39,14 @@ export const registerSchema = z.object({
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
-// 🔹 Forgot Password Schema
+//  Forgot Password Schema
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-// 🔹 Contact Info Schema (optional for vendor forms)
+// Contact Info Schema (optional for vendor forms)
 export const contactInfoSchema = z.object({
   phone: z
     .string()
@@ -72,7 +72,7 @@ export const profileSettingsSchema = z.object({
 
 export type ProfileSettingsFormData = z.infer<typeof profileSettingsSchema>;
 
-// 🔹 Vendor Payout Settings Schema
+//  Vendor Payout Settings Schema
 export const payoutSettingsSchema = z.object({
   bankName: z.string().min(1, "Bank name is required"),
   accountHolderName: z.string().min(1, "Account holder name is required").min(3, "Name must be at least 3 characters"),
@@ -82,7 +82,7 @@ export const payoutSettingsSchema = z.object({
 
 export type PayoutSettingsFormData = z.infer<typeof payoutSettingsSchema>;
 
-// 🔹 Vendor Security Settings Schema
+//  Vendor Security Settings Schema
 export const securitySettingsSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: passwordSchema,
@@ -97,7 +97,7 @@ export const securitySettingsSchema = z.object({
 
 export type SecuritySettingsFormData = z.infer<typeof securitySettingsSchema>;
 
-// 🔹 Vendor Localization Settings Schema
+//  Vendor Localization Settings Schema
 export const localizationSettingsSchema = z.object({
   language: z.string().min(1, "Language is required"),
   timeZone: z.string().min(1, "Timezone is required"),
@@ -106,7 +106,7 @@ export const localizationSettingsSchema = z.object({
 
 export type LocalizationSettingsFormData = z.infer<typeof localizationSettingsSchema>;
 
-// 🔹 Availability Block/Unblock Schema
+//  Availability Block/Unblock Schema
 export const availabilitySchema = z.object({
   dates: z.array(z.string()).min(1, "Select at least one date"),
   reason: z.string().optional(),
@@ -114,7 +114,7 @@ export const availabilitySchema = z.object({
 
 export type AvailabilityFormData = z.infer<typeof availabilitySchema>;
 
-// 🔹 Booking Filter Schema
+//  Booking Filter Schema
 export const bookingFilterSchema = z.object({
   status: z.string().optional(),
   startDate: z.string().optional(),

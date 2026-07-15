@@ -4,18 +4,18 @@ import type {
   SecurityForm,
 } from "../../../components/vendor/settings/types";
 
-// ==============================
+
 // Types
-// ==============================
+
 export type SnackbarState = {
   open: boolean;
   message: string;
   severity: "success" | "error" | "warning" | "info";
 };
 
-// ==============================
+
 // Form Defaults
-// ==============================
+
 export const defaultSecurityForm: SecurityForm = {
   currentPassword: "",
   newPassword: "",
@@ -28,9 +28,9 @@ export const defaultLocalizationForm: LocalizationForm = {
   currency: "",
 };
 
-// ==============================
+
 // Utility Functions
-// ==============================
+
 export function resolveAssetUrl(value?: string | null): string {
   if (!value) return "";
   if (/^https?:\/\//i.test(value)) return value;
@@ -41,9 +41,8 @@ export function resolveAssetUrl(value?: string | null): string {
   return `${baseUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
 }
 
-// ==============================
 // Validators
-// ==============================
+
 export function validateProfileForm(form: ProfileForm): string {
   const firstName = form.firstName.trim();
   const lastName = form.lastName.trim();
@@ -58,3 +57,5 @@ export function validateProfileForm(form: ProfileForm): string {
 
   return "";
 }
+// Legacy validators were removed in favor of Zod schemas in
+// `src/utils/validationSchemas.ts`. Keep defaults and small helpers here.

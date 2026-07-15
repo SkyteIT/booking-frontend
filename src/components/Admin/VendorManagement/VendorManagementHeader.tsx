@@ -7,7 +7,7 @@ type Props = {
 
 export default function VendorManagementHeader({
   title = "Vendor Management",
-  subtitle = "Review vendor applications with server-side search, status filtering, sorting, and paging.",
+  subtitle = "Review vendor applications ",
 }: Props) {
   return (
     <Box>

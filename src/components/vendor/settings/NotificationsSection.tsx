@@ -29,6 +29,7 @@ export default function NotificationsSection() {
                     border: "1px solid",
                     borderColor: "divider",
                     bgcolor: "background.paper",
+              
                   }}
                 >
                   <Typography>{item}</Typography>
