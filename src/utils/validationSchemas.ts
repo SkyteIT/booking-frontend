@@ -51,10 +51,10 @@ export const contactInfoSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone is required")
-    .regex(/^[\d\s\-\+\(\)]+$/, "Enter a valid phone number"),
+    .regex(/^[\d\s+()-]+$/, "Enter a valid phone number"),
   address: z.string().min(1, "Address is required").min(5, "Address must be at least 5 characters"),
   city: z.string().min(1, "City is required"),
-  zipCode: z.string().min(1, "Zip code is required").regex(/^[\d\-]+$/, "Enter a valid zip code"),
+  zipCode: z.string().min(1, "Zip code is required").regex(/^[\d-]+$/, "Enter a valid zip code"),
   country: z.string().min(1, "Country is required"),
 });
 
@@ -65,7 +65,7 @@ export const profileSettingsSchema = z.object({
   firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
   email: emailSchema,
-  phone: z.string().min(1, "Phone is required").regex(/^[\d\s\-\+\(\)]+$/, "Enter a valid phone number"),
+  phone: z.string().min(1, "Phone is required").regex(/^[\d\s+()-]+$/, "Enter a valid phone number"),
   businessName: z.string().min(1, "Business name is required").min(3, "Business name must be at least 3 characters"),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional().or(z.literal("")),
 });

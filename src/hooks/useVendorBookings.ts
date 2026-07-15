@@ -61,12 +61,12 @@ export function useVendorBookings({
           setData(result.items ?? []);
           setTotalCount(result.totalCount ?? 0);
         }
-      } catch (err: any) {
+      } catch (err) {
         if (isCancelled?.()) return;
 
         console.error("FETCH ERROR:", err);
 
-        setError(err?.message ?? "Failed to load bookings");
+        setError(err instanceof Error ? err.message : "Failed to load bookings");
         setData([]);
         setTotalCount(0);
       } finally {

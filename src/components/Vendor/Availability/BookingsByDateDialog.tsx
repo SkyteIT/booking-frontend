@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getBookings } from "../../../services/Bookings/booking";
+import type { VendorBookingDto } from "../../Bookings/BookingTypes";
 
 type Props = {
   date: string | null;
@@ -23,7 +24,7 @@ export default function BookingsByDateDialog({
   onClose,
   onSelectBooking,
 }: Props) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<VendorBookingDto[]>([]);
   const [loading, setLoading] = useState(false);
   const selectedDate = date ?? undefined;
 

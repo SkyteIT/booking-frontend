@@ -2,12 +2,12 @@
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control } from "react-hook-form";
-import type { ListingFormData } from "../../../../utils/types";
+import type { FormErrorMap, ListingFormData } from "../../../../utils/types";
 
 interface RestaurantFieldsProps {
     register: UseFormRegister<ListingFormData>;
     control: Control<ListingFormData>;
-    errors: any;
+    errors: FormErrorMap;
 }
 
 const tableTypes = ["2-Seater", "4-Seater", "6-Seater", "Private Room", "Outdoor", "Bar Seating"];
@@ -61,7 +61,7 @@ const RestaurantFields = ({ register, control, errors }: RestaurantFieldsProps) 
                     name="tableTypes"
                     control={control}
                     defaultValue={[]}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
                             {tableTypes.map((type) => (
                                 <Chip

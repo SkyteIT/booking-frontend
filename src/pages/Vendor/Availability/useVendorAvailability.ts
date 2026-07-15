@@ -1,6 +1,8 @@
+import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { getAvailability, blockDates, unblockDates } from "../../../services/Vendor/availability";
 import { getVendorListings } from "../../../services/Vendor/listing";
+import type { RawApiRecord } from "../../../utils/types";
 import {
   normalizeCalendarResponse,
   summarizeCalendar,
@@ -27,7 +29,7 @@ export function useVendorAvailability() {
   const [listings, setListings] = useState<ListingCard[]>([]);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const [monthDate, setMonthDate] = useState(new Date());
-  const [calendar, setCalendar] = useState<any[]>([]);
+  const [calendar, setCalendar] = useState<RawApiRecord[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [openDateDialog, setOpenDateDialog] = useState(false);
@@ -58,15 +60,18 @@ export function useVendorAvailability() {
   useEffect(() => {
     getVendorListings()
       .then((data) => {
-        const rows = unwrapCollection<any>(data);
+        const rows = unwrapCollection<RawApiRecord>(data);
 
         const mapped = rows
-          .map((l: any) => ({
-            id: String(l.id ?? l.listingId ?? l.listingID ?? l.listing?.id ?? ""),
-            name: String(l.title ?? l.name ?? l.listingTitle ?? "Untitled listing"),
-            bookedCount: Number(l.bookedCount ?? l.bookingCount ?? l.totalBookings ?? 0),
-            blockedCount: Number(l.blockedCount ?? l.blockCount ?? l.totalBlocked ?? 0),
-          }))
+          .map((l) => {
+            const listing = l.listing as RawApiRecord | undefined;
+            return {
+              id: String(l.id ?? l.listingId ?? l.listingID ?? listing?.id ?? ""),
+              name: String(l.title ?? l.name ?? l.listingTitle ?? "Untitled listing"),
+              bookedCount: Number(l.bookedCount ?? l.bookingCount ?? l.totalBookings ?? 0),
+              blockedCount: Number(l.blockedCount ?? l.blockCount ?? l.totalBlocked ?? 0),
+            };
+          })
           .filter((item: ListingCard) => Boolean(item.id));
 
         setListings(mapped);
@@ -134,11 +139,10 @@ export function useVendorAvailability() {
         )
       );
       setSelectedDates([]);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        "Action failed ";
+    } catch (err) {
+      const msg = isAxiosError(err)
+        ? String(err.response?.data?.message ?? err.response?.data ?? "Action failed ")
+        : "Action failed ";
 
       showMessage(msg, "error");
     } finally {
@@ -229,7 +233,7 @@ export function useVendorAvailability() {
       return;
     }
 
-    const found = calendar.find((d) => d.date.startsWith(date));
+    const found = calendar.find((d) => String(d?.date ?? "").startsWith(date));
     const bookingCount = getBookingCount(found);
 
     if (bookingCount > 0) {

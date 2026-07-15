@@ -1,26 +1,32 @@
-export function unwrapCollection<T>(data: any): T[] {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.$values)) return data.$values;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.result)) return data.result;
-  if (Array.isArray(data?.data)) return data.data;
-  if (Array.isArray(data?.calendar)) return data.calendar;
+import type { RawApiRecord } from "../../../utils/types";
+
+export function unwrapCollection<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+
+  const obj = data as RawApiRecord | null | undefined;
+  if (Array.isArray(obj?.$values)) return obj.$values as T[];
+  if (Array.isArray(obj?.items)) return obj.items as T[];
+  if (Array.isArray(obj?.result)) return obj.result as T[];
+  if (Array.isArray(obj?.data)) return obj.data as T[];
+  if (Array.isArray(obj?.calendar)) return obj.calendar as T[];
   return [];
 }
 
-export function getBookingCount(day: any): number {
+export function getBookingCount(day: unknown): number {
+  const d = day as RawApiRecord | null | undefined;
   return Number(
-    day?.bookingCount ??
-      day?.bookedCount ??
-      day?.bookingTotal ??
-      day?.totalBookings ??
-      day?.bookingsCount ??
+    d?.bookingCount ??
+      d?.bookedCount ??
+      d?.bookingTotal ??
+      d?.totalBookings ??
+      d?.bookingsCount ??
       0
   );
 }
 
-export function isBlockedDay(day: any): boolean {
-  return Boolean(day?.isBlocked || day?.status === 3 || day?.status === "Blocked");
+export function isBlockedDay(day: unknown): boolean {
+  const d = day as RawApiRecord | null | undefined;
+  return Boolean(d?.isBlocked || d?.status === 3 || d?.status === "Blocked");
 }
 
 export function isPastDay(dateOnly: string): boolean {
@@ -32,11 +38,11 @@ export function isPastDay(dateOnly: string): boolean {
   }
 }
 
-export function normalizeCalendarResponse(data: any): any[] {
-  return unwrapCollection<any>(data);
+export function normalizeCalendarResponse(data: unknown): RawApiRecord[] {
+  return unwrapCollection<RawApiRecord>(data);
 }
 
-export function summarizeCalendar(calendarDays: any[]) {
+export function summarizeCalendar(calendarDays: RawApiRecord[]) {
   const blockedDates = new Set<string>();
   let totalBookings = 0;
 

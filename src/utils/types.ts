@@ -1,5 +1,21 @@
 // src/utils/types.ts
 
+// Generic escape hatch for backend payloads whose exact shape varies by
+// endpoint (e.g. paginated envelopes that come back as {items}, {data},
+// {$values}, ...). Prefer a concrete interface wherever the shape is known;
+// reach for this only where the code is deliberately defensive about the
+// response shape.
+export type RawApiRecord = Record<string, unknown>;
+
+// react-hook-form's FieldErrors<T> doesn't distribute cleanly across a
+// discriminated union like ListingFormData — it collapses to whichever
+// union member TS resolves first, dropping the other categories' field
+// names. Category-specific field components only ever read the couple of
+// keys relevant to their own category off the shared error bag, so a loose
+// map is an honest fit here (narrower than `any`, without fighting the
+// union).
+export type FormErrorMap = Record<string, { message?: string } | undefined>;
+
 export type ListingCategory = 'Hotels' | 'Restaurants' | 'Activities' | 'Events' | 'Car Rentals';
 
 export interface BaseListingData {

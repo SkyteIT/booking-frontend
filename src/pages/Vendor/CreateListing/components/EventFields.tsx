@@ -16,12 +16,12 @@ import {
   type Control,
   useFieldArray,
 } from "react-hook-form";
-import type { ListingFormData } from "../../../../utils/types";
+import type { FormErrorMap, ListingFormData } from "../../../../utils/types";
 
 interface EventFieldsProps {
   register: UseFormRegister<ListingFormData>;
   control: Control<ListingFormData>;
-  errors: any;
+  errors: FormErrorMap;
 }
 
 const EventFields = ({ register, control, errors }: EventFieldsProps) => {
@@ -98,7 +98,7 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {fields.map((field: any, index: number) => (
+            {fields.map((field, index) => (
               <TableRow key={field.id}>
                 <TableCell>
                   <TextField

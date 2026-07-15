@@ -11,10 +11,11 @@ import {
   Box,
   Chip,
 } from "@mui/material";
+import type { VendorApplication } from "../../../services/Admin/vendor";
 
 type Props = {
   open: boolean;
-  vendor: any;
+  vendor: VendorApplication | null;
   loading: boolean;
 
   rejectMode?: boolean;

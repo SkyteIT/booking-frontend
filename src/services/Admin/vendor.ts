@@ -1,4 +1,24 @@
+import type { RawApiRecord } from "../../utils/types";
 import api from "../api";
+
+export type VendorApplication = {
+  id: string;
+  applicationId?: string;
+  vendorApplicationId?: string;
+  userName: string;
+  contactPersonName?: string;
+  contactNumber: string;
+  businessName: string;
+  businessType: string;
+  address?: string;
+  description?: string;
+  businessLicenseUrl?: string;
+  insurenceCertificateUrl?: string;
+  taxDocumentUrl?: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  status: string;
+};
 
 type GetVendorApplicationsParams = {
   status?: string;
@@ -15,15 +35,18 @@ export const getVendorApplications = async ({
   pageNumber,
   pageSize,
 }: GetVendorApplicationsParams = {}) => {
-  const res = await api.get("/api/admin/vendor-applications", {
-    params: {
-      status,
-      SortOptions: sortOptions,
-      Search: search,
-      PageNumber: pageNumber,
-      PageSize: pageSize,
-    },
-  });
+  const res = await api.get<VendorApplication[] | RawApiRecord>(
+    "/api/admin/vendor-applications",
+    {
+      params: {
+        status,
+        SortOptions: sortOptions,
+        Search: search,
+        PageNumber: pageNumber,
+        PageSize: pageSize,
+      },
+    }
+  );
 
   return res.data;
 };
@@ -35,7 +58,7 @@ export const reviewVendorApplication = async (id: string, status: string, Reason
   });
 };
 export const getVendorApplicationById = async (id: string) => {
-  const res = await api.get(`/api/admin/vendor-applications/${id}`);
+  const res = await api.get<VendorApplication>(`/api/admin/vendor-applications/${id}`);
   return res.data;
 };
 

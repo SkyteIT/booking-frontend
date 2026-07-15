@@ -1,10 +1,11 @@
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import theme from "../../theme/theme";
+import type { BookingStats } from "../Vendor/Dashboard/types";
 
 const COLORS = [theme.palette.warning.main, theme.palette.info.main, theme.palette.error.main, theme.palette.success.main];
 
-export default function BookingStatusChart({ stats }: { stats?: any }) {
+export default function BookingStatusChart({ stats }: { stats?: BookingStats | null }) {
   const safeStats = stats ?? {};
 
   const data = [

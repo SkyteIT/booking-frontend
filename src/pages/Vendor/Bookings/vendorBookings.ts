@@ -19,9 +19,7 @@ export function useFilteredBookings(
   data: VendorBookingDto[] | undefined,
   search: string
 ) {
-  const rows: VendorBookingDto[] = data ?? [];
-
   return useMemo(() => {
-    return filterBookingsBySearch(rows, search);
-  }, [rows, search]);
+    return filterBookingsBySearch(data ?? [], search);
+  }, [data, search]);
 }

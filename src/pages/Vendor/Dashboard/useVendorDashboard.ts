@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActivityItem } from "../../../components/Vendor/Dashboard/types";
+import type { ActivityItem, BookingStats, DashboardSummary } from "../../../components/Vendor/Dashboard/types";
 import { useVendorBookings } from "../../../hooks/useVendorBookings";
 import { getDashboard } from "../../../services/Bookings/booking";
 import { getBookingStats } from "../../../services/Vendor/dashboard";
@@ -10,10 +10,10 @@ export function useVendorDashboard() {
     initialPageSize: 4,
   });
 
-  const [dashboard, setDashboard] = useState<any>(null);
+  const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const [bookingStats, setBookingStats] = useState<any>(null);
+  const [bookingStats, setBookingStats] = useState<BookingStats | null>(null);
   const [loadingBookingStats, setLoadingBookingStats] = useState(false);
 
   const bookings = data || [];

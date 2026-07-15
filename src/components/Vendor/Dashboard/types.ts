@@ -21,3 +21,26 @@ export type BookingRow = {
   status: BookingStatus;
   amount: string;
 };
+
+// Shape of GET /api/vendor/dashboard — kept loose since the "recent
+// activity" field name (and its item shape) isn't contractually fixed on
+// the backend; buildActivityItems() in vendorDashboard.ts parses it
+// defensively.
+export type DashboardSummary = {
+  activeBookings?: number;
+  totalListings?: number;
+  averageRating?: number;
+  recentActivity?: unknown;
+  recentActivities?: unknown;
+  activities?: unknown;
+};
+
+// Shape of GET /api/vendor/dashboard/counts
+export type BookingStats = {
+  pending?: number;
+  confirmed?: number;
+  cancelled?: number;
+  rejected?: number;
+  completed?: number;
+  total?: number;
+};

@@ -2,12 +2,12 @@
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control } from "react-hook-form";
-import type { ListingFormData } from "../../../../utils/types";
+import type { FormErrorMap, ListingFormData } from "../../../../utils/types";
 
 interface ActivityFieldsProps {
     register: UseFormRegister<ListingFormData>;
     control: Control<ListingFormData>;
-    errors: any;
+    errors: FormErrorMap;
 }
 
 const includedServices = ["Guide", "Equipment", "Meals", "Transportation", "Accommodation", "Insurance", "Photos/Videos", "Refreshments"];
@@ -74,7 +74,7 @@ const ActivityFields = ({ register, control, errors }: ActivityFieldsProps) => {
                     name="includedServices"
                     control={control}
                     defaultValue={[]}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
                             {includedServices.map((item) => (
                                 <Chip

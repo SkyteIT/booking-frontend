@@ -11,7 +11,7 @@ import {
   CardContent,
   Link as MuiLink,
 } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Link } from "react-router-dom";
 import type { ListingFormData, ListingCategory } from "../../../utils/types";
 import ActivityFields from "./components/ActivityFields";
@@ -25,7 +25,6 @@ const CreateListing = () => {
   const {
     register,
     control,
-    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<ListingFormData>({
@@ -39,7 +38,7 @@ const CreateListing = () => {
     },
   });
 
-  const selectedCategory = watch("category");
+  const selectedCategory = useWatch({ control, name: "category" });
 
   const onSubmit = (data: ListingFormData) => {
     console.log("Form Data:", data);

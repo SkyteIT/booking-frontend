@@ -1,4 +1,6 @@
+import type { VendorBookingDto } from "../../../components/Bookings/BookingTypes";
 import type { ActivityItem } from "../../../components/Vendor/Dashboard/types";
+import type { RawApiRecord } from "../../../utils/types";
 
 export function formatDashboardDate(value: unknown): string {
   if (!value) return "";
@@ -26,11 +28,11 @@ export function formatDashboardDate(value: unknown): string {
 }
 
 export function buildActivityItems(
-  backendActivitySource: any,
-  fallbackBookings: any[]
+  backendActivitySource: unknown,
+  fallbackBookings: VendorBookingDto[]
 ): ActivityItem[] {
   const backendActivity: ActivityItem[] = Array.isArray(backendActivitySource)
-    ? backendActivitySource.slice(0, 5).map((item: any, index: number) => ({
+    ? (backendActivitySource as RawApiRecord[]).slice(0, 5).map((item, index) => ({
         id: String(item.id ?? item.activityId ?? item.bookingId ?? index),
         title: String(
           item.title ??
@@ -51,7 +53,7 @@ export function buildActivityItems(
   return backendActivity.length > 0 ? backendActivity : fallbackActivity;
 }
 
-export function calculateRevenuemetrics(bookings: any[]) {
+export function calculateRevenuemetrics(bookings: VendorBookingDto[]) {
   const currentRevenue = bookings
     .filter((b) => b.status === "Confirmed")
     .reduce((sum, b) => sum + b.totalAmount, 0);

@@ -1,8 +1,9 @@
 import { Card, CardContent, Typography, Stack, Box } from "@mui/material";
 import StatusChip from "../Vendor/Dashboard/StatusChip";
+import type { VendorBookingDto } from "./BookingTypes";
 
 type Props = {
-  booking: any;
+  booking: VendorBookingDto;
   onClick?: () => void;
 };
 

@@ -60,6 +60,7 @@ export default function BookingDetailDialog({
         const res = await getBookingDetail(id);
         setData(res);
       } catch (err) {
+        console.error("Failed to fetch booking details:", err);
         setSnack({
           open: true,
           message: "Failed to fetch booking details.",

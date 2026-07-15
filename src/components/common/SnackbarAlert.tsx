@@ -4,8 +4,9 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import { Box, Snackbar, Alert } from "@mui/material";
 import Slide from "@mui/material/Slide";
+import type { SlideProps } from "@mui/material/Slide";
 
-function SlideTransition(props: any) {
+function SlideTransition(props: SlideProps) {
   return <Slide {...props} direction="left" />;
 }
 

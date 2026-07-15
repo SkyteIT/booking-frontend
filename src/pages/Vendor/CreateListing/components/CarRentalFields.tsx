@@ -2,12 +2,12 @@
 import { Box, TextField, Typography, Card, CardContent } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control } from "react-hook-form";
-import type { ListingFormData } from "../../../../utils/types";
+import type { FormErrorMap, ListingFormData } from "../../../../utils/types";
 
 interface CarRentalFieldsProps {
   register: UseFormRegister<ListingFormData>;
   control: Control<ListingFormData>;
-  errors: any;
+  errors: FormErrorMap;
 }
 
 const insuranceOptions = [
@@ -89,7 +89,7 @@ const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
         name="insuranceOptions"
         control={control}
         defaultValue="Basic Insurance"
-        render={({ field }: { field: any }) => (
+        render={({ field }) => (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {insuranceOptions.map((option) => (
               <Card

@@ -7,16 +7,21 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
+import type { VendorBookingDto } from "../../Bookings/BookingTypes";
 
 type Props = {
-  bookings: any[];
+  bookings: VendorBookingDto[];
+};
+
+type RevenuePoint = {
+  day: string;
+  revenue: number;
 };
 
 export default function RevenueOverviewCard({ bookings }: Props) {
   const chartData = bookings
     .filter((b) => b.status === "Confirmed")
-    .reduce((acc: any[], b) => {
+    .reduce((acc: RevenuePoint[], b) => {
       const day = new Date(b.startDateTime).toLocaleDateString("en-US", {
         weekday: "short",
       });

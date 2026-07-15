@@ -1,19 +1,12 @@
 import { Box, ButtonBase, Typography, Tooltip } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import type { RawApiRecord } from "../../../utils/types";
 import { getMonthMeta, toDateOnly } from "./utils";
 
-// Accept any backend shape safely
-type DayData = {
-  date: string;
-  status: any; 
-  bookingCount?: number;
-  bookedCount?: number;
-  bookingTotal?: number;
-  totalBookings?: number;
-  bookingsCount?: number;
-  availableCount?: number;
-  isBlocked?: boolean;
-};
+// Calendar days come straight from the backend, whose exact shape isn't
+// contractually fixed (see vendorAvailability.ts) — read every field
+// defensively.
+type DayData = RawApiRecord;
 
 type Props = {
   monthDate: Date;
@@ -40,6 +33,10 @@ function isBlockedDay(day: DayData | undefined) {
   return Boolean(day?.isBlocked || day?.status === 3 || day?.status === "Blocked");
 }
 
+function dateOf(day: DayData) {
+  return String(day.date ?? "");
+}
+
 export default function AvailabilityMonthGrid({
   monthDate,
   calendar,
@@ -50,7 +47,7 @@ export default function AvailabilityMonthGrid({
 
   // Final state used for UI
   function getState(dateOnly: string) {
-    const found = calendar.find((d) => d.date.startsWith(dateOnly));
+    const found = calendar.find((d) => dateOf(d).startsWith(dateOnly));
     const isSelected = selectedDates.includes(dateOnly);
     const bookingCount = getBookingCount(found);
 
@@ -136,7 +133,7 @@ export default function AvailabilityMonthGrid({
   }
 
   function getTooltip(dateOnly: string) {
-    const found = calendar.find((d) => d.date.startsWith(dateOnly));
+    const found = calendar.find((d) => dateOf(d).startsWith(dateOnly));
     const bookingCount = getBookingCount(found);
 
     if (!found) return "Available";
@@ -199,7 +196,7 @@ export default function AvailabilityMonthGrid({
             const dateObj = new Date(year, month, day);
             const dateOnly = toDateOnly(dateObj);
 
-            const found = calendar.find((d) => d.date.startsWith(dateOnly));
+            const found = calendar.find((d) => dateOf(d).startsWith(dateOnly));
             const bookingCount = getBookingCount(found);
             const state = getState(dateOnly);
             const styles = getCellStyles(state);

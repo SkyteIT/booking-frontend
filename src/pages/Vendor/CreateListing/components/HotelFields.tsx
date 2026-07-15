@@ -2,12 +2,12 @@
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control } from "react-hook-form";
-import type { ListingFormData } from "../../../../utils/types";
+import type { FormErrorMap, ListingFormData } from "../../../../utils/types";
 
 interface HotelFieldsProps {
     register: UseFormRegister<ListingFormData>;
     control: Control<ListingFormData>;
-    errors: any;
+    errors: FormErrorMap;
 }
 
 const roomTypes = ["Single Room", "Double Room", "Suite", "Deluxe Room"];
@@ -62,7 +62,7 @@ const HotelFields = ({ register, control, errors }: HotelFieldsProps) => {
                     name="roomTypes"
                     control={control}
                     defaultValue={[]}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
                             {roomTypes.map((type) => (
                                 <Chip
@@ -92,7 +92,7 @@ const HotelFields = ({ register, control, errors }: HotelFieldsProps) => {
                     name="amenities"
                     control={control}
                     defaultValue={[]}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
                             {amenities.map((item) => (
                                 <Chip

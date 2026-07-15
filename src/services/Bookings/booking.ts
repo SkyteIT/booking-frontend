@@ -1,4 +1,5 @@
 import type { VendorBookingDto, PageResult } from "../../components/Bookings/BookingTypes";
+import type { DashboardSummary } from "../../components/Vendor/Dashboard/types";
 import api from "../api";
 
 // GET LIST
@@ -43,7 +44,7 @@ export const updateBookingStatus = async (
   return res.data;
 };
 export const getDashboard = async () => {
-  const res = await api.get("/api/vendor/dashboard");
+  const res = await api.get<DashboardSummary>("/api/vendor/dashboard");
 
   return res.data;
 };

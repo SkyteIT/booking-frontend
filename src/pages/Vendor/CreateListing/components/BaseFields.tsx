@@ -2,14 +2,14 @@
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import InfoIcon from "@mui/icons-material/Info";
 import { Box, TextField, Select, MenuItem, FormControl, InputLabel, Typography } from "@mui/material";
-import type { UseFormRegister, Control } from "react-hook-form";
+import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import type { ListingFormData } from "../../../../utils/types";
 
 interface BaseFieldsProps {
     register: UseFormRegister<ListingFormData>;
     control: Control<ListingFormData>;
-    errors: any;
+    errors: FieldErrors<ListingFormData>;
 }
 
 const categories = ["Hotels", "Restaurants", "Activities", "Events", "Car Rentals"];
@@ -44,7 +44,7 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
                     name="category"
                     control={control}
                     rules={{ required: "Category is required" }}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                         <Select
                             labelId="category-label"
                             label="Category"
