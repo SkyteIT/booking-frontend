@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { getBookingDetail, updateBookingStatus } from "../../services/Bookings/booking";
 import SnackbarAlert from "./SnackbarAlert";
-import type { VendorBookingDto } from "../bookings/BookingTypes";
+import type { VendorBookingDto } from "../Bookings/BookingTypes";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";

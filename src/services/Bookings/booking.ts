@@ -1,4 +1,4 @@
-import type { VendorBookingDto, PageResult } from "../../components/bookings/BookingTypes";
+import type { VendorBookingDto, PageResult } from "../../components/Bookings/BookingTypes";
 import api from "../api";
 
 // GET LIST

@@ -1,0 +1,78 @@
+// Top toolbar: contains search text input and current result count.
+// It is presentational and forwards text changes via callback props.
+import {
+  Box,
+  Button,
+  InputAdornment,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+
+interface SearchToolbarProps {
+  query: string;
+  total: number;
+  onQueryChange: (value: string) => void;
+}
+
+const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
+  return (
+    <>
+      <Typography
+        variant="h2"
+        sx={{ mb: 2.5, fontWeight: 700, fontSize: { xs: "1.7rem", md: "2.2rem" } }}
+      >
+        Explore All Services
+      </Typography>
+
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: "12px",
+          border: "1px solid #E2E8F0",
+          p: 1,
+          mb: 2,
+          display: "flex",
+          gap: 1,
+          alignItems: "center",
+        }}
+      >
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Search properties, locations..."
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "#94A3B8", fontSize: "1rem" }} />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Button variant="contained" sx={{ minWidth: 120, borderRadius: "8px", px: 3 }}>
+          Search
+        </Button>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          mb: 2,
+          gap: 2,
+          flexWrap: "wrap",
+        }}
+      >
+        <Typography sx={{ color: "#334155", fontSize: "0.9rem", fontWeight: 500 }}>
+          {total} properties found
+        </Typography>
+      </Box>
+    </>
+  );
+};
+
+export default SearchToolbar;

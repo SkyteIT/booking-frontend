@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Box, Container } from "@mui/material";
-import VendorSidebar from "../../components/vendor/VendorSidebar";
+import VendorSidebar from "../../components/Vendor/VendorSidebar";
 import MainFooter from "../../components/footer/MainFooter";
 import VendorNavbar from "../../components/navbars/VendorNavbar";
 import { useAuth } from "../../context/AuthContext";
