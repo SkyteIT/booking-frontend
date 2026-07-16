@@ -2,35 +2,49 @@
 import { createTheme } from '@mui/material/styles';
 
 
+
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#2563EB',        // --primary
-      light: '#3B82F6',       // --blue-500
-      dark: '#0077b6',  
-              // --blue-700
+      main: '#0077b6',        // app primary blue
+      light: '#00B4D8',       // app accent blue
+      dark: '#005a8d',        // app primary dark blue
       contrastText: '#ffffff', // --primary-foreground
     },
     secondary: {
-      main: '#F1F5F9',        // --secondary
-      light: '#EFF6FF',       // --accent
-      dark: '#E2E8F0',        // --border
-      contrastText: '#0F172A', // --secondary-foreground
+      main: '#F3F4F6',        // app neutral surface
+      light: '#F9FAFB',       // app neutral background
+      dark: '#E5E7EB',        // app border
+      contrastText: '#111827', // app main text
     },
     error: {
       main: '#DC2626',        // --destructive
       contrastText: '#ffffff', // --destructive-foreground
     },
+    warning: {
+      main: '#F59E0B',
+      contrastText: '#ffffff',
+    },
+    info: {
+      main: '#0077b6',
+      contrastText: '#ffffff',
+    },
+    success: {
+      main: '#10B981',
+      contrastText: '#ffffff',
+    },
     background: {
-      default: '#ffffff',     // --background
-      paper: '#ffffff',       // --card
+      default: '#F6F8FB',     // app background (single canonical canvas color)
+      paper: '#ffffff',       // app card
     },
     text: {
-      primary: '#0F172A',     // --foreground
-      secondary: '#64748B',   // --muted-foreground
+      primary: '#111827',     // app main text
+      secondary: '#6B7280',   // app muted text
     },
-    divider: '#E2E8F0',       // --border
+    
+    divider: '#E5E7EB',       // app border
   },
+  
 
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -39,37 +53,32 @@ const theme = createTheme({
       fontSize: '2rem',       // --text-2xl equivalent
       fontWeight: 500,        // --font-weight-medium
       lineHeight: 1.5,
-      color: '#0F172A',
     },
     h2: {
       fontSize: '1.5rem',     // --text-xl equivalent
       fontWeight: 500,
       lineHeight: 1.5,
-      color: '#0F172A',
     },
     h3: {
       fontSize: '1.25rem',    // --text-lg equivalent
       fontWeight: 500,
       lineHeight: 1.5,
-      color: '#0F172A',
     },
     h4: {
       fontSize: '1rem',       // --text-base
       fontWeight: 500,
       lineHeight: 1.5,
-      color: '#0F172A',
     },
     body1: {
       fontSize: '1rem',
       fontWeight: 400,        // --font-weight-normal
       lineHeight: 1.5,
-      color: '#0F172A',
     },
     body2: {
       fontSize: '0.875rem',
       fontWeight: 400,
       lineHeight: 1.5,
-      color: '#64748B',       // --muted-foreground
+      // use palette.text.secondary by default
     },
     button: {
       fontSize: '1rem',
@@ -79,7 +88,7 @@ const theme = createTheme({
     },
     caption: {
       fontSize: '0.875rem',
-      color: '#64748B',
+      // use palette.text.secondary by default
     },
   },
 
@@ -94,8 +103,8 @@ const theme = createTheme({
           boxSizing: 'border-box',
         },
         body: {
-          backgroundColor: '#ffffff',   // --background
-          color: '#0F172A',             // --foreground
+          backgroundColor: '#F6F8FB',   // app background (matches palette.background.default)
+          // let theme.palette.text.primary control text color
           WebkitFontSmoothing: 'antialiased',
           MozOsxFontSmoothing: 'grayscale',
         },
@@ -106,37 +115,41 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '8px',          // --radius
-          padding: '10px 24px',
+          padding: '8px 18px',
           boxShadow: 'none',
           fontWeight: 500,
+          transition: 'all 0.2s ease',
           '&:hover': {
             boxShadow: 'none',
           },
         },
         containedPrimary: {
-          backgroundColor: '#2563EB',   // --primary
+          backgroundColor: '#0077b6',   // app primary
           color: '#ffffff',
           '&:hover': {
-            backgroundColor: '#1D4ED8', // --blue-700
+            backgroundColor: '#005a8d', // app primary dark
           },
         },
         outlinedPrimary: {
-          borderColor: '#E2E8F0',       // --border
-          color: '#2563EB',
+          borderColor: '#E5E7EB',       // app border
+          color: '#0077b6',
           '&:hover': {
-            backgroundColor: '#EFF6FF', // --accent
+            backgroundColor: '#F3F4F6', // app neutral surface
           },
         },
       },
     },
+    
+      // theme.ts
+   
 
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: '#ffffff',   // --card
-          color: '#0F172A',             // --card-foreground
+          backgroundColor: '#ffffff',   // app card
+          // color inherited from theme.palette.text.primary
           borderRadius: '8px',          // --radius
-          border: '1px solid #E2E8F0',  // --border
+          border: '1px solid #E5E7EB',  // app border
           boxShadow: '0px 4px 16px rgba(0,0,0,0.06)',
           transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           '&:hover': {
@@ -150,7 +163,7 @@ const theme = createTheme({
     MuiInputBase: {
       styleOverrides: {
         root: {
-          backgroundColor: '#F8FAFC',   // --input-background
+          backgroundColor: '#F9FAFB',   // app input background
           borderRadius: '8px',
           fontSize: '1rem',
           fontWeight: 400,
@@ -161,14 +174,14 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         notchedOutline: {
-          borderColor: '#E2E8F0',       // --border
+          borderColor: '#E5E7EB',       // app border
         },
         root: {
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#3B82F6',     // --blue-500
+            borderColor: '#00B4D8',     // app accent blue
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#2563EB',     // --primary
+            borderColor: '#0077b6',     // app primary
           },
         },
       },
@@ -177,9 +190,9 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#ffffff',   // --background
-          color: '#0F172A',             // --foreground
-          boxShadow: '0px 1px 0px #E2E8F0', // --border
+          backgroundColor: '#ffffff',   // app background
+          // foreground color inherited from theme
+          boxShadow: '0px 1px 0px #E5E7EB', // app border
         },
       },
     },
@@ -189,8 +202,8 @@ const theme = createTheme({
         root: {
           borderRadius: '6px',
           fontWeight: 500,
-          backgroundColor: '#EFF6FF',   // --accent
-          color: '#1E40AF',             // --accent-foreground
+          backgroundColor: '#F3F4F6',   // app neutral chip
+          color: '#0077b6',             // app primary text
         },
       },
     },
@@ -198,7 +211,7 @@ const theme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          borderColor: '#E2E8F0',       // --border
+          borderColor: '#E5E7EB',       // app border
         },
       },
     },

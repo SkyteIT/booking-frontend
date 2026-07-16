@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
 import { Box, Container } from "@mui/material";
-import MainNavbar from "../../components/navbars/MainNavbar";
+import type { ReactNode } from "react";
 import MainFooter from "../../components/footer/MainFooter";
+import MainNavbar from "../../components/navbars/CustomerNavbar";
 import StepperBar from "../../components/navbars/StepperBar";
 
 interface ApplicationLayoutProps {
@@ -11,7 +11,7 @@ interface ApplicationLayoutProps {
 
 const ApplicationLayout = ({ children, activeStep }: ApplicationLayoutProps) => {
   return (
-    <Box sx={{ backgroundColor: "#f3f6f9", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: "background.default", minHeight: "100vh" }}>
       <MainNavbar />
 
       <Container maxWidth="md" sx={{ py: 5 }}>

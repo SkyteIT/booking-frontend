@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
       <Container maxWidth="xl">
         <Grid container spacing={4}>
           {/* Company Info */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs:12, md:4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Box
                 sx={{
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
           </Grid>
 
           {/* Company Links */}
-          <Grid item xs={6} md={2}>
+          <Grid size={{ xs:6, md:2 }}>
             <Typography variant="h6" sx={{ mb: 2, fontSize: '1rem' }}>
               Company
             </Typography>
@@ -70,7 +70,7 @@ export const Footer: React.FC = () => {
           </Grid>
 
           {/* Support Links */}
-          <Grid item xs={6} md={2}>
+          <Grid size={{ xs:6, md:2 }}>
             <Typography variant="h6" sx={{ mb: 2, fontSize: '1rem' }}>
               Support
             </Typography>
@@ -91,7 +91,7 @@ export const Footer: React.FC = () => {
           </Grid>
 
           {/* Newsletter */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs:12, md:4 }}>
             <Typography variant="h6" sx={{ mb: 2, fontSize: '1rem' }}>
               Newsletter
             </Typography>

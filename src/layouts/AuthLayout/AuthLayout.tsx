@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import "./auth.css";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { useAuth } from "../../context/useAuth";
 
 type AuthLayoutProps = {
   children: ReactNode;
 };
 
 function AuthLayout({ children }: AuthLayoutProps) {
+  const { loading } = useAuth();
   return (
     <div className="auth-container">
       <div
@@ -23,7 +26,8 @@ function AuthLayout({ children }: AuthLayoutProps) {
       </div>
 
       <div className="auth-right">
-        {children}
+          {children}
+          {loading && <LoadingSpinner />}
       </div>
     </div>
   );

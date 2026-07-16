@@ -10,7 +10,7 @@ import {
   Search, FilterList, Visibility, Block, MoreVert,
   Close, Edit, CheckCircle, Person,
 } from '@mui/icons-material';
-import { AdminLayout } from '../../layouts/AdminLayout/AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
 import MainFooter from '../../components/footer/MainFooter';
 
 interface User {

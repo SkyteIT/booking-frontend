@@ -9,7 +9,11 @@ import {
   MenuItem,
   FormControl,
 } from '@mui/material';
-import { CartItem as CartItemType, canBookMultiple } from '../contexts/CartContext';
+//import { CartItem as CartItemType, canBookMultiple } from '../contexts/CartContext';
+import { canBookMultiple } from '../contexts/CartContext';
+import type { CartItem as CartItemType } from '../contexts/CartContext';
+
+
 
 interface CartItemProps {
   item: CartItemType;

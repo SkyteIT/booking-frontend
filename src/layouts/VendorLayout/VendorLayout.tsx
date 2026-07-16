@@ -1,34 +1,49 @@
-import { Outlet } from "react-router-dom";
 import { Box, Container } from "@mui/material";
-import VendorSidebar from "../../components/vendor/VendorSidebar";
+import { Outlet } from "react-router-dom";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
-import MainNavbar from "../../components/navbars/MainNavbar";
-
+import VendorNavbar from "../../components/navbars/VendorNavbar";
+import VendorSidebar from "../../components/Vendor/VendorSidebar";
+import { useAuth } from "../../context/useAuth";
 
 export default function VendorLayout() {
+  const { loading } = useAuth();
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "secondary.main" }}>
-      <MainNavbar variant="vendor" />
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      {loading && <LoadingSpinner />}
+      
+      {/* 🔹 Navbar */}
+      <VendorNavbar />
 
-      <Container maxWidth="xl" sx={{ py: 3 }}>
+      {/* 🔹 Content Area */}
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", lg: "260px 1fr" },
-            gap: 3,
+            gap: { xs: 2, lg: 4 },
             alignItems: "start",
           }}
         >
-          {/* Sticky gradient sidebar */}
-          <VendorSidebar />
+          {/* 🔹 Sidebar (STICKY like your image) */}
+          <Box
+            sx={{
+              position: { lg: "sticky" },
+              top: 80, // 👈 adjust based on navbar height
+              alignSelf: "start",
+            }}
+          >
+            <VendorSidebar />
+          </Box>
 
-          {/* Main page area */}
-          <Box sx={{ pb: { xs: 9, lg: 0 } }}>
+          {/* 🔹 Main Content */}
+          <Box sx={{ px : { xs: 1, lg: 2 } }}>
             <Outlet />
           </Box>
         </Box>
       </Container>
 
+      {/* 🔹 Footer (natural bottom like screenshot) */}
       <MainFooter />
     </Box>
   );

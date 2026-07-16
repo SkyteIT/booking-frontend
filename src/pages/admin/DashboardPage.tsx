@@ -11,7 +11,7 @@ import {
   CalendarMonth,
   AttachMoney,
 } from '@mui/icons-material';
-import { AdminLayout } from '../../layouts/AdminLayout/AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
 import MainFooter from '../../components/footer/MainFooter';
 
 export const DashboardPage: React.FC = () => {

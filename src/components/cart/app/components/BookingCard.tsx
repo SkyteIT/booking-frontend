@@ -10,7 +10,8 @@ import {
   Chip,
 } from '@mui/material';
 import { Add, DirectionsCar, Hotel, Build, Category } from '@mui/icons-material';
-import { BookingItem, canBookMultiple } from '../contexts/CartContext';
+import { canBookMultiple } from '../contexts/CartContext';
+import type { BookingItem } from '../contexts/CartContext';
 
 interface BookingCardProps {
   item: BookingItem;

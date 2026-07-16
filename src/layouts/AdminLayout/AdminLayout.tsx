@@ -1,246 +1,69 @@
-import React from 'react';
-import {
-  Box,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Avatar,
-  Badge,
-  Divider,
-} from '@mui/material';
-import {
-  Dashboard,
-  People,
-  Store,
-  CalendarMonth,
-  MonetizationOn,
-  Article,
-  BarChart,
-  Notifications,
-  Settings,
-  Logout,
-  AccountBalance,
-  Menu as MenuIcon,
-} from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router';
+import { Box, Container } from "@mui/material";
+import { Outlet } from "react-router-dom";
+import AdminSidebar from "../../components/Admin/AdminSidebar";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import MainFooter from "../../components/footer/MainFooter";
+import AdminNavbar from "../../components/navbars/AdminNavbar";
+import { useAuth } from "../../context/useAuth";
 
-const drawerWidth = 240;
+export default function AdminLayout() {
+  const { loading } = useAuth();
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#F3F5F9", // softer background
+      }}
+    >
+      <AdminNavbar />
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
+      {loading && <LoadingSpinner />}
 
-const menuItems = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/admin/dashboard' },
-  { text: 'User Management', icon: <People />, path: '/admin/users' },
-  { text: 'Vendor Management', icon: <Store />, path: '/admin/vendors' },
-  { text: 'Booking Oversight', icon: <CalendarMonth />, path: '/admin/bookings', active: true },
-  { text: 'Disputes & Refunds', icon: <AccountBalance />, path: '/admin/disputes' },
-  { text: 'Finance & Payments', icon: <MonetizationOn />, path: '/admin/finance' },
-  { text: 'Content Management', icon: <Article />, path: '/admin/content' },
-  { text: 'Reports & Analytics', icon: <BarChart />, path: '/admin/reports' },
-  { text: 'Notifications', icon: <Notifications />, path: '/admin/notifications' },
-  { text: 'Settings', icon: <Settings />, path: '/admin/settings' },
-];
-
-export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Logo */}
-      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box
           sx={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            bgcolor: '#0891B2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", lg: "260px 1fr" },
+            gap: { xs: 2.5, lg: 3.5 },
+            alignItems: "start",
           }}
         >
-          <Typography sx={{ fontWeight: 700, color: '#fff', fontSize: '0.875rem' }}>
-            UBE
-          </Typography>
-        </Box>
-        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
-          UBE
-        </Typography>
-      </Box>
-
-      <Divider />
-
-      {/* Menu Items */}
-      <List sx={{ flex: 1, px: 1, pt: 2 }}>
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                onClick={() => navigate(item.path)}
-                sx={{
-                  borderRadius: 1,
-                  bgcolor: isActive ? '#0891B2' : 'transparent',
-                  color: isActive ? '#fff' : '#64748B',
-                  '&:hover': {
-                    bgcolor: isActive ? '#0891B2' : '#F1F5F9',
-                  },
-                  '& .MuiListItemIcon-root': {
-                    color: isActive ? '#fff' : '#64748B',
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: isActive ? 600 : 400,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
-      </List>
-
-      <Divider />
-
-      {/* Logout */}
-      <List sx={{ px: 1, py: 2 }}>
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => navigate('/')}
+          {/* 🔹 Sidebar */}
+          <Box
             sx={{
-              borderRadius: 1,
-              color: '#EF4444',
-              '&:hover': { bgcolor: '#FEE2E2' },
+              position: { lg: "sticky" },
+              top: 96,
+              alignSelf: "start",
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: '#EF4444' }}>
-              <Logout />
-            </ListItemIcon>
-            <ListItemText
-              primary="Logout"
-              primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}
-            />
-          </ListItemButton>
-        </ListItem>
-      </List>
-    </Box>
-  );
-
-  return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
-      {/* App Bar */}
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          bgcolor: '#fff',
-          color: '#0F172A',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-
-          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
-            Admin Panel
-          </Typography>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          {/* Notifications */}
-          <IconButton sx={{ mr: 1 }}>
-            <Badge badgeContent={3} color="error">
-              <Notifications />
-            </Badge>
-          </IconButton>
-
-          {/* Admin Profile */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                Admin User
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748B', fontSize: '0.75rem' }}>
-                Super Admin
-              </Typography>
-            </Box>
-            <Avatar sx={{ bgcolor: '#0891B2', width: 40, height: 40 }}>AU</Avatar>
+            <AdminSidebar />
           </Box>
-        </Toolbar>
-      </AppBar>
 
-      {/* Sidebar Drawer */}
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-              borderRight: '1px solid #E2E8F0',
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
+          {/* 🔹 Main Content */}
+          <Box
+            sx={{
+              minHeight: "calc(100vh - 160px)",
+              borderRadius: 4,
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
-        }}
-      >
-        <Toolbar />
-        {children}
-      </Box>
+              // 👇 Apple-like surface
+              bgcolor: "rgba(255,255,255,0.75)",
+              backdropFilter: "blur(10px)",
+
+              // 👇 subtle border instead of heavy
+              border: "1px solid rgba(0,0,0,0.04)",
+
+              // 👇 soft floating shadow
+              boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
+
+              p: { xs: 2.5, md: 3.5 },
+            }}
+          >
+            <Outlet />
+          </Box>
+        </Box>
+      </Container>
+
+      <MainFooter />
     </Box>
   );
-};
+}

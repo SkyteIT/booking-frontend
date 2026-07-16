@@ -1,8 +1,8 @@
 // src/components/sections/landing/FeaturedSection.tsx
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Box, Container, Typography, Grid, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ListingCard from "../../cards/ListingCard";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const listings = [
   {

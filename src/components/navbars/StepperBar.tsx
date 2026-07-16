@@ -1,5 +1,11 @@
 // src/components/navbars/StepperBar.tsx
 
+  
+  import BusinessIcon from "@mui/icons-material/Business";
+  import CategoryIcon from "@mui/icons-material/Category";
+  import CheckIcon from "@mui/icons-material/Check";
+  import DescriptionIcon from "@mui/icons-material/Description";
+  import PersonIcon from "@mui/icons-material/Person";
 import {
     Stepper,
     Step,
@@ -9,12 +15,6 @@ import {
     stepConnectorClasses,
   } from "@mui/material";
   import { styled } from "@mui/material/styles";
-  
-  import BusinessIcon from "@mui/icons-material/Business";
-  import PersonIcon from "@mui/icons-material/Person";
-  import CategoryIcon from "@mui/icons-material/Category";
-  import DescriptionIcon from "@mui/icons-material/Description";
-  import CheckIcon from "@mui/icons-material/Check";
   
   interface StepperBarProps {
     activeStep: number;

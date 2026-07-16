@@ -1,5 +1,5 @@
 // src/components/sections/landing/FAQSection.tsx
-import { useState } from "react";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Box,
   Container,
@@ -9,7 +9,7 @@ import {
   AccordionDetails,
   Grid,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useState } from "react";
 
 const faqs = [
   {
@@ -78,7 +78,7 @@ const FAQSection = () => {
     <Box
       sx={{
         py: { xs: 6, md: 10 },
-        backgroundColor: "#F8FAFC",
+        backgroundColor: "background.default",
       }}
     >
       <Container maxWidth="lg">
@@ -87,10 +87,10 @@ const FAQSection = () => {
           <Typography
             variant="body2"
             sx={{
-              color: "#2563EB",
+              color: "#0077b6",
               fontWeight: 600,
               textTransform: "uppercase",
-              letterSpacing: "0.1em",
+              letterSpacing: "0.18em",
               fontSize: "0.8rem",
               mb: 1,
             }}
@@ -100,9 +100,11 @@ const FAQSection = () => {
           <Typography
             variant="h2"
             sx={{
-              fontWeight: 700,
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 800,
               color: "text.primary",
-              fontSize: { xs: "1.75rem", md: "2.25rem" },
+              letterSpacing: "-0.01em",
+              fontSize: { xs: "1.75rem", md: "2.5rem" },
               mb: 1.5,
             }}
           >
@@ -136,8 +138,8 @@ const FAQSection = () => {
                   elevation={0}
                   sx={{
                     border: "1px solid",
-                    borderColor: expanded === faq.id ? "#2563EB" : "divider",
-                    borderRadius: "10px !important",
+                    borderColor: expanded === faq.id ? "#0077b6" : "divider",
+                    borderRadius: "16px !important",
                     overflow: "hidden",
                     backgroundColor: "#ffffff",
                     "&:before": { display: "none" }, // removes default MUI divider
@@ -149,7 +151,7 @@ const FAQSection = () => {
                       <ExpandMoreIcon
                         sx={{
                           color:
-                            expanded === faq.id ? "#2563EB" : "text.secondary",
+                            expanded === faq.id ? "#0077b6" : "text.secondary",
                           transition: "color 0.2s ease",
                         }}
                       />
@@ -167,7 +169,7 @@ const FAQSection = () => {
                       sx={{
                         fontWeight: 600,
                         fontSize: "0.95rem",
-                        color: expanded === faq.id ? "#2563EB" : "text.primary",
+                        color: expanded === faq.id ? "#0077b6" : "text.primary",
                         transition: "color 0.2s ease",
                         lineHeight: 1.5,
                       }}
@@ -209,8 +211,8 @@ const FAQSection = () => {
                   elevation={0}
                   sx={{
                     border: "1px solid",
-                    borderColor: expanded === faq.id ? "#2563EB" : "divider",
-                    borderRadius: "10px !important",
+                    borderColor: expanded === faq.id ? "#0077b6" : "divider",
+                    borderRadius: "16px !important",
                     overflow: "hidden",
                     backgroundColor: "#ffffff",
                     "&:before": { display: "none" },
@@ -222,7 +224,7 @@ const FAQSection = () => {
                       <ExpandMoreIcon
                         sx={{
                           color:
-                            expanded === faq.id ? "#2563EB" : "text.secondary",
+                            expanded === faq.id ? "#0077b6" : "text.secondary",
                           transition: "color 0.2s ease",
                         }}
                       />
@@ -240,7 +242,7 @@ const FAQSection = () => {
                       sx={{
                         fontWeight: 600,
                         fontSize: "0.95rem",
-                        color: expanded === faq.id ? "#2563EB" : "text.primary",
+                        color: expanded === faq.id ? "#0077b6" : "text.primary",
                         transition: "color 0.2s ease",
                         lineHeight: 1.5,
                       }}

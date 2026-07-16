@@ -8,7 +8,7 @@ import {
   InputLabel, MenuItem, Alert,
 } from '@mui/material';
 import { Search, FilterList, Visibility, Edit, Close, CheckCircle, FileDownload } from '@mui/icons-material';
-import { AdminLayout } from '../../layouts/AdminLayout/AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
 import MainFooter from '../../components/footer/MainFooter';
 
 interface Booking {
