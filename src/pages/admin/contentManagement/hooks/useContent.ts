@@ -1,8 +1,9 @@
 // src/pages/admin/contentManagement/hooks/useContent.ts
 // Central data hook for the Content Management section.
 // Fetches categories, banners, and promotions in parallel on mount,
-// and exposes fine-grained action helpers that call the service layer
-// and keep local state in sync so the UI never needs a full page reload.
+// and exposes fine-grained action helpers that call the service layer.
+// Every mutating action does a full server refresh after the API call
+// so the UI always reflects the true database state.
 
 import { useEffect, useState, useCallback } from "react";
 import {
@@ -21,8 +22,6 @@ export const useContent = () => {
   const [error,       setError]       = useState<string | null>(null);
 
   // ── refresh: re-fetches all three resources in parallel ──
-  // Wrapped in useCallback so child components can safely include
-  // it in their own dependency arrays without causing infinite loops.
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -47,66 +46,69 @@ export const useContent = () => {
 
   // ── Category actions ─────────────────────────────────────
 
-  // Creates a new category then re-fetches the full list
+  // Creates a new category then re-fetches the full list so we always
+  // show the real server state (including restored listings count).
   const addCategory = useCallback(async (name: string, icon?: string) => {
     await createCategory({ name, icon });
     await refresh();
   }, [refresh]);
 
-  // Updates category name then re-fetches the full list
+  // Updates category name/icon then re-fetches the full list
   const editCategory = useCallback(async (id: string, name: string) => {
     await updateCategory(id, { name });
     await refresh();
   }, [refresh]);
 
-  // Optimistic toggle: updates local state immediately without waiting for a
-  // full refresh, so the switch feels instant in the UI
+  // Optimistic toggle: flips local state immediately for instant UI feedback,
+  // using String() on both sides to safely compare GUID strings.
   const toggleCategory = useCallback(async (id: string, isActive: boolean) => {
     await toggleCategoryStatus(id, isActive);
     setCategories((prev) =>
-      prev.map((c) => (c.id === (id as any) ? { ...c, status: isActive } : c))
+      prev.map((c) => (String(c.id) === String(id) ? { ...c, status: isActive } : c))
     );
   }, []);
 
-  // Optimistic delete: removes the row from local state immediately
+  // Delete: calls the API then does a full server refresh so the UI always
+  // reflects the true DB state (handles FK constraints / backend rejections).
+  // Throws on any failure so ContentManagement.tsx can show the error.
   const removeCategory = useCallback(async (id: string) => {
+    console.log("[removeCategory] Sending DELETE /categories/" + id);
     await deleteCategory(id);
-    setCategories((prev) => prev.filter((c) => c.id !== (id as any)));
-  }, []);
+    console.log("[removeCategory] DELETE succeeded, refreshing list...");
+    await refresh();
+    console.log("[removeCategory] Refresh complete.");
+  }, [refresh]);
 
   // ── Banner actions ───────────────────────────────────────
 
-  // Creates a banner then re-fetches to get the server-assigned id and dates
   const addBanner = useCallback(async (payload: Parameters<typeof createBanner>[0]) => {
     await createBanner(payload);
     await refresh();
   }, [refresh]);
 
-  // Updates a banner then re-fetches to reflect server-side normalisation
   const editBanner = useCallback(async (id: string, payload: any) => {
     await updateBanner(id, payload);
     await refresh();
   }, [refresh]);
 
-  // Optimistic delete: removes the banner row from local state immediately
+  // Full refresh after delete so list reflects true server state
   const removeBanner = useCallback(async (id: string) => {
     await deleteBanner(id);
-    setBanners((prev) => prev.filter((b) => b.id !== (id as any)));
-  }, []);
+    await refresh();
+  }, [refresh]);
 
   // ── Promotion actions ────────────────────────────────────
 
-  // Creates a promotion then re-fetches the full list
   const addPromotion = useCallback(async (payload: Parameters<typeof createPromotion>[0]) => {
     await createPromotion(payload);
     await refresh();
   }, [refresh]);
 
-  // Optimistic delete: removes the promotion row from local state immediately
+  // Full refresh after delete so list reflects true server state
   const removePromotion = useCallback(async (id: string) => {
     await deletePromotion(id);
-    setPromotions((prev) => prev.filter((p) => p.id !== (id as any)));
-  }, []);
+    await refresh();
+  }, [refresh]);
 
   return {
     // Data

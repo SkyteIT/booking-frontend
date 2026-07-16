@@ -9,10 +9,19 @@ export interface ApiCategory {
 
 export const fetchCategories = async (): Promise<ApiCategory[]> => {
   const { data } = await api.get<any[]>("/categories");
-  return data.map((c) => ({
-    id: String(c.id),
-    name: c.name,
-    // API returns status as "Active" | "Inactive" string (not a boolean)
-    isActive: c.status === "Active",
-  }));
+  return data
+    // Only show Active/Inactive categories — this excludes __Uncategorized__,
+    // soft-deleted entries, and anything with null/unexpected status values.
+    // Search sidebar only shows isActive:true ones, but we fetch both here
+    // so the admin toggle is reflected correctly without a second fetch.
+    .filter((c) =>
+      c.name !== "__Uncategorized__" &&
+      (c.status === "Active" || c.status === "Inactive")
+    )
+    .map((c) => ({
+      id: String(c.id),
+      name: c.name,
+      // API returns status as "Active" | "Inactive" string (not a boolean)
+      isActive: c.status === "Active",
+    }));
 };

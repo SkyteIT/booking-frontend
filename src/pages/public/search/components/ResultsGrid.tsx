@@ -1,13 +1,5 @@
 // src/pages/public/search/components/ResultsGrid.tsx
-import {
-  Grid,
-  Typography,
-  CircularProgress,
-  Box,
-  Alert,
-  Button,
-  Chip,
-} from "@mui/material";
+import {Grid,Typography,CircularProgress,Box,Alert,Button,Chip,} from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { SearchListing } from "../../../../services/searchService";
 

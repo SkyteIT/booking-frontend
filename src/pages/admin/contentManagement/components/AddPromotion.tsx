@@ -88,17 +88,24 @@ export default function AddPromotion() {
       navigate("/admin/content");
     } catch (err: any) {
       const status = err?.response?.status;
-      if (status === 409) {
-        setErrors((prev) => ({
-          ...prev,
-          code: `Promo code "${form.code}" already exists. Please use a different code.`,
-        }));
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          code: err?.response?.data?.message || err?.response?.data?.error || "Failed to save. Please try again.",
-        }));
-      }
+      const serverMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.response?.data?.title ||
+        err?.message || "";
+      // 409 Conflict OR SQL duplicate-key error (500) both mean the code already exists
+      const isDuplicate =
+        status === 409 ||
+        serverMsg.toLowerCase().includes("duplicate") ||
+        serverMsg.toLowerCase().includes("unique") ||
+        serverMsg.toLowerCase().includes("promocode") ||
+        serverMsg.toLowerCase().includes("promo_code");
+      setErrors((prev) => ({
+        ...prev,
+        code: isDuplicate
+          ? `Promo code "${form.code}" already exists. Please use a different code.`
+          : serverMsg || "Failed to save. Please try again.",
+      }));
     } finally {
       setSaving(false);
     }

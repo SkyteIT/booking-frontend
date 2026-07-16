@@ -1,8 +1,9 @@
 // Top toolbar: contains search text input and current result count.
 // It is presentational and forwards text changes via callback props.
 import { useState, useEffect } from "react";
-import { Box, Button, InputAdornment, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, IconButton, InputAdornment, Paper, TextField, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 interface SearchToolbarProps {
   query: string;
@@ -30,6 +31,13 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
     if (event.key === "Enter") {
       handleSubmit();
     }
+  };
+
+  // Clear: wipe both the local input AND commit the empty string to the URL
+  // so the API re-fetches all listings immediately — no need to press Search.
+  const handleClear = () => {
+    setInputValue("");
+    onQueryChange("");
   };
 
   return (
@@ -66,6 +74,19 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
                 <SearchIcon sx={{ color: "#94A3B8", fontSize: "1rem" }} />
               </InputAdornment>
             ),
+            endAdornment: inputValue ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={handleClear}
+                  aria-label="Clear search"
+                  edge="end"
+                  sx={{ color: "#94A3B8", "&:hover": { color: "#64748B" } }}
+                >
+                  <ClearIcon sx={{ fontSize: "1rem" }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
           }}
         />
         <Button

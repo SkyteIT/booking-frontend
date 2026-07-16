@@ -45,6 +45,15 @@ export const useSearchResults = () => {
     [allCategories]
   );
 
+  // Build a Set of active category names for fast O(1) lookup.
+  // Used to filter out listings whose category has been deleted from the DB —
+  // the backend search endpoint may still return them because it uses listing
+  // data independently of category status.
+  const activeCategoryNames = useMemo(
+    () => new Set(categories.map((c) => c.name.toLowerCase())),
+    [categories]
+  );
+
   // Run search when filters or categories change
   useEffect(() => {
     if (!categoriesLoaded) return; // wait until categories loaded
@@ -66,14 +75,31 @@ export const useSearchResults = () => {
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
       minRating: filters.minRating,
+      
     })
-      .then((data) => setListings(Array.isArray(data) ? data : []))
+      .then((data) => {
+        const results = Array.isArray(data) ? data : [];
+
+        // Filter out listings whose category no longer exists in active categories.
+        // This handles the case where admin deletes a category but the backend
+        // search still returns those listings (e.g. uses mock/seed data).
+        // Guard: if activeCategoryNames is empty, skip filtering so we don't
+        // hide all results when categories fail to load.
+        const filtered =
+          activeCategoryNames.size > 0
+            ? results.filter((listing) =>
+                activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
+              )
+            : results;
+
+        setListings(filtered);
+      })
       .catch(() => {
         setListings([]);
         setError("Failed to load results. Please try again.");
       })
       .finally(() => setLoading(false));
-  }, [filters, categories, categoriesLoaded]);
+  }, [filters, categories, categoriesLoaded, activeCategoryNames]);
 
   // Update search query in URL
   const setQuery = useCallback((value: string) => {
