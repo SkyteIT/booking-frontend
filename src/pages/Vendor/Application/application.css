@@ -1,7 +1,4 @@
-/* Page background */
-body {
-  background-color: #f3f6f9;
-}
+/* Page background now set globally in index.css to match theme.palette.background.default */
 
 /* Main container */
 .vendor-container {

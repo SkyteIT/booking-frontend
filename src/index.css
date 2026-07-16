@@ -5,6 +5,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Base canvas is a hair off pure white so it matches page-level sections
+   (e.g. the landing hero) without a visible seam behind floating elements
+   like the sticky navbar. Deliberately overrides MUI CssBaseline's body bg. */
+html,
+body {
+  background-color: #f6f8fb !important;
+}
+
 a {
   text-decoration: none;
   color: inherit;
