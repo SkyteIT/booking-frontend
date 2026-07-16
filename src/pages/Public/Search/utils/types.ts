@@ -12,6 +12,11 @@ export interface Listing {
   reviews: number;
   image: string;
   isAvailable: boolean;
+  description?: string;
+  images: string[];
+  vendorName?: string;
+  cancellationPolicy?: string;
+  amenities: string[];
 }
 
 export interface SearchFilters {

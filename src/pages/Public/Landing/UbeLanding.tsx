@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/useAuth";
 import "./orbitLanding.css";
 import { useLandingListings } from "./useLandingListings";
 
@@ -54,6 +55,7 @@ const STEPS = [
 
 const UbeLanding = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const stageRef = useRef<HTMLDivElement>(null);
   const [heroIndex, setHeroIndex] = useState(0);
   const [flowIndex, setFlowIndex] = useState(0);
@@ -176,6 +178,7 @@ const UbeLanding = () => {
   const flowSource = useMemo(
     () =>
       featuredListings.map((l) => ({
+        id: l.id,
         cat: l.categoryName,
         name: l.title,
         loc: l.location || "Location TBA",
@@ -218,6 +221,23 @@ const UbeLanding = () => {
   const marqueeText = `${categories.map((c) => c.name).join(" ✦ ")} ✦ `.repeat(2);
 
   const goExplore = () => navigate("/search");
+  const goStartExploring = () => navigate(isAuthenticated ? "/search" : "/register");
+
+  // The search page filters by the fixed ListingCategory type enum
+  // (Hotel/Restaurant/Event/CarRental/Activity). "Apartments" isn't one of
+  // those types, so it falls back to a text search instead of a category filter.
+  const goToCategory = (categoryName: string) => {
+    const key = categoryName.trim().toLowerCase();
+    const typeMap: Record<string, string> = {
+      hotels: "Hotel",
+      restaurants: "Restaurant",
+      events: "Event",
+      activities: "Activity",
+      "car rentals": "CarRental",
+    };
+    const type = typeMap[key];
+    navigate(type ? `/search?category=${type}` : `/search?q=${encodeURIComponent(categoryName)}`);
+  };
 
   return (
     <div className="orbit-page">
@@ -335,7 +355,7 @@ const UbeLanding = () => {
             <div
               key={f.name}
               className="orbit-fan-card"
-              onClick={goExplore}
+              onClick={() => goToCategory(f.name)}
               style={{
                 background: f.bg,
                 backgroundSize: "cover",
@@ -378,7 +398,11 @@ const UbeLanding = () => {
               <div
                 key={`${fc.name}-${i}`}
                 className="orbit-flow-card"
-                onClick={() => !dragMoved.current && setFlowIndex(i)}
+                onClick={() => {
+                  if (dragMoved.current) return;
+                  if (i === flowIndex) navigate(`/view-product/${fc.id}`);
+                  else setFlowIndex(i);
+                }}
                 style={{ transform: fc.transform, opacity: fc.opacity, zIndex: fc.z }}
               >
                 <div
@@ -397,7 +421,7 @@ const UbeLanding = () => {
                       className="orbit-flow-book"
                       onClick={(e) => {
                         e.stopPropagation();
-                        goExplore();
+                        navigate(`/view-product/${fc.id}`);
                       }}
                     >
                       Book now
@@ -458,7 +482,7 @@ const UbeLanding = () => {
             <br />
             <span className="orbit-cta-highlight">one checkout.</span>
           </h2>
-          <button className="orbit-cta-btn-large" onClick={() => navigate("/register")}>
+          <button className="orbit-cta-btn-large" onClick={goStartExploring}>
             Start exploring →
           </button>
         </div>

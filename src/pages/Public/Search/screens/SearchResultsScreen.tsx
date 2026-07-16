@@ -24,8 +24,18 @@ const SearchResultsScreen = () => {
   } = useSearchResults();
 
   return (
-    <Box sx={{ backgroundColor: "background.default", minHeight: "70vh", py: 4 }}>
-      <Container maxWidth="xl">
+    <Box
+      sx={{
+        backgroundColor: "background.default",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
+        backgroundRepeat: "no-repeat",
+        minHeight: "70vh",
+        pt: { xs: 16, md: 18 },
+        pb: { xs: 4, md: 6 },
+      }}
+    >
+      <Container maxWidth="xl" sx={{ px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
         <SearchToolbar
           query={filters.q}
           total={filteredListings.length}
@@ -38,7 +48,7 @@ const SearchResultsScreen = () => {
           </Alert>
         )}
 
-        <Grid container spacing={2.5}>
+        <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 2.5 }}>
             <FiltersSidebar
               categories={categories}
@@ -59,7 +69,7 @@ const SearchResultsScreen = () => {
           <Grid size={{ xs: 12, md: 9.5 }}>
             {loading ? (
               <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
-                <CircularProgress sx={{ color: "#0F5A8A" }} />
+                <CircularProgress sx={{ color: "primary.main" }} />
               </Box>
             ) : (
               <ResultsGrid listings={filteredListings} />

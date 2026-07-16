@@ -40,14 +40,14 @@ const CategoryFilterSection = ({
   return (
     <>
       <Typography sx={filterTitleSx}>Category</Typography>
-      <Stack spacing={0.6} sx={{ mb: 2.8 }}>
+      <Stack spacing={0.4} sx={{ mb: 3 }}>
         <Button
           variant="text"
           onClick={onClearCategories}
           sx={{ ...optionButtonBaseSx, ...getOptionButtonStateSx(isAllSelected) }}
           startIcon={<ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />}
         >
-          All Categories
+          All categories
         </Button>
 
         {categories.map((category) => {
