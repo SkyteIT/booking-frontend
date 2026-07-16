@@ -34,7 +34,7 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
     background: {
-      default: '#ffffff',     // app background
+      default: '#F6F8FB',     // app background (single canonical canvas color)
       paper: '#ffffff',       // app card
     },
     text: {
@@ -103,7 +103,7 @@ const theme = createTheme({
           boxSizing: 'border-box',
         },
         body: {
-          backgroundColor: '#ffffff',   // app background
+          backgroundColor: '#F6F8FB',   // app background (matches palette.background.default)
           // let theme.palette.text.primary control text color
           WebkitFontSmoothing: 'antialiased',
           MozOsxFontSmoothing: 'grayscale',

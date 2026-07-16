@@ -24,7 +24,7 @@ const SearchResultsScreen = () => {
   } = useSearchResults();
 
   return (
-    <Box sx={{ backgroundColor: "#F1F5F9", minHeight: "calc(100vh - 64px)", py: 4 }}>
+    <Box sx={{ backgroundColor: "background.default", minHeight: "70vh", py: 4 }}>
       <Container maxWidth="xl">
         <SearchToolbar
           query={filters.q}
