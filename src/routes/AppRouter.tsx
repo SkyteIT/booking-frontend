@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useAuth } from "../context/useAuth";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
+import LandingLayout from "../layouts/MainLayout/LandingLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";
 import AdminSectionPlaceholder from "../pages/Admin/AdminSectionPlaceholder";
@@ -77,8 +78,13 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function AppRouter() {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
+      {/* Landing page with no top padding */}
+      <Route element={<LandingLayout />}>
         <Route path="/" element={<LandingPage />} />
+      </Route>
+
+      {/* Other public pages with top padding */}
+      <Route element={<MainLayout />}>
         <Route path="/search" element={<SearchResultsPage />} />
         <Route path="/view-product/:id" element={<ViewProduct />} />
         <Route path="/listing/:id" element={<ViewProduct />} />
@@ -109,6 +115,7 @@ function AppRouter() {
         <Route path="bookings" element={<Bookings />} />
         <Route path="listings" element={<VendorListings />} />
         <Route path="listings/new" element={<CreateListing />} />
+        <Route path="listings/edit/:id" element={<CreateListing />} />
         <Route path="availability" element={<Availability />} />
         <Route path="settings" element={<Settings />} />
       </Route>

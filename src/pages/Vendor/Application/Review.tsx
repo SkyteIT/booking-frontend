@@ -7,68 +7,218 @@ import {
   FormControlLabel,
   Snackbar,
   Alert,
+  Divider,
 } from "@mui/material";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import api from "../../../services/api";
 import "./application.css";
 
 const Review = () => {
   const navigate = useNavigate();
+  const { data, resetApplication } = useVendorApplication();
+
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const handleSubmit = () => {
-    // Clear application data if needed
-    localStorage.removeItem("businessInfo");
-    localStorage.removeItem("contactInfo");
-    localStorage.removeItem("categories");
-    localStorage.removeItem("documents");
-    localStorage.removeItem("review");
+  const handleSubmit = async () => {
+    try {
+      //create form data
+      const formData = new FormData();
 
-    // Show success message
-    setOpenSnackbar(true);
+      // BUSINESS INFO
+      formData.append("BusinessName", data.businessInfo.businessName);
+      formData.append("BusinessType", data.businessInfo.businessType);
+      formData.append("TaxId", data.businessInfo.taxId || "");
+      formData.append("Website", data.businessInfo.website || "");
+      formData.append("Address", data.businessInfo.address);
 
-    // ❌ Do NOT navigate anywhere
+      // CONTACT INFO
+      formData.append("FirstName", data.contactInfo.firstName);
+      formData.append("LastName", data.contactInfo.lastName);
+      formData.append("Email", data.contactInfo.email);
+      formData.append("Phone", data.contactInfo.phone);
+
+      // CATEGORIES (Simplified format for standard [FromForm] binding)
+      data.categories.forEach((cat: string) => {
+        formData.append("Categories", cat);
+      });
+
+      // DOCUMENTS (Matching controller parameter names exactly)
+      if (data.documents.businessLicense) {
+        formData.append("businessLicense", data.documents.businessLicense);
+      }
+
+      if (data.documents.insuranceCertificate) {
+        formData.append(
+          "insuranceCertificate",
+          data.documents.insuranceCertificate,
+        );
+      }
+
+      if (data.documents.taxDocument) {
+        formData.append("taxDocument", data.documents.taxDocument);
+      }
+
+      // API CALL — routed through our shared api instance so the auth
+      // token (and its automatic refresh-on-401) is handled consistently
+      // with the rest of the app, instead of reading localStorage directly.
+      await api.post("/api/vendor-register/submit", formData);
+
+      // SUCCESS
+      resetApplication();
+      setOpenSnackbar(true);
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (err) {
+      if (isAxiosError(err)) {
+        console.error("Submission failed:", err.response?.data ?? err.message);
+      } else {
+        console.error("Submission failed:", err);
+      }
+    }
   };
 
   return (
     <ApplicationLayout activeStep={4}>
       <Container className="vendor-container">
         <Box className="vendor-form-card">
-          {/* Title */}
           <Typography className="vendor-title">
-            Review & Submit
+            Review & Submit Application
           </Typography>
 
-          {/* Summary Box */}
+          {/* ================= BUSINESS INFO ================= */}
           <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Business Information
+            </Typography>
+
             <div className="summary-item">
               <span className="summary-label">Business Name</span>
-              <span className="summary-value">Acme Rentals LLC</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Contact Email</span>
-              <span className="summary-value">contact@acmerentals.com</span>
-            </div>
-
-            <div className="summary-item">
-              <span className="summary-label">Categories</span>
               <span className="summary-value">
-                Vehicles, Equipment, Tools & Machinery
+                {data?.businessInfo?.businessName || "-"}
               </span>
             </div>
 
             <div className="summary-item">
-              <span className="summary-label">Documents Uploaded</span>
+              <span className="summary-label">Business Type</span>
               <span className="summary-value">
-                3 of 3 required documents
+                {data?.businessInfo?.businessType || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Tax ID</span>
+              <span className="summary-value">
+                {data?.businessInfo?.taxId || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Website</span>
+              <span className="summary-value">
+                {data?.businessInfo?.website || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Address</span>
+              <span className="summary-value">
+                {data?.businessInfo?.address || "-"}
               </span>
             </div>
           </Box>
 
-          {/* Agreement Box */}
+          <Divider sx={{ my: 3 }} />
+
+          {/* ================= CONTACT INFO ================= */}
+          <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Contact Information
+            </Typography>
+
+            <div className="summary-item">
+              <span className="summary-label">First Name</span>
+              <span className="summary-value">
+                {data?.contactInfo?.firstName || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Last Name</span>
+              <span className="summary-value">
+                {data?.contactInfo?.lastName || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Email</span>
+              <span className="summary-value">
+                {data?.contactInfo?.email || "-"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Phone</span>
+              <span className="summary-value">
+                {data?.contactInfo?.phone || "-"}
+              </span>
+            </div>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ================= CATEGORIES ================= */}
+          <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Selected Categories
+            </Typography>
+
+            <div className="summary-item">
+              <span className="summary-value">
+                {data?.categories?.length ? data.categories.join(", ") : "-"}
+              </span>
+            </div>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ================= DOCUMENTS ================= */}
+          <Box className="vendor-summary">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Uploaded Documents
+            </Typography>
+
+            <div className="summary-item">
+              <span className="summary-label">Business License</span>
+              <span className="summary-value">
+                {data?.documents?.businessLicense ? "Uploaded" : "Not uploaded"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Insurance Certificate</span>
+              <span className="summary-value">
+                {data?.documents?.insuranceCertificate
+                  ? "Uploaded"
+                  : "Not uploaded"}
+              </span>
+            </div>
+
+            <div className="summary-item">
+              <span className="summary-label">Tax Document</span>
+              <span className="summary-value">
+                {data?.documents?.taxDocument ? "Uploaded" : "Not uploaded"}
+              </span>
+            </div>
+          </Box>
+
+          {/* ================= AGREEMENT ================= */}
           <Box className="agreement-box">
             <FormControlLabel
               control={
@@ -79,7 +229,8 @@ const Review = () => {
               }
               label={
                 <span className="agreement-text">
-                  I certify that all information provided is accurate and I agree to UBE’s{" "}
+                  I certify that all information provided is accurate and I
+                  agree to UBE’s{" "}
                   <span className="agreement-link">Terms of Service</span> and{" "}
                   <span className="agreement-link">Vendor Agreement</span>.
                 </span>
@@ -87,7 +238,7 @@ const Review = () => {
             />
           </Box>
 
-          {/* Buttons */}
+          {/* ================= BUTTONS ================= */}
           <Box className="vendor-actions">
             <Button
               className="back"
@@ -106,7 +257,7 @@ const Review = () => {
           </Box>
         </Box>
 
-        {/* Success Snackbar */}
+        {/* ================= SUCCESS ================= */}
         <Snackbar
           open={openSnackbar}
           autoHideDuration={2000}

@@ -1,20 +1,20 @@
-// src/pages/Vendor/CreateListing/components/CarRentalFields.tsx
+// src/pages/vendor/CreateListing/components/CarRentalFields.tsx
 import { Box, TextField, Typography, Card, CardContent } from "@mui/material";
 import { Controller } from "react-hook-form";
-import type { UseFormRegister, Control } from "react-hook-form";
-import type { FormErrorMap, ListingFormData } from "../../../../utils/types";
+import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
+import type { ListingFormData } from "../../../../utils/types";
 
 interface CarRentalFieldsProps {
   register: UseFormRegister<ListingFormData>;
   control: Control<ListingFormData>;
-  errors: FormErrorMap;
+  errors: FieldErrors<ListingFormData>;
 }
 
 const insuranceOptions = [
   { label: "Basic Insurance", price: "Included" },
   { label: "Premium Insurance", price: "$25/day" },
   { label: "Full Coverage", price: "$45/day" },
-];
+] as const;
 
 const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
   return (
@@ -33,7 +33,7 @@ const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
           fullWidth
           label="Vehicle Type"
           placeholder="e.g., Sedan, SUV"
-          {...register("vehicleType", { required: "Vehicle type is required" })}
+          {...register("vehicleType")}
         />
         <TextField
           fullWidth
@@ -52,21 +52,21 @@ const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
           type="number"
           label="Year"
           defaultValue={2024}
-          {...register("year")}
+          {...register("year" as const)}
         />
         <TextField
           fullWidth
           type="number"
           label="Daily Rate ($)"
           defaultValue={99}
-          {...register("dailyRate")}
+          {...register("dailyRate" as const)}
         />
         <TextField
           fullWidth
           type="number"
           label="Hourly Rate ($)"
           defaultValue={15}
-          {...register("hourlyRate")}
+          {...register("hourlyRate" as const)}
         />
         <TextField
           fullWidth
@@ -85,6 +85,7 @@ const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
         Insurance Options
       </Typography>
+
       <Controller
         name="insuranceOptions"
         control={control}

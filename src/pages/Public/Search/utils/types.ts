@@ -1,20 +1,13 @@
 // Feature-level types shared across search hook, utils, data, and components.
-export type ListingCategory =
-  | "Hotels"
-  | "Restaurants"
-  | "Events"
-  | "Activities"
-  | "Car Rentals"
-  | "Apartments"
-  | "Equipment";
+export type ListingCategory = string;
 
 export interface Listing {
-  id: number;
+  id: string;
   title: string;
-  category: ListingCategory;
+  category: ListingCategory | string;
   location: string;
   price: number;
-  priceUnit: "night" | "person" | "ticket" | "day" | "hour";
+  priceUnit?: string;
   rating: number;
   reviews: number;
   image: string;

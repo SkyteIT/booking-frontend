@@ -1,9 +1,12 @@
-// ViewProduct page — reads :id from the URL, finds the matching
-// listing from mock data, then composes the three sub-components.
+// ViewProduct page — reads :id from the URL, fetches the matching
+// listing from the backend, then composes the three sub-components.
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Box, Container, Button, Typography } from "@mui/material";
+import { Box, Container, Button, Typography, CircularProgress, Alert } from "@mui/material";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MOCK_LISTINGS } from "../Search/data/mockListings";
+import { getListingById } from "../../../services/Vendor/listingService";
+import { mapApiListing } from "../Search/utils/mapApiListing";
+import type { Listing } from "../Search/utils/types";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
 import PriceCard from "./components/PriceCard/PriceCard";
 import ProductDetails from "./components/ProductDetails/ProductDetails";
@@ -11,15 +14,48 @@ import ProductDetails from "./components/ProductDetails/ProductDetails";
 const ViewProduct = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const listing = MOCK_LISTINGS.find((l: typeof MOCK_LISTINGS[0]) => l.id === Number(id));
+  useEffect(() => {
+    const fetchListing = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await getListingById(id);
+        setListing(mapApiListing(data));
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching listing:", err);
+        setError("Failed to load listing details.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!listing) {
+    fetchListing();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress sx={{ color: "#0F5A8A" }} />
+        <Typography sx={{ mt: 2, color: "text.secondary" }}>Loading details...</Typography>
+      </Container>
+    );
+  }
+
+  if (error || !listing) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Listing not found
-        </Typography>
+        {error ? (
+          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+        ) : (
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+            Listing not found
+          </Typography>
+        )}
         <Button
           startIcon={<ArrowBackIcon />}
           variant="outlined"

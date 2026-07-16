@@ -15,7 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 interface ListingCardProps {
-  id?: number;
+  id?: string | number;
   image: string;
   title: string;
   category: string;

@@ -1,6 +1,7 @@
 import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
 
@@ -22,19 +23,18 @@ interface BusinessErrors {
 
 const BusinessInfo = (): JSX.Element => {
   const navigate = useNavigate();
+  const { data, setData } = useVendorApplication();
 
   const [formData, setFormData] = useState<BusinessFormData>({
-    businessName: "",
-    businessType: "",
-    taxId: "",
-    website: "",
-    address: ""
+    businessName: data.businessInfo.businessName || "",
+    businessType: data.businessInfo.businessType || "",
+    taxId: data.businessInfo.taxId || "",
+    website: data.businessInfo.website || "",
+    address: data.businessInfo.address || "",
   });
-  
 
   const [errors, setErrors] = useState<BusinessErrors>({});
 
-  
   // --- BACK BUTTON HANDLER ---
   useEffect(() => {
     // Push fake state to prevent going back
@@ -54,15 +54,12 @@ const BusinessInfo = (): JSX.Element => {
   // --- END BACK BUTTON HANDLER ---
 
   const handleChange = (field: keyof BusinessFormData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
 
-    setErrors(prev => ({
-      ...prev,
-      [field]: undefined
-    }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
   const validate = (): BusinessErrors => {
@@ -75,12 +72,16 @@ const BusinessInfo = (): JSX.Element => {
     const address = formData.address.trim();
 
     if (!name) newErrors.businessName = "Business name is required";
-    else if (name.length < 3) newErrors.businessName = "Business name must be at least 3 characters";
+    else if (name.length < 3)
+      newErrors.businessName = "Business name must be at least 3 characters";
 
     if (!type) newErrors.businessType = "Business type is required";
     if (!taxId) newErrors.taxId = "Tax ID / EIN is required";
 
-    if (website && !/^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(website)) {
+    if (
+      website &&
+      !/^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(website)
+    ) {
       newErrors.website = "Enter a valid website URL";
     }
 
@@ -90,11 +91,17 @@ const BusinessInfo = (): JSX.Element => {
     return newErrors;
   };
 
+  // --- CONTINUE ---
   const handleContinue = () => {
     const validationErrors = validate();
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
+      // Save to context
+      setData((prev) => ({
+        ...prev,
+        businessInfo: formData,
+      }));
       navigate("/vendor/contactinfo");
     }
   };
@@ -122,7 +129,7 @@ const BusinessInfo = (): JSX.Element => {
             <Box>
               <Typography className="field-label">Business Type</Typography>
               <TextField
-                placeholder="LLC, Corporation, etc."
+                placeholder="Travel & Accomdation,Transport,Activities etc."
                 fullWidth
                 variant="outlined"
                 value={formData.businessType}
@@ -146,7 +153,9 @@ const BusinessInfo = (): JSX.Element => {
             </Box>
 
             <Box>
-              <Typography className="field-label">Business Website (optional)</Typography>
+              <Typography className="field-label">
+                Business Website (optional)
+              </Typography>
               <TextField
                 placeholder="https://example.com"
                 fullWidth
@@ -172,9 +181,12 @@ const BusinessInfo = (): JSX.Element => {
             </Box>
           </Box>
 
+          {/* BUTTONS */}
           <Box className="vendor-actions">
             <Button className="back">Back</Button>
-            <Button className="continue" onClick={handleContinue}>Continue</Button>
+            <Button className="continue" onClick={handleContinue}>
+              Continue
+            </Button>
           </Box>
         </Box>
       </Container>

@@ -2,48 +2,64 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import { Container, Typography, Box, Button } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
 
-const Documents = (): JSX.Element => {
+const Documents = () => {
   const navigate = useNavigate();
 
-  // --- STATE ---
-  const [businessLicense, setBusinessLicense] = useState<File | null>(null);
-  const [insuranceCertificate, setInsuranceCertificate] = useState<File | null>(null);
-  const [taxDocument, setTaxDocument] = useState<File | null>(null);
+  const { data, setData } = useVendorApplication();
+  const { businessLicense, insuranceCertificate, taxDocument } = data.documents;
+
   const [error, setError] = useState<string>("");
 
-  // --- BACK BUTTON HANDLER ---
+  /* =======================
+     BACK BUTTON HANDLER
+  ======================= */
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
 
     const handleBack = (event: PopStateEvent) => {
       event.preventDefault();
-      navigate("/", { replace: true }); // Always go to landing page
+      navigate("/", { replace: true });
     };
 
     window.addEventListener("popstate", handleBack);
     return () => window.removeEventListener("popstate", handleBack);
   }, [navigate]);
-  // --- END BACK BUTTON HANDLER ---
 
-  // --- FILE HANDLER ---
+  /* =======================
+     FILE CHANGE
+  ======================= */
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFile: React.Dispatch<React.SetStateAction<File | null>>
+    field: "businessLicense" | "insuranceCertificate" | "taxDocument",
   ) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      if (error) setError("");
+      const file = e.target.files[0]; //file upload
+
+      setData((prev) => ({
+        ...prev,
+        documents: {
+          ...prev.documents,
+          [field]: file,
+        },
+      }));
+
+      setError("");
     }
   };
 
+  /* =======================
+     CONTINUE
+  ======================= */
   const handleContinue = () => {
     if (!businessLicense || !insuranceCertificate || !taxDocument) {
       setError("Please upload all required documents");
       return;
     }
+
     navigate("/vendor/review");
   };
 
@@ -56,92 +72,83 @@ const Documents = (): JSX.Element => {
           {/* Hidden Inputs */}
           <input
             type="file"
-            accept=".pdf,.jpg,.png"
-            style={{ display: "none" }}
+            hidden
             id="businessLicenseInput"
-            onChange={(e) => handleFileChange(e, setBusinessLicense)}
-          />
-          <input
-            type="file"
-            accept=".pdf,.jpg,.png"
-            style={{ display: "none" }}
-            id="insuranceInput"
-            onChange={(e) => handleFileChange(e, setInsuranceCertificate)}
-          />
-          <input
-            type="file"
-            accept=".pdf,.jpg,.png"
-            style={{ display: "none" }}
-            id="taxInput"
-            onChange={(e) => handleFileChange(e, setTaxDocument)}
+            onChange={(e) => handleFileChange(e, "businessLicense")}
           />
 
-          {/* Upload Sections */}
+          <input
+            type="file"
+            hidden
+            id="insuranceInput"
+            onChange={(e) => handleFileChange(e, "insuranceCertificate")}
+          />
+
+          <input
+            type="file"
+            hidden
+            id="taxInput"
+            onChange={(e) => handleFileChange(e, "taxDocument")}
+          />
+
+          {/* Upload UI */}
           <Box className="documents-section">
             {/* Business License */}
-            <Box className="document-item">
-              <Typography className="field-label">Business License</Typography>
-              <Box
-                className="upload-box"
-                onClick={() => document.getElementById("businessLicenseInput")?.click()}
-              >
-                <DescriptionIcon className="upload-icon" />
-                <Typography className="upload-text">
-                  {businessLicense ? businessLicense.name : "Click to upload or drag and drop"}
-                </Typography>
-                <Typography className="upload-subtext">
-                  PDF, JPG or PNG (Max 5MB)
-                </Typography>
-              </Box>
+            <Box
+              className="upload-box"
+              onClick={() =>
+                document.getElementById("businessLicenseInput")?.click()
+              }
+            >
+              <DescriptionIcon />
+              <Typography>
+                {businessLicense
+                  ? businessLicense.name
+                  : "Upload Business License"}
+              </Typography>
             </Box>
 
-            {/* Insurance Certificate */}
-            <Box className="document-item">
-              <Typography className="field-label">Insurance Certificate</Typography>
-              <Box
-                className="upload-box"
-                onClick={() => document.getElementById("insuranceInput")?.click()}
-              >
-                <DescriptionIcon className="upload-icon" />
-                <Typography className="upload-text">
-                  {insuranceCertificate ? insuranceCertificate.name : "Click to upload or drag and drop"}
-                </Typography>
-                <Typography className="upload-subtext">
-                  PDF, JPG or PNG (Max 5MB)
-                </Typography>
-              </Box>
+            {/* Insurance */}
+            <Box
+              className="upload-box"
+              onClick={() => document.getElementById("insuranceInput")?.click()}
+            >
+              <DescriptionIcon />
+              <Typography>
+                {insuranceCertificate
+                  ? insuranceCertificate.name
+                  : "Upload Insurance Certificate"}
+              </Typography>
             </Box>
 
-            {/* Tax Documents */}
-            <Box className="document-item">
-              <Typography className="field-label">Tax Documents</Typography>
-              <Box
-                className="upload-box"
-                onClick={() => document.getElementById("taxInput")?.click()}
-              >
-                <DescriptionIcon className="upload-icon" />
-                <Typography className="upload-text">
-                  {taxDocument ? taxDocument.name : "Click to upload or drag and drop"}
-                </Typography>
-                <Typography className="upload-subtext">
-                  PDF, JPG or PNG (Max 5MB)
-                </Typography>
-              </Box>
+            {/* Tax */}
+            <Box
+              className="upload-box"
+              onClick={() => document.getElementById("taxInput")?.click()}
+            >
+              <DescriptionIcon />
+              <Typography>
+                {taxDocument ? taxDocument.name : "Upload Tax Document"}
+              </Typography>
             </Box>
           </Box>
 
-          {/* Error message */}
+          {/* Error */}
           {error && (
-            <Typography sx={{ color: "red", mt: 2 }}>
+            <Typography color="error" mt={2}>
               {error}
             </Typography>
           )}
 
-          {/* Buttons */}
+          {/* Actions */}
           <Box className="vendor-actions">
-            <Button className="back" onClick={() => navigate("/vendor/categories")}>
+            <Button
+              className="back"
+              onClick={() => navigate("/vendor/categories")}
+            >
               Back
             </Button>
+
             <Button className="continue" onClick={handleContinue}>
               Continue
             </Button>

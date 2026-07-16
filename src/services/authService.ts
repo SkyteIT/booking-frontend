@@ -39,6 +39,14 @@ export const register = async (payload: {
   return res.data;
 };
 
+export const loginWithGoogle = async (credential: string) => {
+  const res = await api.post<AuthResponse>("/api/auth/google-login", { idToken: credential });
+
+  saveAuthToken(res.data);
+
+  return res.data;
+};
+
 export const getCurrentUser = async () => {
   const res = await api.get("/api/auth/current-user");
   return res.data;

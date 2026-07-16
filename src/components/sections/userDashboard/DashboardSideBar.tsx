@@ -1,4 +1,3 @@
-
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -8,11 +7,12 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import StarIcon from "@mui/icons-material/Star";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import { Card, Typography, Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const isVendor =
@@ -56,30 +56,34 @@ const DashboardSidebar = () => {
 
       {/* 🔹 MENU */}
       <Box mt={3}>
-        {menuItems.map((item, index) => (
-          <Box
-            key={item.label}
-            onClick={() => navigate(item.path)}
-            className={`sidebar-menu-item ${index === 0 ? "active" : ""}`}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              py: 1.2,
-              px: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              "&:hover": {
-                backgroundColor: "#f5f5f5",
-              },
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              {item.icon}
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+
+          return (
+            <Box
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={`sidebar-menu-item ${isActive ? "active" : ""}`}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                py: 1.2,
+                px: 1,
+                borderRadius: 2,
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "#f5f5f5",
+                },
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                {item.icon}
+              </Box>
+              <Typography variant="body2">{item.label}</Typography>
             </Box>
-            <Typography variant="body2">{item.label}</Typography>
-          </Box>
-        ))}
+          );
+        })}
       </Box>
     </Card>
   );
