@@ -11,7 +11,7 @@ interface ApplicationLayoutProps {
 
 const ApplicationLayout = ({ children, activeStep }: ApplicationLayoutProps) => {
   return (
-    <Box sx={{ backgroundColor: "#f3f6f9", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: "background.default", minHeight: "100vh" }}>
       <MainNavbar />
 
       <Container maxWidth="md" sx={{ py: 5 }}>

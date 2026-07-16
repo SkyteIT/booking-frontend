@@ -56,15 +56,15 @@ const socialLinks = [
 
 const contactInfo = [
   {
-    icon: <EmailIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
+    icon: <EmailIcon sx={{ fontSize: "1rem", color: "#00B4D8" }} />,
     text: "support@ube.com",
   },
   {
-    icon: <PhoneIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
+    icon: <PhoneIcon sx={{ fontSize: "1rem", color: "#00B4D8" }} />,
     text: "+94 123 456 789",
   },
   {
-    icon: <LocationOnIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
+    icon: <LocationOnIcon sx={{ fontSize: "1rem", color: "#00B4D8" }} />,
     text: "123 Main Street, Colombo, Sri Lanka",
   },
 ];
@@ -74,7 +74,7 @@ const MainFooter = () => {
     <Box
       component="footer"
       sx={{
-        backgroundColor: "#0F172A",
+        backgroundColor: "#0F1B2D",
         color: "#ffffff",
         pt: { xs: 6, md: 10 },
         pb: 0,
@@ -99,10 +99,11 @@ const MainFooter = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  fontWeight: 700,
+                  fontFamily: "'Syne', sans-serif",
+                  fontWeight: 800,
                   fontSize: "1.2rem",
-                  color: "#0077b6",
-                  letterSpacing: "-0.02em",
+                  color: "#ffffff",
+                  letterSpacing: "0.02em",
                 }}
               >
                   UBE
@@ -209,7 +210,7 @@ const MainFooter = () => {
                       transition: "color 0.2s ease",
                       width: "fit-content",
                       "&:hover": {
-                        color: "#60A5FA",
+                        color: "#00B4D8",
                       },
                     }}
                   >
@@ -225,6 +226,7 @@ const MainFooter = () => {
             <Typography
               variant="body1"
               sx={{
+                fontFamily: "'Syne', sans-serif",
                 fontWeight: 700,
                 color: "#ffffff",
                 fontSize: "0.95rem",
@@ -301,7 +303,7 @@ const MainFooter = () => {
                   py: 1.1,
                   borderRadius: "8px",
                   "&:hover": {
-                    backgroundColor: "#0077a8",
+                    backgroundColor: "#005a8d",
                   },
                 }}
               >
@@ -340,7 +342,7 @@ const MainFooter = () => {
                     color: "#64748B",
                     fontSize: "0.8rem",
                     transition: "color 0.2s ease",
-                    "&:hover": { color: "#60A5FA" },
+                    "&:hover": { color: "#00B4D8" },
                   }}
                 >
                   {item}

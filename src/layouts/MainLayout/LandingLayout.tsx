@@ -1,4 +1,4 @@
-// src/layouts/MainLayout/MainLayout.tsx
+// src/layouts/MainLayout/LandingLayout.tsx
 import { Box } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -6,7 +6,7 @@ import MainFooter from "../../components/footer/MainFooter";
 import CustomerNavbar from "../../components/navbars/CustomerNavbar";
 import { useAuth } from "../../context/useAuth";
 
-const MainLayout = () => {
+const LandingLayout = () => {
   const { loading } = useAuth();
   return (
     <Box
@@ -21,12 +21,11 @@ const MainLayout = () => {
 
       {loading && <LoadingSpinner />}
 
-      {/* Page Content */}
+      {/* Page Content - No top padding for landing page */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          pt: 12,
         }}
       >
         <Outlet />
@@ -38,4 +37,4 @@ const MainLayout = () => {
   );
 };
 
-export default MainLayout;
+export default LandingLayout;
