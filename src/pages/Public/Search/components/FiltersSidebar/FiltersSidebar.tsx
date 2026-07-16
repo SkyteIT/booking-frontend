@@ -25,10 +25,11 @@ const FiltersSidebar = ({
     <Paper
       elevation={0}
       sx={{
-        borderRadius: "14px",
-        border: "1px solid #D8E0EA",
-        p: 2,
-        backgroundColor: "#FFFFFF",
+        borderRadius: "18px",
+        border: "1px solid",
+        borderColor: "divider",
+        p: 2.5,
+        backgroundColor: "background.paper",
       }}
     >
       <FiltersHeader onClearAll={onClearAll} />

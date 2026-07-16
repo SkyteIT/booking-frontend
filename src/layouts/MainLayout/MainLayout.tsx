@@ -16,7 +16,7 @@ const MainLayout = () => {
         minHeight: "100vh",
       }}
     >
-      {/* ✅ Dynamic Navbar */}
+      {/* Dynamic Navbar */}
       <CustomerNavbar />
 
       {loading && <LoadingSpinner />}
@@ -26,7 +26,7 @@ const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          pt: 12,
+          
         }}
       >
         <Outlet />

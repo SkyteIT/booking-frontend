@@ -11,7 +11,7 @@ interface ResultsGridProps {
 const ResultsGrid = ({ listings }: ResultsGridProps) => {
   return (
     <>
-      <Grid container spacing={2.3}>
+      <Grid container spacing={3}>
         {listings.map((listing) => (
           <Grid key={listing.id} size={{ xs: 12, sm: 6, md: 4 }}>
             <ListingCard
@@ -32,16 +32,17 @@ const ResultsGrid = ({ listings }: ResultsGridProps) => {
           elevation={0}
           sx={{
             mt: 2,
-            borderRadius: "10px",
-            border: "1px solid #E2E8F0",
-            p: 3,
+            borderRadius: "16px",
+            border: "1px solid",
+            borderColor: "divider",
+            p: 5,
             textAlign: "center",
           }}
         >
-          <Typography sx={{ fontWeight: 600, color: "#0F172A" }}>
+          <Typography sx={{ fontWeight: 600, color: "text.primary" }}>
             No listings match your filters.
           </Typography>
-          <Typography sx={{ fontSize: "0.85rem", color: "#64748B", mt: 0.5 }}>
+          <Typography sx={{ fontSize: "0.88rem", color: "text.secondary", mt: 0.5 }}>
             Try relaxing category, price, or rating filters.
           </Typography>
         </Paper>

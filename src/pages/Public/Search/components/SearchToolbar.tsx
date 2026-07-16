@@ -20,19 +20,53 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
   return (
     <>
       <Typography
-        variant="h2"
-        sx={{ mb: 2.5, fontWeight: 700, fontSize: { xs: "1.7rem", md: "2.2rem" } }}
+        sx={{
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "primary.main",
+          mb: 0.75,
+        }}
       >
-        Explore All Services
+        Explore
+      </Typography>
+      <Typography
+        variant="h2"
+        sx={{
+          mb: 3,
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          fontSize: { xs: "2rem", md: "2.6rem" },
+          color: "text.primary",
+          display: "flex",
+          alignItems: "baseline",
+          gap: "2px",
+        }}
+      >
+        All services
+        <Box
+          component="span"
+          sx={{
+            width: 10,
+            height: 10,
+            borderRadius: "3px",
+            backgroundColor: "primary.main",
+            display: "inline-block",
+            ml: 0.5,
+          }}
+        />
       </Typography>
 
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "12px",
-          border: "1px solid #E2E8F0",
+          borderRadius: "999px",
+          border: "1px solid",
+          borderColor: "divider",
           p: 1,
-          mb: 2,
+          mb: 2.5,
           display: "flex",
           gap: 1,
           alignItems: "center",
@@ -44,15 +78,30 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
           placeholder="Search properties, locations..."
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: "#94A3B8", fontSize: "1rem" }} />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "text.secondary", fontSize: "1.1rem" }} />
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "999px",
+              backgroundColor: "transparent",
+              "& fieldset": { border: "none" },
+              "&:hover fieldset": { border: "none" },
+              "&.Mui-focused fieldset": { border: "none" },
+            },
           }}
         />
-        <Button variant="contained" sx={{ minWidth: 120, borderRadius: "8px", px: 3 }}>
+        <Button
+          variant="contained"
+          disableElevation
+          sx={{ minWidth: 120, borderRadius: "999px", px: 3, textTransform: "none", fontWeight: 600 }}
+        >
           Search
         </Button>
       </Paper>
@@ -62,13 +111,13 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
           display: "flex",
           justifyContent: "flex-start",
           alignItems: "center",
-          mb: 2,
+          mb: 2.5,
           gap: 2,
           flexWrap: "wrap",
         }}
       >
-        <Typography sx={{ color: "#334155", fontSize: "0.9rem", fontWeight: 500 }}>
-          {total} properties found
+        <Typography sx={{ color: "text.secondary", fontSize: "0.88rem", fontWeight: 500 }}>
+          {total} {total === 1 ? "property" : "properties"} found
         </Typography>
       </Box>
     </>

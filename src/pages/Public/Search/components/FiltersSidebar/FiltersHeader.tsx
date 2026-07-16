@@ -7,8 +7,8 @@ interface FiltersHeaderProps {
 
 const FiltersHeader = ({ onClearAll }: FiltersHeaderProps) => {
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2.2 }}>
-      <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, lineHeight: 1 }}>
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5 }}>
+      <Typography sx={{ fontSize: "1.05rem", fontWeight: 600, letterSpacing: "-0.01em", lineHeight: 1 }}>
         Filters
       </Typography>
       <Button
@@ -16,15 +16,15 @@ const FiltersHeader = ({ onClearAll }: FiltersHeaderProps) => {
         onClick={onClearAll}
         sx={{
           textTransform: "none",
-          color: "#0284C7",
-          fontSize: "0.82rem",
-          fontWeight: 600,
+          color: "text.secondary",
+          fontSize: "0.8rem",
+          fontWeight: 500,
           px: 0,
           minWidth: "auto",
-          "&:hover": { backgroundColor: "transparent", color: "#0369A1" },
+          "&:hover": { backgroundColor: "transparent", color: "primary.main" },
         }}
       >
-        Clear All
+        Clear all
       </Button>
     </Box>
   );

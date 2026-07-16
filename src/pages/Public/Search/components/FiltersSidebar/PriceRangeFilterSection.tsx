@@ -18,29 +18,29 @@ const PriceRangeFilterSection = ({
 }: PriceRangeFilterSectionProps) => {
   return (
     <>
-      <Typography sx={filterTitleSx}>Price Range</Typography>
-      <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mb: 2.8 }}>
+      <Typography sx={filterTitleSx}>Price range</Typography>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
         <TextField
           size="small"
           placeholder="0"
           value={minPrice ?? ""}
           onChange={(event) => onMinPriceChange(event.target.value)}
           sx={{
-            width: 84,
-            "& .MuiInputBase-input": { fontSize: "0.82rem", py: 0.9, px: 1.2 },
-            "& .MuiOutlinedInput-root": { borderRadius: "8px", backgroundColor: "#FFFFFF" },
+            width: 86,
+            "& .MuiInputBase-input": { fontSize: "0.85rem", py: 0.9, px: 1.2 },
+            "& .MuiOutlinedInput-root": { borderRadius: "10px" },
           }}
         />
-        <Typography sx={{ color: "#94A3B8", fontSize: "0.9rem" }}>-</Typography>
+        <Typography sx={{ color: "text.secondary", fontSize: "0.85rem" }}>–</Typography>
         <TextField
           size="small"
           placeholder="1000"
           value={maxPrice ?? ""}
           onChange={(event) => onMaxPriceChange(event.target.value)}
           sx={{
-            width: 88,
-            "& .MuiInputBase-input": { fontSize: "0.82rem", py: 0.9, px: 1.2 },
-            "& .MuiOutlinedInput-root": { borderRadius: "8px", backgroundColor: "#FFFFFF" },
+            width: 90,
+            "& .MuiInputBase-input": { fontSize: "0.85rem", py: 0.9, px: 1.2 },
+            "& .MuiOutlinedInput-root": { borderRadius: "10px" },
           }}
         />
       </Stack>
