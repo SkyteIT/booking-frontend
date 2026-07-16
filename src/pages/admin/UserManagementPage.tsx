@@ -10,8 +10,8 @@ import {
   Search, FilterList, Visibility, Block, MoreVert,
   Close, Edit, CheckCircle, Person,
 } from '@mui/icons-material';
-import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
-import MainFooter from '../../components/footer/MainFooter';
+//import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
+//import MainFooter from '../../components/footer/MainFooter';
 
 interface User {
   id: number;
@@ -122,7 +122,7 @@ export const UserManagementPage: React.FC = () => {
   };
 
   return (
-    <AdminLayout>
+    <Box>
       <Box sx={{ p: 3, minHeight: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
 
         {successMsg && (
@@ -324,7 +324,6 @@ export const UserManagementPage: React.FC = () => {
         </Dialog>
 
       </Box>
-      <MainFooter />
-    </AdminLayout>
+    </Box>
   );
 };

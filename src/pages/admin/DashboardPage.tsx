@@ -11,8 +11,8 @@ import {
   CalendarMonth,
   AttachMoney,
 } from '@mui/icons-material';
-import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
-import MainFooter from '../../components/footer/MainFooter';
+//import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
+//import MainFooter from '../../components/footer/MainFooter';
 
 export const DashboardPage: React.FC = () => {
   const stats = [
@@ -51,7 +51,7 @@ export const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <AdminLayout>
+    <Box>
       <Box sx={{ p: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 3 }}>
@@ -116,7 +116,7 @@ export const DashboardPage: React.FC = () => {
         </Paper>
       </Box>
 
-      <MainFooter /> 
-    </AdminLayout>
+      
+    </Box>
   );
 };

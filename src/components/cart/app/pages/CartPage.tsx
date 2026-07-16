@@ -25,7 +25,7 @@ const categoryColors: Record<string, string> = {
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateCartItem, getCartTotal, getCartItemsCount } = useCart();
+  const { cart, removeFromCart, updateCartItem, getCartTotal } = useCart();
   const [activeTab, setActiveTab] = useState(0);
 
   const handleCheckout = () => {
@@ -120,7 +120,7 @@ const filteredCart = getFilteredCart();
         {/* Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-            {categories.map((cat, idx) => (
+            {categories.map((cat) => (
               <Tab
                 key={cat}
                 label={cat}

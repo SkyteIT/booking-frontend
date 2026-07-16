@@ -5,11 +5,11 @@ import {
   TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions,
   DialogContentText, Divider, Select, FormControl,
-  InputLabel, MenuItem, Alert,
+  InputLabel, MenuItem, 
 } from '@mui/material';
-import { Search, FilterList, Visibility, Edit, Close, CheckCircle, FileDownload } from '@mui/icons-material';
-import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
-import MainFooter from '../../components/footer/MainFooter';
+import { Search, FilterList, Visibility, Edit, Close, FileDownload } from '@mui/icons-material';
+//import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
+//import MainFooter from '../../components/footer/MainFooter';
 
 interface Booking {
   id: string;
@@ -131,12 +131,22 @@ export const BookingOversightPage: React.FC = () => {
   };
 
   return (
-    <AdminLayout>
-      <Box sx={{ p: 3, minHeight: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+      <Box>
+    
+      {successMsg && (
+  <Box
+    sx={{
+      mb: 2,
+      p: 2,
+      bgcolor: '#D1FAE5',
+      color: '#059669',
+      borderRadius: 1,
+    }}
+  >
+    {successMsg}
+  </Box>
+)}
 
-        {successMsg && (
-          <Alert icon={<CheckCircle />} severity="success" sx={{ mb: 2 }}>{successMsg}</Alert>
-        )}
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
           <Box>
@@ -336,7 +346,7 @@ export const BookingOversightPage: React.FC = () => {
         </Dialog>
 
       </Box>
-      <MainFooter />
-    </AdminLayout>
+      
+   
   );
 };

@@ -10,7 +10,7 @@ import {
   Grid,
   Checkbox,
   FormControlLabel,
-  Alert,
+  
 } from '@mui/material';
 import { CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router';
@@ -20,7 +20,7 @@ import { useCart } from '../contexts/CartContext';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal, getCartItemsCount } = useCart();
+  const { cart, getCartTotal } = useCart();
 
   const [formData, setFormData] = useState({
     firstName: '',

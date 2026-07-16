@@ -1,5 +1,4 @@
-import { BookingItem } from '../contexts/CartContext';
-
+import type { BookingItem } from "../contexts/CartContext";
 export const mockBookingItems: BookingItem[] = [
   {
     id: '1',

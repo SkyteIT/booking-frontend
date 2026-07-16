@@ -15,7 +15,7 @@ export const HomePage: React.FC = () => {
   const { addToCart } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const categories = ['all', 'car', 'hotel', 'tool'];
+  //const categories = ['all', 'car', 'hotel', 'tool'];
 
   const filteredItems =
     selectedCategory === 'all'
