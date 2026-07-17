@@ -1,0 +1,363 @@
+// src/pages/admin/contentManagement/components/CategoryCard.tsx
+import {
+  Typography,
+  Switch,
+  IconButton,
+  Box,
+  Tooltip,
+  Chip,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import HotelIcon from "@mui/icons-material/Hotel";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import LocalActivityIcon from "@mui/icons-material/LocalActivity";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
+import FlightIcon from "@mui/icons-material/Flight";
+import BeachAccessIcon from "@mui/icons-material/BeachAccess";
+import CategoryIcon from "@mui/icons-material/Category";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+
+import type { Category } from "../types/contentType";
+
+interface IconConfig {
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+  gradient: string;
+}
+
+const CATEGORY_ICON_MAP: Record<string, IconConfig> = {
+  hotels: {
+    icon: <HotelIcon sx={{ fontSize: 26 }} />,
+    color: "#1565C0", bg: "#E3F2FD",
+    gradient: "linear-gradient(135deg,#1565C0,#1976D2)",
+  },
+  "car rentals": {
+    icon: <DirectionsCarIcon sx={{ fontSize: 26 }} />,
+    color: "#6A1B9A", bg: "#F3E5F5",
+    gradient: "linear-gradient(135deg,#6A1B9A,#8E24AA)",
+  },
+  activities: {
+    icon: <LocalActivityIcon sx={{ fontSize: 26 }} />,
+    color: "#2E7D32", bg: "#E8F5E9",
+    gradient: "linear-gradient(135deg,#2E7D32,#388E3C)",
+  },
+  restaurants: {
+    icon: <RestaurantIcon sx={{ fontSize: 26 }} />,
+    color: "#E65100", bg: "#FFF3E0",
+    gradient: "linear-gradient(135deg,#E65100,#F57C00)",
+  },
+  "event tickets": {
+    icon: <ConfirmationNumberIcon sx={{ fontSize: 26 }} />,
+    color: "#C62828", bg: "#FFEBEE",
+    gradient: "linear-gradient(135deg,#C62828,#E53935)",
+  },
+  flights: {
+    icon: <FlightIcon sx={{ fontSize: 26 }} />,
+    color: "#00838F", bg: "#E0F7FA",
+    gradient: "linear-gradient(135deg,#00838F,#00ACC1)",
+  },
+  tours: {
+    icon: <BeachAccessIcon sx={{ fontSize: 26 }} />,
+    color: "#F9A825", bg: "#FFFDE7",
+    gradient: "linear-gradient(135deg,#F9A825,#FBC02D)",
+  },
+};
+
+function getCategoryIcon(name: string): IconConfig {
+  return (
+    CATEGORY_ICON_MAP[name.toLowerCase()] ?? {
+      icon: <CategoryIcon sx={{ fontSize: 26 }} />,
+      color: "#546E7A",
+      bg: "#ECEFF1",
+      gradient: "linear-gradient(135deg,#546E7A,#607D8B)",
+    }
+  );
+}
+
+interface Props {
+  category: Category;
+  viewMode?: "grid" | "list";
+  onToggle: (id: string, isActive: boolean) => void;
+  onDelete: (id: string) => void;
+  // ✅ FIX: added onEdit prop (was missing — Edit button was calling navigate() instead)
+  onEdit: (id: string) => void;
+}
+
+export default function CategoryCard({
+  category,
+  viewMode = "grid",
+  onToggle,
+  onDelete,
+  onEdit, // ✅ FIX: destructure the prop
+}: Props) {
+  const { icon, color, gradient } = getCategoryIcon(category.name);
+
+  if (viewMode === "list") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          background: "#fff",
+          borderRadius: "22px",
+          p: 2.75,
+          border: "1px solid #E5E7EB",
+          boxShadow: "0 18px 42px rgba(15,23,42,0.08)",
+          transition: "box-shadow .3s ease, transform .3s ease, border-color .3s ease",
+          "&:hover": {
+            boxShadow: "0 22px 50px rgba(15,23,42,0.14)",
+            transform: "translateY(-3px)",
+            borderColor: "#CBD5E1",
+          },
+        }}
+      >
+        {/* Icon */}
+        <Box
+          sx={{
+            width: 52,
+            height: 52,
+            borderRadius: "16px",
+            background: gradient,
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            boxShadow: `0 12px 28px ${color}20`,
+          }}
+        >
+          {icon}
+        </Box>
+
+        {/* Name + listings */}
+        <Box flex={1}>
+          <Typography fontWeight={700} fontSize={15} color="#0F172A">
+            {category.name}
+          </Typography>
+          <Typography fontSize={13} color="#94A3B8">
+            {category.listings} listings
+          </Typography>
+        </Box>
+
+        {/* Status chip */}
+        <Chip
+          label={category.status ? "Active" : "Inactive"}
+          size="small"
+          sx={{
+            fontWeight: 700,
+            fontSize: 12,
+            borderRadius: "8px",
+            background: category.status ? "#ECFDF5" : "#F8FAFC",
+            color: category.status ? "#10B981" : "#94A3B8",
+            border: `1px solid ${category.status ? "#A7F3D0" : "#E2E8F0"}`,
+          }}
+        />
+
+        {/* Toggle */}
+        <Switch
+          checked={category.status}
+          size="small"
+          onChange={(e) => onToggle(String(category.id), e.target.checked)}
+        />
+
+        {/* Actions */}
+        <Box display="flex" gap={0.5}>
+          <Tooltip title="Edit">
+            <IconButton
+              size="small"
+              onClick={() => onEdit(String(category.id))}
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: "12px",
+                border: "1px solid #E5E7EB",
+                color: "#2563EB",
+                background: "#fff",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  background: "#EFF6FF",
+                  borderColor: "#2563EB",
+                  transform: "translateY(-1px)",
+                },
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton
+              size="small"
+              onClick={() => onDelete(String(category.id))}
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: "12px",
+                border: "1px solid #E5E7EB",
+                color: "#DC2626",
+                background: "#fff",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  background: "#FEE2E2",
+                  borderColor: "#DC2626",
+                  transform: "translateY(-1px)",
+                },
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+    );
+  }
+
+  // ── Grid card ──
+  return (
+    <Box
+      sx={{
+        background: "#fff",
+        borderRadius: "24px",
+        border: "1px solid #E5E7EB",
+        overflow: "hidden",
+        boxShadow: "0 18px 36px rgba(15,23,42,0.08)",
+        transition: "box-shadow .3s ease, transform .3s ease",
+        "&:hover": {
+          boxShadow: `0 24px 48px ${color}24`,
+          transform: "translateY(-3px)",
+        },
+        "&:hover .card-banner": {
+          opacity: 1,
+        },
+      }}
+    >
+      {/* Coloured top banner */}
+      <Box
+        className="card-banner"
+        sx={{
+          height: 8,
+          background: gradient,
+          opacity: 0.85,
+          transition: "opacity .25s",
+        }}
+      />
+
+      <Box sx={{ p: 2.5 }}>
+        {/* Top row: icon + actions */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} mb={2}>
+          {/* Icon */}
+          <Box
+            sx={{
+              width: 54,
+              height: 54,
+              borderRadius: "14px",
+              background: gradient,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: `0 4px 14px ${color}40`,
+            }}
+          >
+            {icon}
+          </Box>
+
+          {/* Action buttons */}
+          <Box display="flex" gap={0.75}>
+            <Tooltip title="Edit category">
+              <IconButton
+                size="small"
+                onClick={() => onEdit(String(category.id))}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "12px",
+                  color: "#2563EB",
+                  background: "#fff",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 6px 16px rgba(37,99,235,0.08)",
+                  "&:hover": {
+                    background: "#EFF6FF",
+                    borderColor: "#2563EB",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <EditIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete category">
+              <IconButton
+                size="small"
+                onClick={() => onDelete(String(category.id))}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "12px",
+                  color: "#DC2626",
+                  background: "#fff",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 6px 16px rgba(220,38,38,0.08)",
+                  "&:hover": {
+                    background: "#FEE2E2",
+                    borderColor: "#DC2626",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <DeleteIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        {/* Name */}
+        <Typography fontWeight={800} fontSize={16} color="#0F172A" mb={0.5}>
+          {category.name}
+        </Typography>
+
+        {/* Listings count */}
+        <Box display="flex" alignItems="center" gap={0.6} mb={2.5}>
+          <FormatListBulletedIcon sx={{ fontSize: 14, color: "#94A3B8" }} />
+          <Typography fontSize={13} color="#94A3B8" fontWeight={500}>
+            {category.listings} listing{category.listings !== 1 ? "s" : ""}
+          </Typography>
+        </Box>
+
+        {/* Divider */}
+        <Box sx={{ height: 1, background: "#F1F5F9", mx: -2.5, mb: 2 }} />
+
+        {/* Status + toggle */}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Chip
+            label={category.status ? "Active" : "Inactive"}
+            size="small"
+            sx={{
+              fontWeight: 700,
+              fontSize: 12,
+              borderRadius: "8px",
+              background: category.status ? "#ECFDF5" : "#F8FAFC",
+              color: category.status ? "#10B981" : "#94A3B8",
+              border: `1px solid ${category.status ? "#A7F3D0" : "#E2E8F0"}`,
+            }}
+          />
+          <Switch
+            checked={category.status}
+            onChange={(e) => onToggle(String(category.id), e.target.checked)}
+            sx={{
+              "& .MuiSwitch-switchBase.Mui-checked": { color: "#10B981" },
+              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                background: "#10B981",
+              },
+            }}
+          />
+        </Box>
+      </Box>
+    </Box>
+  );
+}

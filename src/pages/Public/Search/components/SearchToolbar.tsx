@@ -1,14 +1,17 @@
 // Top toolbar: contains search text input and current result count.
 // It is presentational and forwards text changes via callback props.
 import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 import {
   Box,
   Button,
+  IconButton,
   InputAdornment,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
+import { useEffect, useState, type KeyboardEvent } from "react";
 
 interface SearchToolbarProps {
   query: string;
@@ -17,6 +20,28 @@ interface SearchToolbarProps {
 }
 
 const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
+  // Keep local input buffered so URL updates and API fetches only happen on submit.
+  const [inputValue, setInputValue] = useState(query);
+
+  useEffect(() => {
+    setInputValue(query);
+  }, [query]);
+
+  const handleSubmit = () => {
+    onQueryChange(inputValue);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSubmit();
+    }
+  };
+
+  const handleClear = () => {
+    setInputValue("");
+    onQueryChange("");
+  };
+
   return (
     <>
       <Typography
@@ -70,22 +95,36 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
           display: "flex",
           gap: 1,
           alignItems: "center",
+          backgroundColor: "rgba(255,255,255,0.72)",
+          backdropFilter: "blur(14px)",
         }}
       >
         <TextField
           fullWidth
           size="small"
           placeholder="Search properties, locations..."
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "text.secondary", fontSize: "1.1rem" }} />
-                </InputAdornment>
-              ),
-            },
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          onKeyDown={handleKeyDown}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "text.secondary", fontSize: "1.1rem" }} />
+              </InputAdornment>
+            ),
+            endAdornment: inputValue ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={handleClear}
+                  aria-label="Clear search"
+                  edge="end"
+                  sx={{ color: "text.secondary" }}
+                >
+                  <ClearIcon sx={{ fontSize: "1rem" }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
@@ -99,8 +138,15 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
         />
         <Button
           variant="contained"
+          onClick={handleSubmit}
           disableElevation
-          sx={{ minWidth: 120, borderRadius: "999px", px: 3, textTransform: "none", fontWeight: 600 }}
+          sx={{
+            minWidth: 120,
+            borderRadius: "999px",
+            px: 3,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
         >
           Search
         </Button>

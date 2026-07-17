@@ -1,0 +1,329 @@
+// src/pages/admin/contentManagement/components/EditCategory.tsx
+import { useState, useEffect } from "react";
+import {
+  Box, Typography, TextField, Button, Paper,
+  FormControlLabel, Switch, IconButton, Chip,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  CircularProgress,
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SaveIcon from "@mui/icons-material/Save";
+import CategoryIcon from "@mui/icons-material/Category";
+import { useNavigate, useParams } from "react-router-dom";
+import { getCategoryById, updateCategoryFull } from "../services/contentService";
+
+const cardStyle = {
+  p: 3,
+  borderRadius: 3,
+  boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+  mb: 0,
+};
+
+const EMOJI_OPTIONS = [
+  "🏨","🏠","🚗","✈️","🍽️","🎭","🏖️","⛺","🎿","🚢",
+  "🏋️","🎪","🏕️","🎡","🚀","🌴","🗺️","🧳","🎯","🏄",
+  "🎸","📸","🎨","🛒","💼","🎓","🏥","🌿","🐾","🎮",
+];
+
+interface EditCategoryProps {
+  categoryId?: string;
+  open?: boolean;
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
+export default function EditCategory({ categoryId, open, onClose, onSaved }: EditCategoryProps) {
+  const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
+  const id = categoryId ?? params.id ?? "";
+
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    icon: "",
+    status: true,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    getCategoryById(id)
+      .then((cat) => {
+        if (!cat) return;
+        setForm({
+          name: cat.name ?? "",
+          description: "",
+          icon: cat.icon ?? "",
+          status: cat.status ?? true,
+        });
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const set = (field: string, value: string | boolean) => {
+    setForm((p) => ({ ...p, [field]: value }));
+    setErrors((p) => ({ ...p, [field]: "" }));
+  };
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Category name is required";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      await updateCategoryFull(id, {
+        name: form.name,
+        description: form.description || undefined,
+        icon: form.icon || undefined,
+        status: form.status ? "Active" : "Inactive",
+      });
+      if (onSaved) onSaved();
+      else navigate("/admin/content");
+    } catch {
+      setErrors((p) => ({ ...p, name: "Failed to save. Please try again." }));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (onClose) onClose();
+    else navigate("/admin/content");
+  };
+
+  // ── Shared inner content (used in both modal + standalone) ──
+  const innerContent = loading ? (
+    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
+      <CircularProgress />
+    </Box>
+  ) : (
+    <Box display="flex" flexDirection="column" gap={2}>
+
+      {/* 1. Basic Information */}
+      <Paper sx={cardStyle}>
+        <Box display="flex" alignItems="center" gap={1} mb={2}>
+          <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
+            <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+          </Box>
+          <Typography fontWeight={600}>1. Basic Information</Typography>
+        </Box>
+        <TextField
+          label="Category Name"
+          fullWidth
+          required
+          sx={{ mb: 2 }}
+          value={form.name}
+          onChange={(e) => set("name", e.target.value)}
+          error={!!errors.name}
+          helperText={errors.name}
+        />
+        <TextField
+          label="Description"
+          fullWidth
+          multiline
+          rows={3}
+          value={form.description}
+          onChange={(e) => set("description", e.target.value)}
+        />
+      </Paper>
+
+      {/* 2. Category Icon */}
+      <Paper sx={cardStyle}>
+        <Box display="flex" alignItems="center" gap={1} mb={2}>
+          <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
+            <Typography fontSize={18}>🎨</Typography>
+          </Box>
+          <Typography fontWeight={600}>2. Category Icon</Typography>
+        </Box>
+
+        {/* Native input so emoji input works on all keyboards/OS */}
+        <TextField
+          label="Type or paste an emoji"
+          fullWidth
+          value={form.icon}
+          onChange={(e) => set("icon", e.target.value)}
+          placeholder="e.g. 🏨"
+          helperText="Type an emoji from your keyboard, or click one below"
+          inputProps={{ style: { fontSize: 22, letterSpacing: 4 } }}
+          sx={{ mb: 2 }}
+        />
+
+        {/* Quick-pick grid */}
+        <Typography fontSize={12} color="text.secondary" mb={1}>Quick pick:</Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.6 }}>
+          {EMOJI_OPTIONS.map((emoji) => (
+            <Box
+              key={emoji}
+              onClick={() => set("icon", emoji)}
+              sx={{
+                width: 40, height: 40,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, borderRadius: "8px", cursor: "pointer",
+                border: form.icon === emoji ? "2px solid #6366F1" : "1px solid #E2E8F0",
+                bgcolor: form.icon === emoji ? "#EEF2FF" : "#fafafa",
+                transition: "all .15s",
+                "&:hover": { borderColor: "#6366F1", bgcolor: "#EEF2FF", transform: "scale(1.15)" },
+              }}
+            >
+              {emoji}
+            </Box>
+          ))}
+        </Box>
+
+        {/* Live preview */}
+        {form.icon && (
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1.5}
+            mt={2}
+            p={1.5}
+            sx={{ bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #E2E8F0" }}
+          >
+            <Typography fontSize={13} color="text.secondary">Preview:</Typography>
+            <Box
+              sx={{
+                width: 44, height: 44, borderRadius: "12px",
+                background: "linear-gradient(135deg,#6366F1,#4F46E5)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              {form.icon.startsWith("http") ? (
+                <img src={form.icon} alt="icon" style={{ width: 28, height: 28, objectFit: "contain" }} />
+              ) : (
+                <Typography fontSize={22}>{form.icon}</Typography>
+              )}
+            </Box>
+            <Typography fontSize={14} fontWeight={600} color="#0F172A">
+              {form.name || "Category Name"}
+            </Typography>
+          </Box>
+        )}
+      </Paper>
+
+      {/* 3. Status & Visibility */}
+      <Paper sx={cardStyle}>
+        <Box display="flex" alignItems="center" gap={1} mb={2}>
+          <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
+            <Typography fontSize={18}>⚙️</Typography>
+          </Box>
+          <Typography fontWeight={600}>3. Status & Visibility</Typography>
+        </Box>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.status}
+              onChange={(e) => set("status", e.target.checked)}
+              sx={{
+                "& .MuiSwitch-switchBase.Mui-checked": { color: "#6366F1" },
+                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#6366F1" },
+              }}
+            />
+          }
+          label={form.status ? "Active" : "Inactive"}
+        />
+        <Box
+          sx={{
+            mt: 1.5, p: 2, borderRadius: 2,
+            bgcolor: form.status ? "#eef2ff" : "#f5f5f5",
+            border: `1px solid ${form.status ? "#c7d2fe" : "#e0e0e0"}`,
+          }}
+        >
+          <Typography fontSize={13} color={form.status ? "#4338ca" : "#757575"}>
+            {form.status
+              ? "Category is active and visible to users"
+              : "Category is hidden from users"}
+          </Typography>
+        </Box>
+      </Paper>
+    </Box>
+  );
+
+  // ── MODAL mode (matches EditBanner / EditPromotion exactly) ──
+  if (open !== undefined) {
+    return (
+      <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Edit Category</DialogTitle>
+        <DialogContent>{innerContent}</DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
+          <Button
+            variant="contained"
+            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+            onClick={handleSave}
+            disabled={saving}
+            sx={{ bgcolor: "#6366F1", "&:hover": { bgcolor: "#4F46E5" } }}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+
+  // ── STANDALONE page mode ──
+  return (
+    <Box sx={{ p: 3, bgcolor: "#f4f6f8", minHeight: "100vh" }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <IconButton onClick={handleCancel} size="small">
+            <ArrowBackIcon />
+          </IconButton>
+          <Box>
+            <Typography variant="h5" fontWeight={700}>Edit Category</Typography>
+            <Typography variant="body2" color="text.secondary">Update category details</Typography>
+          </Box>
+        </Box>
+        <Box display="flex" gap={1}>
+          <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            onClick={handleSave}
+            disabled={saving}
+            sx={{ bgcolor: "#6366F1", "&:hover": { bgcolor: "#4F46E5" } }}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Two-column layout for standalone */}
+      <Box sx={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 2, alignItems: "start" }}>
+        <Box>{innerContent}</Box>
+
+        {/* Right column preview */}
+        <Box display="flex" flexDirection="column" gap={2}>
+          <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff" }}>
+            <Typography fontWeight={600} mb={2}>Category Preview</Typography>
+            {[
+              { label: "Name",   value: form.name   || "—" },
+              { label: "Icon",   value: form.icon   || "—" },
+            ].map((row) => (
+              <Box key={row.label} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography fontSize={13} sx={{ opacity: 0.8 }}>{row.label}</Typography>
+                <Typography fontSize={row.label === "Icon" ? 20 : 13} fontWeight={600}>{row.value}</Typography>
+              </Box>
+            ))}
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography fontSize={13} sx={{ opacity: 0.8 }}>Status</Typography>
+              <Chip
+                label={form.status ? "Active" : "Inactive"}
+                size="small"
+                sx={{ bgcolor: "rgba(255,255,255,0.25)", color: "#fff", fontWeight: 600, fontSize: 11 }}
+              />
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
+    </Box>
+  );
+}

@@ -60,7 +60,7 @@ export type ChangePasswordDto = {
 //profile
 
 export const getVendorProfile = async (): Promise<VendorProfileDto> => {
-  const res = await api.get<VendorProfileDto>("/api/vendor/profile");
+  const res = await api.get<VendorProfileDto>("/vendor/profile");
   return res.data;
 };
 
@@ -68,7 +68,7 @@ export const updateVendorProfile = async (
   payload: UpdateVendorProfileDto
 ): Promise<VendorProfileDto> => {
   const res = await api.put<VendorProfileDto>(
-    "/api/vendor/profile",
+    "/vendor/profile",
     payload
   );
   return res.data;
@@ -81,11 +81,12 @@ export const uploadVendorProfileImage = async (
   formData.append("file", file);
 
   const res = await api.post<VendorProfileDto>(
-    "/api/vendor/profile/upload-image",
-    formData,{
+    "/vendor/profile/upload-image",
+    formData,
+    {
       headers: {
         "Content-Type": "multipart/form-data",
-      }
+      },
     }
   );
 
@@ -103,7 +104,7 @@ const is404 = (error: unknown) =>
 
 export const getVendorPayout = async (): Promise<VendorPayoutDto> => {
   try {
-    const res = await api.get<VendorPayoutDto>("/api/vendor/payout");
+    const res = await api.get<VendorPayoutDto>("/vendor/payout");
     return res.data ?? {};
   } catch (error) {
     if (is404(error)) {
@@ -119,7 +120,7 @@ export const updateVendorPayout = async (
 ): Promise<VendorPayoutDto> => {
   try {
     const res = await api.put<VendorPayoutDto>(
-      "/api/vendor/payout",
+      "/vendor/payout",
       payload
     );
     return res.data ?? payload;
@@ -138,7 +139,7 @@ export const updateVendorPayout = async (
 
 export const getLocalizationSettings = async (): Promise<VendorLocalizationDto> => {
   const res = await api.get<VendorLocalizationDto>(
-    "/api/settings/localization"
+    "/settings/localization"
   );
   return res.data;
 };
@@ -147,7 +148,7 @@ export const updateLocalizationSettings = async (
   payload: UpdateLocalizationDto
 ): Promise<VendorLocalizationDto> => {
   const res = await api.put<VendorLocalizationDto>(
-    "/api/settings/localization",
+    "/settings/localization",
     payload
   );
   return res.data;
@@ -160,5 +161,5 @@ export const updateLocalizationSettings = async (
 export const changePassword = async (
   payload: ChangePasswordDto
 ): Promise<void> => {
-  await api.put("/api/security/change-password", payload);
+  await api.put("/security/change-password", payload);
 };
