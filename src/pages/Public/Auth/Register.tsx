@@ -213,15 +213,18 @@ function Register(): JSX.Element {
         </form>
 
         <div className="divider">
-          <span>OR</span>
+          <span>OR CONTINUE WITH</span>
         </div>
 
-        <GoogleLogin
-          onSuccess={(credentialResponse) =>
-            handleGoogleSignUp(credentialResponse.credential)
-          }
-          onError={() => setErrorSnackbar("Google sign-up failed. Please try again.")}
-        />
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={(credentialResponse) =>
+              handleGoogleSignUp(credentialResponse.credential)
+            }
+            onError={() => setErrorSnackbar("Google sign-up failed. Please try again.")}
+            width="400"
+          />
+        </div>
 
         <p className="bottom-text">
           Already have an account?{" "}

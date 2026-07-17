@@ -137,7 +137,7 @@ function Login(): JSX.Element {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* EMAIL */}
           <div className="input-group">
-            <label>Email</label>
+            <label>Email Address</label>
             <input
               type="email"
               placeholder="Enter email"
@@ -151,7 +151,7 @@ function Login(): JSX.Element {
           <div className="input-group">
             <label>Password</label>
 
-            <div className="password-wrapper">
+            <div className="password-wrapper styled">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
@@ -159,7 +159,7 @@ function Login(): JSX.Element {
                 className={errors.password ? "input-error" : ""}
               />
 
-              <span onClick={() => setShowPassword((p) => !p)}>
+              <span className="eye-icon" onClick={() => setShowPassword((p) => !p)}>
                 {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
               </span>
             </div>
@@ -183,15 +183,18 @@ function Login(): JSX.Element {
         </form>
 
         <div className="divider">
-          <span>OR</span>
+          <span>OR CONTINUE WITH</span>
         </div>
 
-        <GoogleLogin
-          onSuccess={(credentialResponse) =>
-            handleGoogleLogin(credentialResponse.credential)
-          }
-          onError={() => setErrorSnackbar("Google login failed. Please try again.")}
-        />
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={(credentialResponse) =>
+              handleGoogleLogin(credentialResponse.credential)
+            }
+            onError={() => setErrorSnackbar("Google login failed. Please try again.")}
+            width="400"
+          />
+        </div>
 
         <p className="bottom-text">
           Don’t have an account?{" "}
@@ -201,6 +204,7 @@ function Login(): JSX.Element {
                 ? `/register?next=${encodeURIComponent(nextPath)}`
                 : "/register"
             }
+            className="bold-link"
           >
             Sign Up
           </Link>

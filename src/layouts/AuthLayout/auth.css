@@ -73,7 +73,7 @@
   
   .auth-card {
     width: 520px;
-    padding: 52px;
+    padding: 40px 52px;
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -89,7 +89,7 @@
   .subtitle {
     font-size: 14px;
     color: #666;
-    margin-bottom: 25px;
+    margin-bottom: 18px;
   }
   
   .center {
@@ -99,7 +99,7 @@
   /* ===== Inputs ===== */
   
   .input-group {
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
   
   .input-group label {
@@ -153,7 +153,7 @@
     color: white;
     font-size: 15px;
     cursor: pointer;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     transition: 0.2s ease;
   }
   
@@ -165,7 +165,7 @@
   
   .divider {
     text-align: center;
-    margin: 15px 0;
+    margin: 10px 0 15px 0;
     position: relative;
   }
   
@@ -257,10 +257,13 @@
     background: white;            /* same as input */
     cursor: pointer;
     color: #555;
-    font-size: 18px;
     transition: 0.2s;
     outline: none;
     box-shadow: none;
+}
+
+.password-wrapper.styled .eye-icon svg {
+    font-size: 20px;
 }
 
 .password-wrapper.styled .eye-icon:hover {
@@ -315,4 +318,16 @@
   color: #1e88e5;        /* blue on hover */
   text-decoration: underline; /* underline on hover */
   cursor: pointer;
+}
+
+.google-login-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.google-login-container iframe {
+  border-radius: 12px !important;
 }

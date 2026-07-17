@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import type { ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useContext
+} from "react";
 import { getCurrentUser } from "../services/authService";
 import { refreshAccessToken } from "../services/tokenRefresh";
 import tokenStorage from "../services/tokenStorage";
@@ -159,4 +165,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
+  }
+
+  return context;
 }

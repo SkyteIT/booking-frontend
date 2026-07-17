@@ -1,18 +1,15 @@
-import { useEffect, useState } from "react";
+import React, {createContext,
+  useEffect,
+  useState,
+} from "react";
+
 import type { ReactNode } from "react";
 import {
   VendorApplicationContext,
   defaultVendorApplicationState,
 } from "./VendorApplicationContextObject";
-import type { VendorApplicationData } from "./VendorApplicationContextObject";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState
-} from "react";
 
-//types define
+// Types
 
 export interface BusinessFormData {
   businessName: string;
@@ -41,81 +38,133 @@ export interface VendorApplicationData {
   categories: string[];
   documents: DocumentsData;
 }
-//combine all data into one object
-const defaultState: VendorApplicationData = {
+
+
+/*Default state
+
+export const defaultVendorApplicationState: VendorApplicationData = {
   businessInfo: {
     businessName: "",
     businessType: "",
     taxId: "",
     website: "",
-    address: ""
+    address: "",
   },
+
   contactInfo: {
     firstName: "",
     lastName: "",
     email: "",
-    phone: ""
+    phone: "",
   },
+
   categories: [],
+
   documents: {
     businessLicense: null,
     insuranceCertificate: null,
-    taxDocument: null
-  }
-};
+    taxDocument: null,
+  },
+}; */
 
-/* CONTEXT TYPE*/
+
+// Context type
 
 interface VendorContextType {
   data: VendorApplicationData;
+
   setData: React.Dispatch<
     React.SetStateAction<VendorApplicationData>
   >;
+
   resetApplication: () => void;
 }
 
-/*CONTEXT*/
 
-const VendorApplicationContext =
-  createContext<VendorContextType | null>(null);
+// Create context (only once)
 
-/* PROVIDER */
+//export const VendorApplicationContext =
+  //createContext<VendorContextType | null>(null);
+
+
+// Provider
 
 export const VendorApplicationProvider = ({
   children,
 }: {
   children: ReactNode;
 }) => {
-  //Initialize state
-  const [data, setData] = useState<VendorApplicationData>(() => {
-    try {
-      //Attempt to load saved data from localStorage
-      const saved = localStorage.getItem("vendor_application");
 
-      return saved
-        ? (JSON.parse(saved) as VendorApplicationData)
-        : defaultVendorApplicationState;
-    } catch {
-      return defaultVendorApplicationState;
-    }
-  });
 
-  // Whenever data changes, save it to localStorage
+  // Load saved application data
+
+  const [data, setData] =
+    useState<VendorApplicationData>(() => {
+
+      try {
+
+        const saved =
+          localStorage.getItem(
+            "vendor_application"
+          );
+
+
+        return saved
+          ? JSON.parse(saved)
+          : defaultVendorApplicationState;
+
+
+      } catch {
+
+        return defaultVendorApplicationState;
+
+      }
+
+    });
+
+
+
+  // Save whenever data changes
+
   useEffect(() => {
-    localStorage.setItem("vendor_application", JSON.stringify(data));
+
+    localStorage.setItem(
+      "vendor_application",
+      JSON.stringify(data)
+    );
+
   }, [data]);
 
-  /* reset */
+
+
+  // Reset application
+
   const resetApplication = () => {
+
     setData(defaultVendorApplicationState);
-    localStorage.removeItem("vendor_application");
+
+    localStorage.removeItem(
+      "vendor_application"
+    );
+
   };
 
+
+
   return (
+
     <VendorApplicationContext.Provider
-      value={{ data, setData, resetApplication }}
+      value={{
+        data,
+        setData,
+        resetApplication,
+      }}
     >
+
       {children}
+
     </VendorApplicationContext.Provider>
+
   );
+
 };
