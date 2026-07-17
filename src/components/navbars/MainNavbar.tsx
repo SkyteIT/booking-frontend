@@ -1,7 +1,17 @@
 // src/components/navbars/MainNavbar.tsx
 import { useState } from "react";
 import {
-  AppBar,Toolbar,Box,Button,IconButton,Typography,Container,Menu, MenuItem,Divider,
+  AppBar,
+  Toolbar,
+  Box,
+  Button,
+  IconButton,
+  Typography,
+  Container,
+  Menu,
+  MenuItem,
+  Divider,
+  Badge,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,14 +19,30 @@ import PersonIcon from "@mui/icons-material/Person";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import icon2 from "../../assets/icons/icon2.png";
 
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+
+
 interface MainNavbarProps {
   isAuthPage?: boolean;
+  variant?: "main" | "vendor";
+  cartItemCount?: number;
 }
 
-const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
+const MainNavbar = ({ isAuthPage, cartItemCount = 0, variant = "main" }: MainNavbarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileMenuOpen = Boolean(anchorEl);
+
+  const isVendor = variant === "vendor";
+
+const colors = {
+  appBarBg: "#ffffff",
+  border: "#E5E7EB",
+  vendorBlue: "#0077B6",
+  vendorBlueDark: "#005a8d",
+};
+
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -55,7 +81,7 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
           {/* Left — Logo */}
           <Box
             component={Link}
-            to="/"
+            to={isVendor ? "/vendor/dashboard" : "/"}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -112,11 +138,34 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
 
           {/* Right — Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+
+
+  {/* Cart Button — MOVED TO FIRST */}
+  {!isVendor && (
+    <IconButton
+      onClick={() => navigate("/cart")}
+      sx={{ borderRadius: "8px", px: 1, py: 0.75, "&:hover": { backgroundColor: "#F9FAFB" } }}
+    >
+      <Badge
+        badgeContent={cartItemCount}
+        color="primary"
+        sx={{ "& .MuiBadge-badge": { backgroundColor: "#0077B6", color: "#ffffff", fontSize: "0.65rem", minWidth: 18, height: 18 } }}
+      >
+        <ShoppingCartIcon sx={{ fontSize: "1.3rem", color: "#4B5563" }} />
+      </Badge>
+    </IconButton>
+  )}
+
+
+
+
+
             {/* Profile Dropdown */}
             {!isAuthPage && (
               <>
                 <IconButton
                   onClick={handleProfileClick}
+
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -127,6 +176,10 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                     "&:hover": { backgroundColor: "#F9FAFB" },
                   }}
                 >
+
+
+
+                  
                   <Box
                     sx={{
                       width: 32,
@@ -150,115 +203,140 @@ const MainNavbar = ({ isAuthPage }: MainNavbarProps) => {
                 </IconButton>
 
                 {/* Profile Menu */}
-<Menu
-  anchorEl={anchorEl}
-  open={profileMenuOpen}
-  onClose={handleProfileClose}
-  transformOrigin={{ horizontal: "right", vertical: "top" }}
-  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-  PaperProps={{
-    elevation: 0,
-    sx: {
-      width: 192,
-      mt: 1,
-      border: "1px solid #E5E7EB",
-      borderRadius: "8px",
-      boxShadow: "0px 4px 16px rgba(0,0,0,0.08)",
-      "& .MuiMenuItem-root": {
-        fontSize: "0.9rem",
-        color: "#374151",
-        px: 2,
-        py: 1,
-        "&:hover": { backgroundColor: "#F9FAFB" },
-      },
-    },
-  }}
->
-  <MenuItem
-    component={Link}
-    to="/dashboard"       // User Dashboard route
-    onClick={handleProfileClose}
-  >
-    Account
-  </MenuItem>
-  <MenuItem
-    component={Link}
-    to="/settings"
-    onClick={handleProfileClose}
-  >
-    Settings
-  </MenuItem>
-  <Divider />
-  <MenuItem onClick={handleLogout}>Logout</MenuItem>
-</Menu>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={profileMenuOpen}
+                  onClose={handleProfileClose}
+                  transformOrigin={{ horizontal: "right", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                  PaperProps={{
+                    elevation: 0,
+                    sx: {
+                      width: 192,
+                      mt: 1,
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "8px",
+                      boxShadow: "0px 4px 16px rgba(0,0,0,0.08)",
+                      "& .MuiMenuItem-root": {
+                        fontSize: "0.9rem",
+                        color: "#374151",
+                        px: 2,
+                        py: 1,
+                        "&:hover": { backgroundColor: "#F9FAFB" },
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem
+                    component={Link}
+                    to="/settings"
+                    onClick={handleProfileClose}
+                  >
+                    Account
+                  </MenuItem>
+                  <MenuItem
+                    component={Link}
+                    to="/settings"
+                    onClick={handleProfileClose}
+                  >
+                    Settings
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
               </>
             )}
 
             {/* List Your Property Button */}
             <Button
-  onClick={() => navigate("/vendor/businessinfo")}   // ✅ updated path
-  sx={{
-    backgroundColor: "#ffffff",
-    color: "#0077B6",
-    border: "1.6px solid #0077B6",
-    px: 2,
-    py: 1,
-    borderRadius: "12px",
-    display: "flex",
-    alignItems: "center",
-    gap: 1,
-    fontSize: "0.9rem",
-    fontWeight: 500,
-    textTransform: "none",
-    boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
-    transition: "all 0.2s ease",
-    "&:hover": {
-      backgroundColor: "#5eb0dc",
-      color: "#ffffff",
-      boxShadow: "0px 4px 12px rgba(0,119,182,0.30)",
-    },
-  }}
->
-  <AddIcon sx={{ fontSize: "1rem" }} />
-  <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-    List your property
-  </Box>
-  <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
-    List
-  </Box>
-</Button>
+              onClick={() =>
+                navigate(isVendor ? "/vendor/listings/":"/vendor/dashboard")
+              }
+              sx={{
+                backgroundColor: "#ffffff",
+                color: isVendor ? colors.vendorBlue : "linear-gradient(to bottom, #0077b6, #005a8d)",
+                border: `1.6px solid ${isVendor ? colors.vendorBlue : "#0077B6"}`,
+                px: 2,
+                py: 1,
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                fontSize: "0.9rem",
+                fontWeight: 500,
+                textTransform: "none",
+                boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  backgroundColor: isVendor ? colors.vendorBlue : colors.vendorBlueDark,
+                  color: "#ffffff",
+                  boxShadow: "0px 4px 12px rgba(0,119,182,0.30)",
+                },
+              }}
+            >
+              <AddIcon sx={{ fontSize: "1rem" }} />
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                {isVendor ? "Create Listing" : "List your property"}
+              </Box>
+              <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+                {isVendor ? "Create" : "List"}
+              </Box>
+            </Button>
 
-            {/* Sign Up Link */}
-            {isAuthPage ? (
-              <Typography
-                component={Link}
-                to="/register"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  "&:hover": { color: "#2563EB" },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign up
-              </Typography>
-            ) : (
-              <Typography
-                component={Link}
-                to="/Login"
-                sx={{
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  display: { xs: "none", sm: "block" },
-                  "&:hover": { color: "#2563EB" },
-                  transition: "color 0.2s ease",
-                }}
-              >
-                Sign in
-              </Typography>
+            {/* Sign Up Link */}{/* only show on main navbar, and hide on vendor dashboard for better UX*/}
+            {!isVendor && (
+              isAuthPage ? (
+                <Typography
+                  component={Link}
+                  to="/register"
+                  sx={{
+                    color: "#374151",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    "&:hover": { color: colors.vendorBlue },
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  Sign up
+                </Typography>
+              ) : (
+                <Typography
+                  component={Link}
+                  to="/register"
+                  sx={{
+                    color: "#374151",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    display: { xs: "none", sm: "block" },
+                    "&:hover": { color: colors.vendorBlue },
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  Sign up
+                </Typography>
+
+
+
+              )
             )}
+
+
+                        {/* Admin Button */}
+           <IconButton
+            onClick={() => navigate("/admin/users")}
+              sx={{
+            borderRadius: "8px",
+            px: 1,
+            py: 0.75,
+            "&:hover": { backgroundColor: "#F9FAFB" },
+            }}
+            title="Admin Panel"
+            >
+              <AdminPanelSettingsIcon sx={{ fontSize: "1.3rem", color: "#4B5563" }} />
+            </IconButton>
+
+
+            
           </Box>
         </Toolbar>
       </Container>

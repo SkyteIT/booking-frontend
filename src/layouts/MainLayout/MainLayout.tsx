@@ -1,13 +1,13 @@
 // src/layouts/MainLayout/MainLayout.tsx
 import { Box } from "@mui/material";
-import MainNavbar from "../../components/navbars/MainNavbar";
+import { Outlet } from "react-router-dom";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
+import CustomerNavbar from "../../components/navbars/CustomerNavbar";
+import { useAuth } from "../../context/useAuth";
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
-
-const MainLayout = ({ children }: MainLayoutProps) => {
+const MainLayout = () => {
+  const { loading } = useAuth();
   return (
     <Box
       sx={{
@@ -16,17 +16,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         minHeight: "100vh",
       }}
     >
-      {/* Navbar */}
-      <MainNavbar />
+      {/* Dynamic Navbar */}
+      <CustomerNavbar />
+
+      {loading && <LoadingSpinner />}
 
       {/* Page Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
+          
         }}
       >
-        {children}
+        <Outlet />
       </Box>
 
       {/* Footer */}

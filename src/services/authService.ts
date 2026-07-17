@@ -1,38 +1,53 @@
-import axios from "axios";
+// src/services/authService.ts
+import api from "./api";
+import tokenStorage from "./tokenStorage";
 
-const API_URL = "http://localhost:5037/api/auth";
-
-export interface LoginResponse {
-  token: string;
-}
-//real login backend call
-export const loginUser = async (
-  email: string,
-  password: string
-): Promise<LoginResponse> => {
-  const response = await axios.post<LoginResponse>(`${API_URL}/login`, {
-    email,
-    password,
-  });
-
-  return response.data;
+type AuthResponse = {
+  token?: string;
+  accessToken?: string;
+  user?: unknown;
+  role?: string;
+  email?: string;
 };
 
-export interface RegisterResponse {
-  token: string;
-}
-//real register backend call(after that request reach controller)
-export const registerUser = async (
-  name: string,
-  email: string,
-  password: string
-): Promise<RegisterResponse> => {
-  const response = await axios.post<RegisterResponse>(`${API_URL}/register`, {
-    email: email.trim().toLowerCase(),   // ✅ FIX
-    password,
-    firstName: name.trim(),
-    lastName: "User"
-  });
+const saveAuthToken = (response: AuthResponse) => {
+  const token = response.token ?? response.accessToken;
 
-  return response.data;
+  if (token) {
+    tokenStorage.setToken(token);
+  }
+};
+
+export const login = async (email: string, password: string) => {
+  const res = await api.post<AuthResponse>("/api/auth/login", { email, password });
+
+  saveAuthToken(res.data);
+
+  return res.data;
+};
+
+export const register = async (payload: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}) => {
+  const res = await api.post<AuthResponse>("/api/auth/register", payload);
+
+  saveAuthToken(res.data);
+
+  return res.data;
+};
+
+export const loginWithGoogle = async (credential: string) => {
+  const res = await api.post<AuthResponse>("/api/auth/google-login", { idToken: credential });
+
+  saveAuthToken(res.data);
+
+  return res.data;
+};
+
+export const getCurrentUser = async () => {
+  const res = await api.get("/api/auth/current-user");
+  return res.data;
 };

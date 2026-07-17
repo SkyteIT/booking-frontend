@@ -1,77 +1,90 @@
-import { useEffect, useState } from "react";
-import { Card, Typography, Box } from "@mui/material";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import PersonIcon from "@mui/icons-material/Person";
-
-// ✅ Define correct user type
-type User = {
-  name: string;
-  email: string;
-};
+import SettingsIcon from "@mui/icons-material/Settings";
+import StarIcon from "@mui/icons-material/Star";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import { Card, Typography, Box } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../../context/useAuth";
 
 const DashboardSidebar = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  const isVendor =
+    String(user?.role ?? "").toLowerCase() === "vendor";
 
-        if (!token) return;
+  // ✅ BASE MENU
+  const menuItems = [
+    { label: "Dashboard", icon: <DashboardIcon fontSize="small" />, path: "/customer/dashboard" },
+    { label: "My Bookings", icon: <CalendarMonthIcon fontSize="small" />, path: "/customer/bookings" },
+    { label: "My Reviews", icon: <StarIcon fontSize="small" />, path: "/customer/reviews" },
+    { label: "Payment Methods", icon: <CreditCardIcon fontSize="small" />, path: "/customer/payments" },
+    { label: "Notifications", icon: <NotificationsIcon fontSize="small" />, path: "/customer/notifications" },
+    { label: "Settings", icon: <SettingsIcon fontSize="small" />, path: "/settings" },
+  ];
 
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        setUser(data);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  // ✅ ADD VENDOR ONLY IF ROLE = VENDOR
+  if (isVendor) {
+    menuItems.push({
+      label: "Vendor Dashboard",
+      icon: <StorefrontIcon fontSize="small" />,
+      path: "/vendor/dashboard",
+    });
+  }
 
   return (
     <Card className="sidebar-card" sx={{ p: 3 }}>
-
+      {/* 🔹 PROFILE */}
       <Box textAlign="center">
         <Box className="user-avatar">
           <PersonIcon />
         </Box>
 
         <Typography fontWeight={600}>
-          {user?.name || "--"}
+          {user?.firstName ?? "--"}
         </Typography>
 
         <Typography variant="body2" color="text.secondary">
-          {user?.email || "--"}
+          {user?.email ?? "--"}
         </Typography>
       </Box>
 
+      {/* 🔹 MENU */}
       <Box mt={3}>
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
 
-        <Box className="sidebar-menu-item active">Dashboard</Box>
-        <Box className="sidebar-menu-item">My Bookings</Box>
-        <Box className="sidebar-menu-item">My Reviews</Box>
-        <Box className="sidebar-menu-item">Payment Methods</Box>
-        <Box className="sidebar-menu-item">Notifications</Box>
-        <Box className="sidebar-menu-item">Settings</Box>
-
-        <Box mt={2} className="sidebar-menu-item">
-          Vendor Dashboard
-        </Box>
-
+          return (
+            <Box
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={`sidebar-menu-item ${isActive ? "active" : ""}`}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                py: 1.2,
+                px: 1,
+                borderRadius: 2,
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "#f5f5f5",
+                },
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                {item.icon}
+              </Box>
+              <Typography variant="body2">{item.label}</Typography>
+            </Box>
+          );
+        })}
       </Box>
-
     </Card>
   );
 };

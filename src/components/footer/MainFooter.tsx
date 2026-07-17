@@ -1,4 +1,13 @@
 // src/components/footer/MainFooter.tsx
+import EmailIcon from "@mui/icons-material/Email";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PhoneIcon from "@mui/icons-material/Phone";
+import SendIcon from "@mui/icons-material/Send";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import YouTubeIcon from "@mui/icons-material/YouTube";
 import {
   Box,
   Container,
@@ -11,16 +20,7 @@ import {
   Button,
   InputAdornment,
 } from "@mui/material";
-import PlaceIcon from "@mui/icons-material/Place";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import YouTubeIcon from "@mui/icons-material/YouTube";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import SendIcon from "@mui/icons-material/Send";
+import icon from "../../assets/icons/icon2.png";
 
 const footerLinks = {
   Company: [
@@ -56,16 +56,16 @@ const socialLinks = [
 
 const contactInfo = [
   {
-    icon: <EmailIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "support@UBE.com",
+    icon: <EmailIcon sx={{ fontSize: "1rem", color: "#00B4D8" }} />,
+    text: "support@ube.com",
   },
   {
-    icon: <PhoneIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "+1 (555) 123-4567",
+    icon: <PhoneIcon sx={{ fontSize: "1rem", color: "#00B4D8" }} />,
+    text: "+94 123 456 789",
   },
   {
-    icon: <LocationOnIcon sx={{ fontSize: "1rem", color: "#60A5FA" }} />,
-    text: "123 Main Street, New York, USA",
+    icon: <LocationOnIcon sx={{ fontSize: "1rem", color: "#00B4D8" }} />,
+    text: "123 Main Street, Colombo, Sri Lanka",
   },
 ];
 
@@ -74,7 +74,7 @@ const MainFooter = () => {
     <Box
       component="footer"
       sx={{
-        backgroundColor: "#0F172A",
+        backgroundColor: "#0F1B2D",
         color: "#ffffff",
         pt: { xs: 6, md: 10 },
         pb: 0,
@@ -93,29 +93,20 @@ const MainFooter = () => {
                 mb: 2.5,
               }}
             >
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "8px",
-                  backgroundColor: "#2563EB",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <PlaceIcon sx={{ color: "#ffffff", fontSize: "1.2rem" }} />
+              <Box>
+                <img src={icon} alt="UBE" style={{ width: 40, height: 40}} />
               </Box>
               <Typography
                 variant="h6"
                 sx={{
-                  fontWeight: 700,
+                  fontFamily: "'Syne', sans-serif",
+                  fontWeight: 800,
                   fontSize: "1.2rem",
                   color: "#ffffff",
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "0.02em",
                 }}
               >
-                UBE
+                  UBE
               </Typography>
             </Box>
 
@@ -173,7 +164,7 @@ const MainFooter = () => {
                     height: 36,
                     transition: "all 0.2s ease",
                     "&:hover": {
-                      backgroundColor: "#2563EB",
+                      backgroundColor: "#0077b6",
                       color: "#ffffff",
                       transform: "translateY(-2px)",
                     },
@@ -219,7 +210,7 @@ const MainFooter = () => {
                       transition: "color 0.2s ease",
                       width: "fit-content",
                       "&:hover": {
-                        color: "#60A5FA",
+                        color: "#00B4D8",
                       },
                     }}
                   >
@@ -235,6 +226,7 @@ const MainFooter = () => {
             <Typography
               variant="body1"
               sx={{
+                fontFamily: "'Syne', sans-serif",
                 fontWeight: 700,
                 color: "#ffffff",
                 fontSize: "0.95rem",
@@ -290,7 +282,7 @@ const MainFooter = () => {
                       borderColor: "rgba(255,255,255,0.25)",
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: "#2563EB",
+                      borderColor: "#0077b6",
                     },
                   },
                   "& input::placeholder": {
@@ -304,14 +296,14 @@ const MainFooter = () => {
                 endIcon={<SendIcon sx={{ fontSize: "1rem" }} />}
                 fullWidth
                 sx={{
-                  backgroundColor: "#2563EB",
+                  backgroundColor: "#0077b6",
                   color: "#ffffff",
                   fontWeight: 600,
                   fontSize: "0.875rem",
                   py: 1.1,
                   borderRadius: "8px",
                   "&:hover": {
-                    backgroundColor: "#1D4ED8",
+                    backgroundColor: "#005a8d",
                   },
                 }}
               >
@@ -350,7 +342,7 @@ const MainFooter = () => {
                     color: "#64748B",
                     fontSize: "0.8rem",
                     transition: "color 0.2s ease",
-                    "&:hover": { color: "#60A5FA" },
+                    "&:hover": { color: "#00B4D8" },
                   }}
                 >
                   {item}

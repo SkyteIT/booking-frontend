@@ -1,3 +1,10 @@
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import {
+  VendorApplicationContext,
+  defaultVendorApplicationState,
+} from "./VendorApplicationContextObject";
+import type { VendorApplicationData } from "./VendorApplicationContextObject";
 import React, {
   createContext,
   useContext,
@@ -75,38 +82,32 @@ const VendorApplicationContext =
 /* PROVIDER */
 
 export const VendorApplicationProvider = ({
-  children
+  children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) => {
   //Initialize state
-  const [data, setData] =
-    useState<VendorApplicationData>(() => {
-      try {
-        //Attempt to load saved data from localStorage
-        const saved =
-          localStorage.getItem("vendor_application");
+  const [data, setData] = useState<VendorApplicationData>(() => {
+    try {
+      //Attempt to load saved data from localStorage
+      const saved = localStorage.getItem("vendor_application");
 
-        return saved
-          ? (JSON.parse(saved) as VendorApplicationData)
-          : defaultState;
-      } catch {
-        return defaultState;
-      }
-    });
+      return saved
+        ? (JSON.parse(saved) as VendorApplicationData)
+        : defaultVendorApplicationState;
+    } catch {
+      return defaultVendorApplicationState;
+    }
+  });
 
   // Whenever data changes, save it to localStorage
-  
   useEffect(() => {
-    localStorage.setItem(
-      "vendor_application",
-      JSON.stringify(data)
-    );
+    localStorage.setItem("vendor_application", JSON.stringify(data));
   }, [data]);
 
   /* reset */
   const resetApplication = () => {
-    setData(defaultState);
+    setData(defaultVendorApplicationState);
     localStorage.removeItem("vendor_application");
   };
 
@@ -118,17 +119,3 @@ export const VendorApplicationProvider = ({
     </VendorApplicationContext.Provider>
   );
 };
-
-/*HOOK*/
-//how pages access shared data
-export const useVendorApplication = () => {
-    const context = useContext(VendorApplicationContext);
-  
-    if (!context) {
-      throw new Error(
-        "useVendorApplication must be used inside VendorApplicationProvider"
-      );
-    }
-  
-    return context;
-  };
