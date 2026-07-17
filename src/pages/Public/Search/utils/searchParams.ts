@@ -29,12 +29,10 @@ const parseNumber = (value: string | null): number | undefined => {
 export const parseSearchFilters = (
   searchParams: URLSearchParams,
 ): SearchFilters => {
-  const categoryFromUrl = (searchParams.get("category") || "")
+  const categories = (searchParams.get("category") || "")
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
-
-  const categories = categoryFromUrl;
 
   return {
     q: searchParams.get("q") || "",

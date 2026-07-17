@@ -1,6 +1,6 @@
 // Screen component: wires hook data/actions into presentational components.
 // It coordinates layout only and avoids business logic.
-import { Box, Container, Grid, CircularProgress, Alert } from "@mui/material";
+import { Alert, Box, CircularProgress, Container, Grid } from "@mui/material";
 import FiltersSidebar from "../components/FiltersSidebar";
 import ResultsGrid from "../components/ResultsGrid";
 import SearchToolbar from "../components/SearchToolbar";
@@ -9,10 +9,11 @@ import { useSearchResults } from "../hooks/useSearchResults";
 const SearchResultsScreen = () => {
   const {
     filters,
+    listings = [],
     filteredListings,
     loading,
     error,
-    categories,
+    categories = [],
     ratingOptions,
     setQuery,
     setMinPrice,
@@ -36,11 +37,7 @@ const SearchResultsScreen = () => {
       }}
     >
       <Container maxWidth="xl" sx={{ px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
-        <SearchToolbar
-          query={filters.q}
-          total={filteredListings.length}
-          onQueryChange={setQuery}
-        />
+        <SearchToolbar query={filters.q} total={listings.length} onQueryChange={setQuery} />
 
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: "12px" }}>

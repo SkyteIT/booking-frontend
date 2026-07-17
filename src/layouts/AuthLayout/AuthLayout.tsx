@@ -4,7 +4,7 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useAuth } from "../../context/useAuth";
 
 type AuthLayoutProps = {
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 function AuthLayout({ children }: AuthLayoutProps) {

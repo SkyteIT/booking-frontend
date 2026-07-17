@@ -1,16 +1,15 @@
-// Public prop contract for the FiltersSidebar parent component.
-import type { ListingCategory } from "../../utils/types";
+// types.ts — FiltersSidebar prop contract
 
 export interface FiltersSidebarProps {
-  categories: ListingCategory[];
-  selectedCategories: ListingCategory[];
+  categories: { id: string; name: string }[];   // ← was ListingCategory[] (hardcoded union)
+  selectedCategories: string[];                  // ← was ListingCategory[]
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
   ratingOptions: readonly number[];
   onClearAll: () => void;
   onClearCategories: () => void;
-  onToggleCategory: (category: ListingCategory) => void;
+  onToggleCategory: (category: string) => void; // ← was (category: ListingCategory)
   onMinPriceChange: (value: string) => void;
   onMaxPriceChange: (value: string) => void;
   onMinRatingChange: (value?: number) => void;

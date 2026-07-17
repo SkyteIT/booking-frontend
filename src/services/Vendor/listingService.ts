@@ -105,7 +105,7 @@ export interface CreateListingRequest {
 }
 
 export const createListing = async (data: CreateListingRequest) => {
-  const res = await api.post("/api/listings", data);
+  const res = await api.post("/listings", data);
   return res.data;
 };
 
@@ -116,7 +116,7 @@ export interface CategoryDto {
 }
 
 export const getCategories = async (): Promise<CategoryDto[]> => {
-  const res = await api.get<CategoryDto[]>("/api/categories");
+  const res = await api.get<CategoryDto[]>("/categories");
   return res.data;
 };
 
@@ -149,21 +149,27 @@ export interface ListingResponse {
 }
 
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
-  const res = await api.get<ListingResponse[]>("/api/listings/me");
+  const res = await api.get<ListingResponse[]>("/listings/me");
   return res.data;
 };
 
 export const getListings = async (): Promise<ListingResponse[]> => {
-  const res = await api.get<ListingResponse[]>("/api/listings");
+  const res = await api.get<ListingResponse[]>("/listings", {
+    headers: { "Content-Type": "application/json" },
+    skipAuthRedirect: true,
+  });
   return res.data;
 };
 
 export const getListingById = async (id: string): Promise<ListingResponse> => {
-  const res = await api.get<ListingResponse>(`/api/listings/${id}`);
+  const res = await api.get<ListingResponse>(`/listings/${id}`, {
+    headers: { "Content-Type": "application/json" },
+    skipAuthRedirect: true,
+  });
   return res.data;
 };
 
 export const updateListing = async (id: string, data: CreateListingRequest) => {
-  const res = await api.put(`/api/listings/${id}`, data);
+  const res = await api.put(`/listings/${id}`, data);
   return res.data;
 };
