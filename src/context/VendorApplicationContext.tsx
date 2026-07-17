@@ -5,9 +5,7 @@ import React, {
   useState
 } from "react";
 
-/* =======================
-   TYPES
-======================= */
+//types define
 
 export interface BusinessFormData {
   businessName: string;
@@ -36,7 +34,7 @@ export interface VendorApplicationData {
   categories: string[];
   documents: DocumentsData;
 }
-
+//combine all data into one object
 const defaultState: VendorApplicationData = {
   businessInfo: {
     businessName: "",
@@ -59,9 +57,7 @@ const defaultState: VendorApplicationData = {
   }
 };
 
-/* =======================
-   CONTEXT TYPE
-======================= */
+/* CONTEXT TYPE*/
 
 interface VendorContextType {
   data: VendorApplicationData;
@@ -71,16 +67,12 @@ interface VendorContextType {
   resetApplication: () => void;
 }
 
-/* =======================
-   CONTEXT
-======================= */
+/*CONTEXT*/
 
 const VendorApplicationContext =
   createContext<VendorContextType | null>(null);
 
-/* =======================
-   PROVIDER
-======================= */
+/* PROVIDER */
 
 export const VendorApplicationProvider = ({
   children

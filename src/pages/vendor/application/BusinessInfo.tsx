@@ -149,7 +149,7 @@ const BusinessInfo = (): JSX.Element => {
                 Business Type
               </Typography>
               <TextField
-                placeholder="Travel & Accomdation,Transport,Activities etc."
+                placeholder="Travel & Accommodation,Transport,Activities etc."
                 fullWidth
                 variant="outlined"
                 value={formData.businessType}
