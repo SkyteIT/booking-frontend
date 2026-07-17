@@ -1,14 +1,14 @@
 // src/components/navbars/VendorSidebar.tsx
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
+import ReportsIcon from "@mui/icons-material/Assessment";
+import AvailabilityIcon from "@mui/icons-material/CalendarMonth";
+import SupportIcon from "@mui/icons-material/ContactSupport";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BookingsIcon from "@mui/icons-material/EventNote";
 import ListingsIcon from "@mui/icons-material/ListAlt";
-import AvailabilityIcon from "@mui/icons-material/CalendarMonth";
 import PricingIcon from "@mui/icons-material/LocalOffer";
-import ReportsIcon from "@mui/icons-material/Assessment";
 import SettingsIcon from "@mui/icons-material/Settings";
-import SupportIcon from "@mui/icons-material/ContactSupport";
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/vendor/dashboard" },

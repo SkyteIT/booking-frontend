@@ -1,9 +1,56 @@
 // src/services/api.ts
 import axios from "axios";
+import { refreshAccessToken } from "./tokenRefresh";
+import tokenStorage from "./tokenStorage";
 
 const api = axios.create({
-  baseURL: "/api",   // Vite proxy forwards /api → http://localhost:5128
+  baseURL: "/api", // Vite proxy forwards /api → http://localhost:5128
   headers: { "Content-Type": "application/json" },
 });
+
+// Attach token to outgoing requests
+api.interceptors.request.use((config) => {
+  const token = tokenStorage.getToken();
+  const requestUrl = config.url ?? "";
+  const isPublicAuthRequest = /\/api\/auth\/(login|register|google-login)/.test(requestUrl);
+
+  if (token && !isPublicAuthRequest) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+// Response interceptor: on 401, try refresh then retry original request once
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+
+    if (
+      originalRequest &&
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
+      const newToken = await refreshAccessToken();
+
+      if (newToken) {
+        // update header and retry original request
+        originalRequest.headers = originalRequest.headers ?? {};
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      }
+
+      // refresh failed — tokens already cleared by refreshAccessToken()
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;

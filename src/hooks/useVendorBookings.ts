@@ -1,19 +1,21 @@
-// src/hooks/useVendorBookings.ts
-
-import { useEffect, useMemo, useState } from "react";
-import { getVendorBookings } from "../services/Vendor/vendorBookings";
-import type {
-  VendorBookingDto,
-} from "../components/vendor/bookings/BookingTypes";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { VendorBookingDto } from "../components/Bookings/BookingTypes";
+import { getBookings } from "../services/Bookings/booking";
 
 type UseVendorBookingsParams = {
-  vendorId: string;
   initialPageSize?: number;
+  status?: string;
+  sortBy?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 export function useVendorBookings({
-  vendorId,
   initialPageSize = 10,
+  status,
+  sortBy,
+  startDate,
+  endDate,
 }: UseVendorBookingsParams) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
@@ -28,40 +30,61 @@ export function useVendorBookings({
     return Math.max(1, Math.ceil(totalCount / pageSize));
   }, [totalCount, pageSize]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchBookings() {
+  const fetchBookings = useCallback(
+    async (isCancelled?: () => boolean) => {
       try {
+        console.log("Fetching bookings:", { page, pageSize });
+
         setLoading(true);
         setError(null);
 
-        const result = await getVendorBookings({
-          vendorId,
+        const result = await getBookings({
           page,
           pageSize,
+          status,
+          sortBy,
+          startDate,
+          endDate,
         });
 
-        if (cancelled) return;
+        console.log("API RESULT:", result);
 
-        setData(result.items);
-        setTotalCount(result.totalCount);
-      } catch (err: any) {
-        if (cancelled) return;
-        setError(err?.message ?? "Failed to load bookings");
+        if (isCancelled?.()) return;
+
+        // Handle both API types (very important)
+        if (Array.isArray(result)) {
+          // API returns plain array
+          setData(result);
+          setTotalCount(result.length);
+        } else {
+          // API returns paginated object
+          setData(result.items ?? []);
+          setTotalCount(result.totalCount ?? 0);
+        }
+      } catch (err) {
+        if (isCancelled?.()) return;
+
+        console.error("FETCH ERROR:", err);
+
+        setError(err instanceof Error ? err.message : "Failed to load bookings");
         setData([]);
         setTotalCount(0);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!isCancelled?.()) setLoading(false);
       }
-    }
+    },
+    [page, pageSize, status, sortBy, startDate, endDate]
+  );
 
-    fetchBookings();
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchBookings(() => cancelled);
 
     return () => {
       cancelled = true;
     };
-  }, [vendorId, page, pageSize]);
+  }, [fetchBookings]);
 
   return {
     data,
@@ -73,5 +96,7 @@ export function useVendorBookings({
     setPageSize,
     totalCount,
     pageCount,
+    refetch: () => fetchBookings(),
+
   };
 }

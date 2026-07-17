@@ -1,40 +1,69 @@
-// src/layouts/AdminLayout/AdminLayout.tsx
-import { Box } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import { Outlet } from "react-router-dom";
-import AdminSidebar from "./AdminSidebar";
-import AdminHeader from "./AdminHeader";
+import AdminSidebar from "../../components/Admin/AdminSidebar";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import MainFooter from "../../components/footer/MainFooter";
+import AdminNavbar from "../../components/navbars/AdminNavbar";
+import { useAuth } from "../../context/useAuth";
 
 export default function AdminLayout() {
-  const headerHeight = 70; // same as AdminHeader height
-
+  const { loading } = useAuth();
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      
-      {/* Header - full width */}
-      <AdminHeader />
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#F3F5F9", // softer background
+      }}
+    >
+      <AdminNavbar />
 
-      {/* Main content area: sidebar + page content */}
-      <Box sx={{ display: "flex", flexGrow: 1 }}>
-        
-        {/* Sidebar with fixed width and height adjusted under header */}
-        <Box sx={{ width: 260, height: `calc(100vh - ${headerHeight}px)` }}>
-          <AdminSidebar />
-        </Box>
+      {loading && <LoadingSpinner />}
 
-        {/* Page content area */}
-        <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-          {/* Page content container */}
-          <Box sx={{ p: 3, bgcolor: "#f4f6f8", flexGrow: 1, overflowY: "auto" }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", lg: "260px 1fr" },
+            gap: { xs: 2.5, lg: 3.5 },
+            alignItems: "start",
+          }}
+        >
+          {/* 🔹 Sidebar */}
+          <Box
+            sx={{
+              position: { lg: "sticky" },
+              top: 96,
+              alignSelf: "start",
+            }}
+          >
+            <AdminSidebar />
+          </Box>
+
+          {/* 🔹 Main Content */}
+          <Box
+            sx={{
+              minHeight: "calc(100vh - 160px)",
+              borderRadius: 4,
+
+              // 👇 Apple-like surface
+              bgcolor: "rgba(255,255,255,0.75)",
+              backdropFilter: "blur(10px)",
+
+              // 👇 subtle border instead of heavy
+              border: "1px solid rgba(0,0,0,0.04)",
+
+              // 👇 soft floating shadow
+              boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
+
+              p: { xs: 2.5, md: 3.5 },
+            }}
+          >
             <Outlet />
           </Box>
         </Box>
-      </Box>
+      </Container>
 
-      {/* Footer spans full width */}
-      <Box sx={{ width: "100%" }}>
-        <MainFooter />
-      </Box>
+      <MainFooter />
     </Box>
   );
 }

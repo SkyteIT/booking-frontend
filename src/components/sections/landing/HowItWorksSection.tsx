@@ -1,8 +1,8 @@
 // src/components/sections/landing/HowItWorksSection.tsx
-import { Box, Container, Typography, Grid } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import SearchIcon from "@mui/icons-material/Search";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
+import { Box, Container, Typography, Grid } from "@mui/material";
 
 const steps = [
   {

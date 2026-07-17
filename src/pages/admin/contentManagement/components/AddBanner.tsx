@@ -357,7 +357,7 @@ export default function AddBanner() {
               />
             </Box>
           </Paper>
-
+           
           {/* Tips */}
           <Paper sx={{ ...cardStyle, bgcolor: "#fff8e1", border: "1px solid #ffe082" }}>
             <Typography fontWeight={600} mb={1} fontSize={14}>💡 Tips</Typography>

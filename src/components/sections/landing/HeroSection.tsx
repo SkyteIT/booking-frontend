@@ -1,4 +1,9 @@
 // src/components/sections/landing/HeroSection.tsx
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PeopleIcon from "@mui/icons-material/People";
+import SearchIcon from "@mui/icons-material/Search";
+import StarIcon from "@mui/icons-material/Star";
 import {
   Box,
   Container,
@@ -9,11 +14,6 @@ import {
   InputAdornment,
   Grid,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import PeopleIcon from "@mui/icons-material/People";
-import StarIcon from "@mui/icons-material/Star";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 

@@ -1,4 +1,5 @@
 // src/components/cards/TestimonialCard.tsx
+import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import {
   Box,
   Card,
@@ -7,7 +8,6 @@ import {
   Avatar,
   Rating,
 } from "@mui/material";
-import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 
 interface TestimonialCardProps {
   name: string;

@@ -68,7 +68,7 @@ export default function ContentManagement() {
     });
   }, [categories, search, filter]);
 
-  const categoryToDelete = categories.find((c) => String(c.id) === deleteId);
+  const categoryToDelete = categories.find((c) => String(c.id) === String(deleteId ?? ""));
 
   function handleDeleteClose() {
     setDeleteId(null);
@@ -84,11 +84,21 @@ export default function ContentManagement() {
       await removeCategory(deleteId);
       handleDeleteClose();
     } catch (err: any) {
-      const msg =
+      // Surface backend error clearly — FK constraint = listings still linked
+      const serverMsg =
         err?.response?.data?.error ||
         err?.response?.data?.message ||
+        err?.response?.data?.title ||
         err?.message ||
-        "Failed to delete category. Please try again.";
+        "";
+      const isFkError =
+        serverMsg.toLowerCase().includes("reference") ||
+        serverMsg.toLowerCase().includes("constraint") ||
+        serverMsg.toLowerCase().includes("foreign key") ||
+        err?.response?.status === 409;
+      const msg = isFkError
+        ? "Cannot delete: this category still has listings linked to it. Move or reassign the listings first, then try again."
+        : serverMsg || "Failed to delete category. Please try again.";
       setDeleteError(msg);
     } finally {
       setDeleteLoading(false);
