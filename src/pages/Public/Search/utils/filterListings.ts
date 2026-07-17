@@ -34,9 +34,6 @@ export const filterListings = (
     const matchesMinRating =
       filters.minRating === undefined || listing.rating >= filters.minRating;
     if (!matchesMinRating) return false;
-
-  
-
     return true;
   });
 };

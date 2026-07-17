@@ -11,7 +11,6 @@ import {
   TableCell,
   TableBody,
   Avatar,
-  Chip,
   IconButton,
   Button,
 } from "@mui/material";

@@ -168,7 +168,7 @@ export default function VendorNavbar() {
 
               <MenuItem
                 component={Link}
-                to="/settings"
+                to="/vendor/settings"
                 onClick={handleClose}
               >
                 Settings

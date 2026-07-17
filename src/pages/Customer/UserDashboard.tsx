@@ -18,7 +18,7 @@ const UserDashboard = () => {
       <Box className="dashboard-layout">
 
         <Box className="dashboard-sidebar">
-          <DashboardSideBar activePage="Dashboard" />
+          <DashboardSideBar />
         </Box>
 
         <Box className="dashboard-main">

@@ -11,7 +11,6 @@ import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBannerById, updateBanner, PLACEMENT_OPTIONS } from "../services/contentService";
-import type { Banner } from "../types/contentType";
 
 const cardStyle = {
   p: 3,

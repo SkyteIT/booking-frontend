@@ -1,7 +1,19 @@
 // src/services/api.ts
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 import { refreshAccessToken } from "./tokenRefresh";
 import tokenStorage from "./tokenStorage";
+
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    _retry?: boolean;
+    skipAuthRedirect?: boolean;
+  }
+}
+
+export interface ApiRequestConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+  skipAuthRedirect?: boolean;
+}
 
 const api = axios.create({
   baseURL: "/api", // Vite proxy forwards /api → http://localhost:5128
@@ -12,7 +24,9 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = tokenStorage.getToken();
   const requestUrl = config.url ?? "";
-  const isPublicAuthRequest = /\/api\/auth\/(login|register|google-login)/.test(requestUrl);
+  const isPublicAuthRequest =
+    /\/auth\/(login|register|google-login)/.test(requestUrl) ||
+    /\/api\/auth\/(login|register|google-login)/.test(requestUrl);
 
   if (token && !isPublicAuthRequest) {
     config.headers = config.headers ?? {};
@@ -32,7 +46,8 @@ api.interceptors.response.use(
       originalRequest &&
       error.response &&
       error.response.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !originalRequest.skipAuthRedirect
     ) {
       originalRequest._retry = true;
 

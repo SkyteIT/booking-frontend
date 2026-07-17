@@ -103,29 +103,31 @@ export default function CategoryCard({
           alignItems: "center",
           gap: 2,
           background: "#fff",
-          borderRadius: "16px",
-          p: 2,
-          border: "1px solid #E2E8F0",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-          transition: "box-shadow .2s, transform .2s",
+          borderRadius: "22px",
+          p: 2.75,
+          border: "1px solid #E5E7EB",
+          boxShadow: "0 18px 42px rgba(15,23,42,0.08)",
+          transition: "box-shadow .3s ease, transform .3s ease, border-color .3s ease",
           "&:hover": {
-            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-            transform: "translateY(-1px)",
+            boxShadow: "0 22px 50px rgba(15,23,42,0.14)",
+            transform: "translateY(-3px)",
+            borderColor: "#CBD5E1",
           },
         }}
       >
         {/* Icon */}
         <Box
           sx={{
-            width: 48,
-            height: 48,
-            borderRadius: "12px",
+            width: 52,
+            height: 52,
+            borderRadius: "16px",
             background: gradient,
             color: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
+            boxShadow: `0 12px 28px ${color}20`,
           }}
         >
           {icon}
@@ -167,9 +169,21 @@ export default function CategoryCard({
           <Tooltip title="Edit">
             <IconButton
               size="small"
-              // ✅ FIX: was navigate(`/admin/categories/edit/${category.id}`) — now opens modal
               onClick={() => onEdit(String(category.id))}
-              sx={{ color: "#6366F1", "&:hover": { background: "#EEF2FF" } }}
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: "12px",
+                border: "1px solid #E5E7EB",
+                color: "#2563EB",
+                background: "#fff",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  background: "#EFF6FF",
+                  borderColor: "#2563EB",
+                  transform: "translateY(-1px)",
+                },
+              }}
             >
               <EditIcon fontSize="small" />
             </IconButton>
@@ -178,7 +192,20 @@ export default function CategoryCard({
             <IconButton
               size="small"
               onClick={() => onDelete(String(category.id))}
-              sx={{ color: "#EF4444", "&:hover": { background: "#FEF2F2" } }}
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: "12px",
+                border: "1px solid #E5E7EB",
+                color: "#DC2626",
+                background: "#fff",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  background: "#FEE2E2",
+                  borderColor: "#DC2626",
+                  transform: "translateY(-1px)",
+                },
+              }}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
@@ -193,13 +220,13 @@ export default function CategoryCard({
     <Box
       sx={{
         background: "#fff",
-        borderRadius: "20px",
-        border: "1px solid #E2E8F0",
+        borderRadius: "24px",
+        border: "1px solid #E5E7EB",
         overflow: "hidden",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-        transition: "box-shadow .25s, transform .25s",
+        boxShadow: "0 18px 36px rgba(15,23,42,0.08)",
+        transition: "box-shadow .3s ease, transform .3s ease",
         "&:hover": {
-          boxShadow: `0 8px 30px ${color}25`,
+          boxShadow: `0 24px 48px ${color}24`,
           transform: "translateY(-3px)",
         },
         "&:hover .card-banner": {
@@ -211,16 +238,16 @@ export default function CategoryCard({
       <Box
         className="card-banner"
         sx={{
-          height: 6,
+          height: 8,
           background: gradient,
-          opacity: 0.7,
+          opacity: 0.85,
           transition: "opacity .25s",
         }}
       />
 
       <Box sx={{ p: 2.5 }}>
         {/* Top row: icon + actions */}
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} mb={2}>
           {/* Icon */}
           <Box
             sx={{
@@ -239,19 +266,25 @@ export default function CategoryCard({
           </Box>
 
           {/* Action buttons */}
-          <Box display="flex" gap={0.5}>
+          <Box display="flex" gap={0.75}>
             <Tooltip title="Edit category">
               <IconButton
                 size="small"
-                // ✅ FIX: was navigate(`/admin/categories/edit/${category.id}`) — now opens modal
                 onClick={() => onEdit(String(category.id))}
                 sx={{
-                  width: 32,
-                  height: 32,
-                  border: "1px solid #E2E8F0",
-                  borderRadius: "8px",
-                  color: "#6366F1",
-                  "&:hover": { background: "#EEF2FF", borderColor: "#6366F1" },
+                  width: 38,
+                  height: 38,
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "12px",
+                  color: "#2563EB",
+                  background: "#fff",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 6px 16px rgba(37,99,235,0.08)",
+                  "&:hover": {
+                    background: "#EFF6FF",
+                    borderColor: "#2563EB",
+                    transform: "translateY(-1px)",
+                  },
                 }}
               >
                 <EditIcon sx={{ fontSize: 16 }} />
@@ -262,12 +295,19 @@ export default function CategoryCard({
                 size="small"
                 onClick={() => onDelete(String(category.id))}
                 sx={{
-                  width: 32,
-                  height: 32,
-                  border: "1px solid #E2E8F0",
-                  borderRadius: "8px",
-                  color: "#EF4444",
-                  "&:hover": { background: "#FEF2F2", borderColor: "#EF4444" },
+                  width: 38,
+                  height: 38,
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "12px",
+                  color: "#DC2626",
+                  background: "#fff",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 6px 16px rgba(220,38,38,0.08)",
+                  "&:hover": {
+                    background: "#FEE2E2",
+                    borderColor: "#DC2626",
+                    transform: "translateY(-1px)",
+                  },
                 }}
               >
                 <DeleteIcon sx={{ fontSize: 16 }} />

@@ -38,6 +38,9 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
     categoryIds.forEach((id) => qs.append("categoryIds", id));
   }
 
-  const { data } = await api.get<SearchListing[]>(`/search/listings?${qs.toString()}`);
+  const { data } = await api.get<SearchListing[]>(`/search/listings?${qs.toString()}`, {
+    headers: { "Content-Type": "application/json" },
+    skipAuthRedirect: true,
+  });
   return data;
 };

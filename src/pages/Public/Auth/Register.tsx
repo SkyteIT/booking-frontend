@@ -1,16 +1,38 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { useAuth } from "../../../context/useAuth";
 import { register as registerUser } from "../../../services/authService";
 import {
   registerSchema,
   type RegisterFormData,
 } from "../../../utils/validationSchemas";
 
+const getApiErrorMessage = (error: unknown): string | undefined => {
+  if (!isAxiosError(error)) return undefined;
+
+  const data = error.response?.data;
+  if (!data) return error.message;
+
+  if (typeof data === "string") return data;
+  if (typeof data === "object") {
+    return (
+      (data as { message?: string; error?: string; detail?: string }).message ??
+      (data as { message?: string; error?: string; detail?: string }).error ??
+      (data as { message?: string; error?: string; detail?: string }).detail ??
+      JSON.stringify(data)
+    );
+  }
+
+  return error.message;
+};
+
 function Register(): JSX.Element {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [error, setError] = useState<string>("");
 
   const {
@@ -35,9 +57,10 @@ function Register(): JSX.Element {
         password: data.password,
       });
 
+      await refreshUser();
       navigate("/", { replace: true });
-    } catch {
-      setError("Unable to create your account. Please try again.");
+    } catch (error) {
+      setError(getApiErrorMessage(error) ?? "Unable to create your account. Please try again.");
     }
   };
 

@@ -1,14 +1,36 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { isAxiosError } from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { useAuth } from "../../../context/useAuth";
 import { login } from "../../../services/authService";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
+
+const getApiErrorMessage = (error: unknown): string | undefined => {
+  if (!isAxiosError(error)) return undefined;
+
+  const data = error.response?.data;
+  if (!data) return error.message;
+
+  if (typeof data === "string") return data;
+  if (typeof data === "object") {
+    return (
+      (data as { message?: string; error?: string; detail?: string }).message ??
+      (data as { message?: string; error?: string; detail?: string }).error ??
+      (data as { message?: string; error?: string; detail?: string }).detail ??
+      JSON.stringify(data)
+    );
+  }
+
+  return error.message;
+};
 
 function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const { refreshUser } = useAuth();
   const [error, setError] = useState<string>("");
 
   const {
@@ -23,12 +45,34 @@ function Login(): JSX.Element {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError("");
-      await login(data.email, data.password);
+      const response = (await login(data.email, data.password)) as {
+        role?: string;
+        user?: { role?: string };
+      };
+
+      await refreshUser();
 
       const next = new URLSearchParams(location.search).get("next");
-      navigate(next || "/", { replace: true });
-    } catch {
-      setError("Invalid email or password.");
+      if (next) {
+        navigate(next, { replace: true });
+        return;
+      }
+
+      const role = String(response.role ?? response.user?.role ?? "").toLowerCase();
+
+      if (role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+        return;
+      }
+
+      if (role === "vendor") {
+        navigate("/vendor/dashboard", { replace: true });
+        return;
+      }
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      setError(getApiErrorMessage(error) ?? "Invalid email or password.");
     }
   };
 

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Outlet } from "react-router-dom";
 import "./auth.css";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useAuth } from "../../context/useAuth";

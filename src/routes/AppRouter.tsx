@@ -1,35 +1,39 @@
 // src/routes/AppRouter.tsx
 import type { ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useAuth } from "../context/useAuth";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import LandingLayout from "../layouts/MainLayout/LandingLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";
-import AdminSectionPlaceholder from "../pages/admin/AdminSectionPlaceholder";
-import DashboardAdmin from "../pages/admin/dashboard/AdminDashboard";
-import VendorManagement from "../pages/admin/VendorManagement/VendorManagement";
+import AdminSectionPlaceholder from "../pages/Admin/AdminSectionPlaceholder";
+import DashboardAdmin from "../pages/Admin/Dashboard";
+import VendorManagement from "../pages/Admin/VendorManagement/VendorManagement";
+import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
+import ContentManagement from "../pages/admin/contentManagement/ContentManagement";
+import AddCategory from "../pages/admin/contentManagement/components/AddCategory";
+import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
+import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
 import CustomerMain from "../pages/Customer/customerMain";
 import UserDashboard from "../pages/Customer/UserDashboard";
-import ForgotPassword from "../pages/public/auth/ForgotPassword";
-import Login from "../pages/public/auth/Login";
-import Register from "../pages/public/auth/Register";
-import LandingPage from "../pages/public/LandingPage";
-import SearchResultsPage from "../pages/public/search/SearchResultsPage";
-import ViewProduct from "../pages/public/ViewProduct/ViewProduct";
-import BusinessInfo from "../pages/vendor/Application/BusinessInfo";
-import Categories from "../pages/vendor/Application/Categories";
-import ContactInfo from "../pages/vendor/Application/ContactInfo";
-import Documents from "../pages/vendor/Application/Documents";
-import Review from "../pages/vendor/Application/Review";
-import Availability from "../pages/vendor/Availability/Availability";
-import Bookings from "../pages/vendor/Bookings/Bookings";
-import CreateListing from "../pages/vendor/CreateListing/CreateListing";
-import Dashboard from "../pages/vendor/Dashboard/Dashboard";
-import VendorListings from "../pages/vendor/Listings/VendorListings";
-import VendorSettings from "../pages/vendor/settings/Settings";
-import UserNotificationsPage from "../pages/user/notifications/UserNotificationsPage";
+import ForgotPassword from "../pages/Public/Auth/ForgotPassword";
+import Login from "../pages/Public/Auth/Login";
+import Register from "../pages/Public/Auth/Register";
+import LandingPage from "../pages/Public/LandingPage";
+import SearchResultsPage from "../pages/Public/Search/SearchResultsPage";
+import ViewProduct from "../pages/Public/ViewProduct/ViewProduct";
+import BusinessInfo from "../pages/Vendor/Application/BusinessInfo";
+import Categories from "../pages/Vendor/Application/Categories";
+import ContactInfo from "../pages/Vendor/Application/ContactInfo";
+import Documents from "../pages/Vendor/Application/Documents";
+import Review from "../pages/Vendor/Application/Review";
+import Availability from "../pages/Vendor/Availability/Availability";
+import Bookings from "../pages/Vendor/Bookings/Bookings";
+import CreateListing from "../pages/Vendor/CreateListing/CreateListing";
+import Dashboard from "../pages/Vendor/Dashboard/Dashboard";
+import VendorListings from "../pages/Vendor/Listings/VendorListings";
+import Settings from "../pages/Vendor/Settings/Settings";
 
 type RoleGateProps = {
   allowedRole: "admin" | "vendor";
@@ -79,10 +83,12 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function AppRouter() {
   return (
     <Routes>
+      {/* Landing page with no top padding */}
       <Route element={<LandingLayout />}>
         <Route path="/" element={<LandingPage />} />
       </Route>
 
+      {/* Other public pages with top padding */}
       <Route element={<MainLayout />}>
         <Route path="/search" element={<SearchResultsPage />} />
         <Route path="/view-product/:id" element={<ViewProduct />} />
@@ -108,6 +114,7 @@ function AppRouter() {
           </RoleGate>
         }
       >
+        {/* Vendor-specific routes can be nested here */}
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="bookings" element={<Bookings />} />
@@ -115,7 +122,7 @@ function AppRouter() {
         <Route path="listings/new" element={<CreateListing />} />
         <Route path="listings/edit/:id" element={<CreateListing />} />
         <Route path="availability" element={<Availability />} />
-        <Route path="settings" element={<VendorSettings />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       <Route
@@ -159,6 +166,7 @@ function AppRouter() {
         }
       />
 
+      {/* Admin routes */}
       <Route
         path="/admin"
         element={
@@ -170,15 +178,15 @@ function AppRouter() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardAdmin />} />
         <Route path="vendors" element={<VendorManagement />} />
+        <Route path="notifications" element={<AdminNotifications />} />
+        <Route path="content" element={<ContentManagement />} />
+        <Route path="categories/add" element={<AddCategory />} />
+        <Route path="banners/add" element={<AddBanner />} />
+        <Route path="promotions/add" element={<AddPromotion />} />
         <Route path=":section" element={<AdminSectionPlaceholder />} />
       </Route>
       <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
-
-      <Route path="/user">
-        <Route path="dashboard" element={<UserDashboard />} />
-        <Route path="notifications" element={<UserNotificationsPage />} />
-      </Route>
-
+      {/* default fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

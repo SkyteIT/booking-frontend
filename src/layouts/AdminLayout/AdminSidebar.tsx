@@ -58,16 +58,18 @@ export default function AdminSidebar() {
                   borderRadius: 2,
                   mb: 1,
                   bgcolor: active ? "#0077B6" : "transparent",
-                  
                   "&:hover": { bgcolor: "#005A8D" },
                   "&:hover .MuiListItemIcon-root, &:hover .MuiListItemText-primary": {
                     color: "#fff",
-                  }
+                  },
                 }}
               >
-                <ListItemIcon sx={{minWidth: 36, 
-                  color: active ? "#fff" : "#4A5565",
-                }}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 36,
+                    color: active ? "#fff" : "#4A5565",
+                  }}
+                >
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText
