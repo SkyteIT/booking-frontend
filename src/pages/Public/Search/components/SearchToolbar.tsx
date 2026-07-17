@@ -1,6 +1,5 @@
 // Top toolbar: contains search text input and current result count.
 // It is presentational and forwards text changes via callback props.
-import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import {
@@ -12,6 +11,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useEffect, useState, type KeyboardEvent } from "react";
 
 interface SearchToolbarProps {
   query: string;
@@ -20,13 +20,9 @@ interface SearchToolbarProps {
 }
 
 const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
-  // Local state buffers the input so we only commit to the URL (and trigger
-  // the API call) when the user clicks Search or presses Enter - not on
-  // every keystroke, which previously caused race-condition API floods.
+  // Keep local input buffered so URL updates and API fetches only happen on submit.
   const [inputValue, setInputValue] = useState(query);
 
-  // Keep local input in sync if the URL query changes externally
-  // (e.g. browser back/forward navigation).
   useEffect(() => {
     setInputValue(query);
   }, [query]);
@@ -35,14 +31,12 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
     onQueryChange(inputValue);
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSubmit();
     }
   };
 
-  // Clear: wipe both the local input AND commit the empty string to the URL
-  // so the API re-fetches all listings immediately - no need to press Search.
   const handleClear = () => {
     setInputValue("");
     onQueryChange("");
@@ -51,22 +45,58 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
   return (
     <>
       <Typography
-        variant="h2"
-        sx={{ mb: 2.5, fontWeight: 700, fontSize: { xs: "1.7rem", md: "2.2rem" } }}
+        sx={{
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "primary.main",
+          mb: 0.75,
+        }}
       >
-        Explore All Services
+        Explore
+      </Typography>
+      <Typography
+        variant="h2"
+        sx={{
+          mb: 3,
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          fontSize: { xs: "2rem", md: "2.6rem" },
+          color: "text.primary",
+          display: "flex",
+          alignItems: "baseline",
+          gap: "2px",
+        }}
+      >
+        All services
+        <Box
+          component="span"
+          sx={{
+            width: 10,
+            height: 10,
+            borderRadius: "3px",
+            backgroundColor: "primary.main",
+            display: "inline-block",
+            ml: 0.5,
+          }}
+        />
       </Typography>
 
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "12px",
-          border: "1px solid #E2E8F0",
+          borderRadius: "999px",
+          border: "1px solid",
+          borderColor: "divider",
           p: 1,
-          mb: 2,
+          mb: 2.5,
           display: "flex",
           gap: 1,
           alignItems: "center",
+          backgroundColor: "rgba(255,255,255,0.72)",
+          backdropFilter: "blur(14px)",
         }}
       >
         <TextField
@@ -79,7 +109,7 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: "#94A3B8", fontSize: "1rem" }} />
+                <SearchIcon sx={{ color: "text.secondary", fontSize: "1.1rem" }} />
               </InputAdornment>
             ),
             endAdornment: inputValue ? (
@@ -89,18 +119,34 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
                   onClick={handleClear}
                   aria-label="Clear search"
                   edge="end"
-                  sx={{ color: "#94A3B8", "&:hover": { color: "#64748B" } }}
+                  sx={{ color: "text.secondary" }}
                 >
                   <ClearIcon sx={{ fontSize: "1rem" }} />
                 </IconButton>
               </InputAdornment>
             ) : null,
           }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "999px",
+              backgroundColor: "transparent",
+              "& fieldset": { border: "none" },
+              "&:hover fieldset": { border: "none" },
+              "&.Mui-focused fieldset": { border: "none" },
+            },
+          }}
         />
         <Button
           variant="contained"
           onClick={handleSubmit}
-          sx={{ minWidth: 120, borderRadius: "8px", px: 3 }}
+          disableElevation
+          sx={{
+            minWidth: 120,
+            borderRadius: "999px",
+            px: 3,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
         >
           Search
         </Button>
@@ -111,13 +157,13 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
           display: "flex",
           justifyContent: "flex-start",
           alignItems: "center",
-          mb: 2,
+          mb: 2.5,
           gap: 2,
           flexWrap: "wrap",
         }}
       >
-        <Typography sx={{ color: "#334155", fontSize: "0.9rem", fontWeight: 500 }}>
-          {total} properties found
+        <Typography sx={{ color: "text.secondary", fontSize: "0.88rem", fontWeight: 500 }}>
+          {total} {total === 1 ? "property" : "properties"} found
         </Typography>
       </Box>
     </>

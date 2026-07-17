@@ -1,5 +1,6 @@
-// Sticky booking card: price, date inputs, guest picker,
-// what's included checklist, and Book Now CTA.
+// Sticky booking card: price, date inputs, guest picker, and an Add to
+// Cart action that actually calls the backend (POST /api/cart/items)
+// instead of faking a "Booking Confirmed" state with no real effect.
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import {
   Box,
@@ -11,26 +12,44 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Alert,
 } from "@mui/material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../../context/useAuth";
+import { addToCart } from "../../../../../services/cartService";
 import type { Listing } from "../../../Search/utils/types";
-
-const INCLUDED = [
-  "Free cancellation",
-  "Breakfast included",
-  "Free WiFi",
-  "Airport transfers",
-];
 
 interface PriceCardProps {
   listing: Listing;
 }
 
 const PriceCard = ({ listing }: PriceCardProps) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
-  const [booked, setBooked] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      navigate(`/login?next=/view-product/${listing.id}`);
+      return;
+    }
+
+    setStatus("loading");
+    setErrorMessage("");
+    try {
+      await addToCart(listing.id, guests);
+      setStatus("success");
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      setStatus("error");
+      setErrorMessage("Couldn't add this to your cart. Please try again.");
+    }
+  };
 
   return (
     <Box
@@ -39,7 +58,7 @@ const PriceCard = ({ listing }: PriceCardProps) => {
         borderColor: "divider",
         borderRadius: "20px",
         p: 3,
-        boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+        boxShadow: "0 4px 24px rgba(17,24,39,0.06)",
         position: { md: "sticky" },
         top: { md: "88px" },
         backgroundColor: "background.paper",
@@ -50,7 +69,7 @@ const PriceCard = ({ listing }: PriceCardProps) => {
         <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
           <Typography
             variant="h4"
-            sx={{ fontWeight: 800, color: "text.primary", letterSpacing: "-1px" }}
+            sx={{ fontWeight: 700, color: "primary.main", letterSpacing: "-0.02em" }}
           >
             ${listing.price}
           </Typography>
@@ -66,8 +85,8 @@ const PriceCard = ({ listing }: PriceCardProps) => {
       <Divider sx={{ mb: 2.5 }} />
 
       {/* Date Pickers */}
-      <Typography variant="body2" sx={{ fontWeight: 700, mb: 1.5, color: "text.primary" }}>
-        Select Dates
+      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: "text.primary" }}>
+        Select dates
       </Typography>
       <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, mb: 2 }}>
         <TextField
@@ -76,7 +95,7 @@ const PriceCard = ({ listing }: PriceCardProps) => {
           size="small"
           value={checkIn}
           onChange={(e) => setCheckIn(e.target.value)}
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
           sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
         />
         <TextField
@@ -85,7 +104,7 @@ const PriceCard = ({ listing }: PriceCardProps) => {
           size="small"
           value={checkOut}
           onChange={(e) => setCheckOut(e.target.value)}
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
           sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
         />
       </Box>
@@ -107,42 +126,49 @@ const PriceCard = ({ listing }: PriceCardProps) => {
         </Select>
       </FormControl>
 
-      <Divider sx={{ mb: 2 }} />
-
-      {/* What's included */}
-      <Typography variant="body2" sx={{ fontWeight: 700, mb: 1.25, color: "text.primary" }}>
-        What's included
-      </Typography>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75, mb: 2.5 }}>
-        {INCLUDED.map((item) => (
-          <Box key={item} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <CheckCircleOutlineIcon sx={{ fontSize: "1rem", color: "success.main" }} />
+      {/* Real cancellation policy, if the vendor set one */}
+      {listing.cancellationPolicy && (
+        <>
+          <Divider sx={{ mb: 2 }} />
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2.5 }}>
+            <CheckCircleOutlineIcon sx={{ fontSize: "1rem", color: "primary.main", mt: 0.2 }} />
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {item}
+              {listing.cancellationPolicy}
             </Typography>
           </Box>
-        ))}
-      </Box>
+        </>
+      )}
 
-      {/* Book Now */}
+      {status === "success" && (
+        <Alert severity="success" sx={{ mb: 2, borderRadius: "10px" }}>
+          Added to your cart.
+        </Alert>
+      )}
+      {status === "error" && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: "10px" }}>
+          {errorMessage}
+        </Alert>
+      )}
+
       <Button
         fullWidth
         variant="contained"
         size="large"
-        onClick={() => setBooked(true)}
+        disabled={status === "loading" || !listing.isAvailable}
+        onClick={handleAddToCart}
         sx={{
           borderRadius: "12px",
           py: 1.5,
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: "1rem",
-          backgroundColor: booked ? "success.main" : "primary.main",
-          "&:hover": {
-            backgroundColor: booked ? "success.dark" : "primary.dark",
-          },
-          transition: "background-color 0.3s ease",
+          textTransform: "none",
         }}
       >
-        {booked ? "✓ Booking Confirmed!" : "Book Now"}
+        {!listing.isAvailable
+          ? "Currently unavailable"
+          : status === "loading"
+            ? "Adding…"
+            : "Add to cart"}
       </Button>
 
       <Typography

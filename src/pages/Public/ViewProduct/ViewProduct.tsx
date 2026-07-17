@@ -39,8 +39,8 @@ const ViewProduct = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
-        <CircularProgress sx={{ color: "#0F5A8A" }} />
+      <Container maxWidth="lg" sx={{ pt: 20, pb: 8, textAlign: "center" }}>
+        <CircularProgress sx={{ color: "primary.main" }} />
         <Typography sx={{ mt: 2, color: "text.secondary" }}>Loading details...</Typography>
       </Container>
     );
@@ -48,7 +48,7 @@ const ViewProduct = () => {
 
   if (error || !listing) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
+      <Container maxWidth="md" sx={{ pt: 20, pb: 8, textAlign: "center" }}>
         {error ? (
           <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
         ) : (
@@ -69,8 +69,16 @@ const ViewProduct = () => {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "background.default" }}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "background.default",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 45% at 50% -10%, rgba(0,119,182,0.1), transparent 70%)",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <Container maxWidth="lg" sx={{ pt: 16, pb: 4 }}>
 
         {/* Back button */}
         <Button

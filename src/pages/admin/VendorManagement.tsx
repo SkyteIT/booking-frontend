@@ -1,11 +1,11 @@
 import { Typography,Card,CardContent,Box,Stack,Pagination } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import VendorDetailsDialog from "../../../components/Admin/VendorManagement/VendorDetailDialog";
-import VendorManagementHeader from "../../../components/Admin/VendorManagement/VendorManagementHeader";
-import VendorManagementTabs from "../../../components/Admin/VendorManagement/VendorManagementTabs";
-import VendorManagementToolbar from "../../../components/Admin/VendorManagement/VendorManagementToolbar";
-import VendorTable from "../../../components/Admin/VendorManagement/VendorTable";
-import SnackbarAlert from "../../../components/common/SnackbarAlert";
+import VendorDetailsDialog from "../../components/Admin/VendorManagement/VendorDetailDialog";
+import VendorManagementHeader from "../../components/Admin/VendorManagement/VendorManagementHeader";
+import VendorManagementTabs from "../../components/Admin/VendorManagement/VendorManagementTabs";
+import VendorManagementToolbar from "../../components/Admin/VendorManagement/VendorManagementToolbar";
+import VendorTable from "../../components/Admin/VendorManagement/VendorTable";
+import SnackbarAlert from "../../components/common/SnackbarAlert";
 import { useVendorManagement } from "./useVendorManagement";
 
 export default function VendorManagement() {

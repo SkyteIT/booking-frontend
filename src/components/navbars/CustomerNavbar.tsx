@@ -1,6 +1,11 @@
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { Box, Button, Typography, Avatar, Menu, MenuItem, Divider } from "@mui/material";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import { Box, Button, Typography, Avatar, Menu, MenuItem } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
+import type { ComponentProps, ElementType, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
@@ -10,6 +15,48 @@ const NAV_LINKS = [
   { label: "Explore", to: "/search", dot: "primary.main" },
   { label: "Categories", to: "/search", dot: "success.main" },
 ];
+
+type ProfileMenuItemProps = Omit<ComponentProps<typeof MenuItem>, "children"> & {
+  icon: ReactNode;
+  label: string;
+  accent: string;
+  component?: ElementType;
+  to?: string;
+};
+
+const ProfileMenuItem = ({ icon, label, accent, sx, ...rest }: ProfileMenuItemProps) => (
+  <MenuItem
+    {...rest}
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 1.1,
+      borderRadius: "10px",
+      px: 1,
+      py: 0.7,
+      mb: 0.25,
+      fontSize: "0.84rem",
+      fontWeight: 500,
+      color: accent,
+      "&:hover": { backgroundColor: alpha(accent, 0.08) },
+      ...sx,
+    }}
+  >
+    <Box
+      sx={{
+        width: 22,
+        height: 22,
+        display: "grid",
+        placeItems: "center",
+        color: accent,
+        flexShrink: 0,
+      }}
+    >
+      {icon}
+    </Box>
+    {label}
+  </MenuItem>
+);
 
 export default function CustomerNavbar() {
   const theme = useTheme();
@@ -225,49 +272,104 @@ export default function CustomerNavbar() {
                 onClose={handleClose}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    width: 200,
-                    mt: 1,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "10px",
-                    boxShadow: "0px 6px 20px rgba(0,0,0,0.08)",
-                    "& .MuiMenuItem-root": {
-                      fontSize: "0.9rem",
-                      px: 2,
-                      py: 1,
+                slotProps={{
+                  list: { sx: { p: 0 } },
+                  paper: {
+                    elevation: 0,
+                    sx: {
+                      width: 208,
+                      mt: 1.5,
+                      overflow: "hidden",
+                      borderRadius: "20px",
+                      border: "1px solid",
+                      borderColor: alpha(theme.palette.text.primary, 0.06),
+                      background: "rgba(255,255,255,0.92)",
+                      backdropFilter: "blur(20px)",
+                      boxShadow: `0 24px 60px ${alpha(theme.palette.text.primary, 0.16)}`,
                     },
                   },
                 }}
               >
-                <MenuItem component={Link} to="/customer/dashboard" onClick={() => setAnchorEl(null)}>
-                  Dashboard
-                </MenuItem>
-
-                <MenuItem component={Link} to="/settings" onClick={() => setAnchorEl(null)}>
-                  Settings
-                </MenuItem>
-
-                <Divider />
-
-                {isVendor && !isVendorRoute && (
-                  <MenuItem component={Link} to="/vendor/dashboard" onClick={() => setAnchorEl(null)}>
-                    Vendor Portal
-                  </MenuItem>
-                )}
-
-                <Divider />
-
-                <MenuItem
-                  onClick={() => {
-                    logout();
-                    setAnchorEl(null);
-                    navigate("/login");
+                {/* Profile header */}
+                <Box
+                  sx={{
+                    px: 2.25,
+                    py: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    background: `linear-gradient(160deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.primary.light, 0.05)})`,
+                    borderBottom: "1px solid",
+                    borderColor: alpha(theme.palette.text.primary, 0.06),
                   }}
                 >
-                  Logout
-                </MenuItem>
+                  <Avatar
+                    src={user?.profileImageUrl as string | undefined}
+                    sx={{
+                      width: 42,
+                      height: 42,
+                      border: "2px solid #fff",
+                      boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, 0.2)}`,
+                    }}
+                  >
+                    {user?.firstName?.[0]}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      noWrap
+                      sx={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.95rem",
+                        color: "text.primary",
+                      }}
+                    >
+                      {displayName || "Account"}
+                    </Typography>
+                    <Typography noWrap sx={{ fontSize: "0.76rem", color: "text.secondary" }}>
+                      {user?.email}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ p: 1 }}>
+                  <ProfileMenuItem
+                    icon={<DashboardOutlinedIcon sx={{ fontSize: 16 }} />}
+                    label="Dashboard"
+                    accent={theme.palette.primary.main}
+                    component={Link}
+                    to="/customer/dashboard"
+                    onClick={() => setAnchorEl(null)}
+                  />
+                  <ProfileMenuItem
+                    icon={<SettingsOutlinedIcon sx={{ fontSize: 16 }} />}
+                    label="Settings"
+                    accent={theme.palette.primary.main}
+                    component={Link}
+                    to="/settings"
+                    onClick={() => setAnchorEl(null)}
+                  />
+                  {isVendor && !isVendorRoute && (
+                    <ProfileMenuItem
+                      icon={<StorefrontOutlinedIcon sx={{ fontSize: 16 }} />}
+                      label="Vendor portal"
+                      accent={theme.palette.primary.main}
+                      component={Link}
+                      to="/vendor/dashboard"
+                      onClick={() => setAnchorEl(null)}
+                    />
+                  )}
+                  <ProfileMenuItem
+                    icon={<LogoutOutlinedIcon sx={{ fontSize: 16 }} />}
+                    label="Logout"
+                    accent={theme.palette.error.main}
+                    onClick={() => {
+                      logout();
+                      setAnchorEl(null);
+                      navigate("/login");
+                    }}
+                  />
+                </Box>
               </Menu>
             </>
           )}

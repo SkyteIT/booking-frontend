@@ -16,7 +16,7 @@ const MainLayout = () => {
         minHeight: "100vh",
       }}
     >
-      {/* ✅ Dynamic Navbar */}
+      {/* Dynamic Navbar */}
       <CustomerNavbar />
 
       {loading && <LoadingSpinner />}
