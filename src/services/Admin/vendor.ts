@@ -36,7 +36,7 @@ export const getVendorApplications = async ({
   pageSize,
 }: GetVendorApplicationsParams = {}) => {
   const res = await api.get<VendorApplication[] | RawApiRecord>(
-    "/api/admin/vendor-applications",
+    "/admin/vendor-applications",
     {
       params: {
         status,
@@ -52,13 +52,13 @@ export const getVendorApplications = async ({
 };
 
 export const reviewVendorApplication = async (id: string, status: string, Reason?: string) => {
-  await api.patch(`/api/admin/vendor-applications/${id}/review`, {
+  await api.patch(`/admin/vendor-applications/${id}/review`, {
     status,
     rejectedReason: Reason,
   });
 };
 export const getVendorApplicationById = async (id: string) => {
-  const res = await api.get<VendorApplication>(`/api/admin/vendor-applications/${id}`);
+  const res = await api.get<VendorApplication>(`/admin/vendor-applications/${id}`);
   return res.data;
 };
 

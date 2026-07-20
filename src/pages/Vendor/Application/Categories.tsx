@@ -1,20 +1,35 @@
-import { Container, Typography, Box, Button } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Box,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
+import { fetchCategories, type ApiCategory } from "../../../services/categoryService";
 
 const Categories = (): JSX.Element => {
   const navigate = useNavigate();
   const { data, setData } = useVendorApplication();
 
-  //  use local state (initialize from context)
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     data.categories || [],
   );
-
   const [error, setError] = useState<string>("");
+
+  // Load active categories from the database
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data.filter((c) => c.isActive)))
+      .catch(() => setCategories([]))
+      .finally(() => setLoadingCategories(false));
+  }, []);
 
   //  BACK BUTTON HANDLER (only once)
   useEffect(() => {
@@ -30,7 +45,7 @@ const Categories = (): JSX.Element => {
   }, [navigate]);
 
   // --- CATEGORY LIST ---
-  const categories = [
+  const fallbackCategories = [
     "Hotel",
     "Restaurant",
     "Car Rental",
@@ -43,8 +58,7 @@ const Categories = (): JSX.Element => {
   const handleSelect = (category: string) => {
     let updated: string[];
 
-
-//for multi select logic
+    //for multi select logic
     if (selectedCategories.includes(category)) {
       updated = selectedCategories.filter((item) => item !== category);
     } else {
@@ -63,17 +77,19 @@ const Categories = (): JSX.Element => {
     // persist
     localStorage.setItem("vendorCategories", JSON.stringify(updated));
 
-    setError("");
+    if (error) setError("");
   };
 
   const handleContinue = () => {
     if (selectedCategories.length === 0) {
-      setError("Select at least one category");
+      setError("Please select at least one category");
       return;
     }
-
     navigate("/vendor/documents");
   };
+
+  const visibleCategories =
+    categories.length > 0 ? categories.map((category) => category.name) : fallbackCategories;
 
   return (
     <ApplicationLayout activeStep={2}>
@@ -85,29 +101,38 @@ const Categories = (): JSX.Element => {
             Select the categories that best describe your offerings.
           </Typography>
 
-          <Box className="category-grid">
-            {categories.map((cat) => (
-              <Box
-                key={cat}
-                className={`category-box ${
-                  selectedCategories.includes(cat) ? "selected" : ""
-                }`}
-                onClick={() => handleSelect(cat)}
-              >
-                {cat}
-              </Box>
-            ))}
-          </Box>
-
-          {error && (
-            <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>
+          {loadingCategories ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box
+              className="category-grid"
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 3,
+              }}
+            >
+              {visibleCategories.map((cat) => (
+                <Box
+                  key={cat}
+                  className={`category-box ${
+                    selectedCategories.includes(cat) ? "selected" : ""
+                  }`}
+                  onClick={() => handleSelect(cat)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  {cat}
+                </Box>
+              ))}
+            </Box>
           )}
 
-          <Box className="vendor-actions">
-            <Button
-              className="back"
-              onClick={() => navigate("/vendor/contactinfo")}
-            >
+          {error && <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>}
+
+          <Box className="vendor-actions" sx={{ mt: 3 }}>
+            <Button className="back" onClick={() => navigate("/vendor/contactinfo")}>
               Back
             </Button>
 

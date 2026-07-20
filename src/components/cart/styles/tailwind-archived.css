@@ -1,0 +1,13 @@
+/* TAILWIND CONFIGURATION - COMMENTED OUT FOR MATERIAL UI MIGRATION */
+/* 
+   Original Tailwind imports (now removed):
+   @import 'tailwindcss' source(none);
+   @source '../**/*.{js,ts,jsx,tsx}';
+   @import 'tw-animate-css';
+
+   REPLACEMENT: Material UI provides:
+   - Component animations via @emotion/animated and transition props
+   - Theme configuration in theme.ts
+   - sx prop for component-level styling
+   - Utility classes via MUI's sx prop
+*/

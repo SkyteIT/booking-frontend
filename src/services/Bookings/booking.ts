@@ -11,7 +11,7 @@ export const getBookings = async (params: {
   startDate?: string;
   endDate?: string;
 }) => {
-  const res = await api.get<PageResult<VendorBookingDto>>("/api/vendor/bookings", {
+  const res = await api.get<PageResult<VendorBookingDto>>("/vendor/bookings", {
     params: {
       PageNumber: params.page,
       PageSize: params.pageSize,
@@ -27,7 +27,7 @@ export const getBookings = async (params: {
 
 // GET DETAIL
 export const getBookingDetail = async (bookingId: string) => {
-  const res = await api.get(`/api/vendor/bookings/${bookingId}`);
+  const res = await api.get(`/vendor/bookings/${bookingId}`);
 
   return res.data;
 };
@@ -37,14 +37,14 @@ export const updateBookingStatus = async (
   bookingId: string,
   newStatus: string
 ) => {
-  const res = await api.patch(`/api/vendor/bookings/${bookingId}/status`, {
+  const res = await api.patch(`/vendor/bookings/${bookingId}/status`, {
     newStatus,
   });
 
   return res.data;
 };
 export const getDashboard = async () => {
-  const res = await api.get<DashboardSummary>("/api/vendor/dashboard");
+  const res = await api.get<DashboardSummary>("/vendor/dashboard");
 
   return res.data;
 };

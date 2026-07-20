@@ -19,7 +19,7 @@ const saveAuthToken = (response: AuthResponse) => {
 };
 
 export const login = async (email: string, password: string) => {
-  const res = await api.post<AuthResponse>("/api/auth/login", { email, password });
+  const res = await api.post<AuthResponse>("/auth/login", { email, password });
 
   saveAuthToken(res.data);
 
@@ -32,7 +32,10 @@ export const register = async (payload: {
   email: string;
   password: string;
 }) => {
-  const res = await api.post<AuthResponse>("/api/auth/register", payload);
+  const res = await api.post<AuthResponse>("/auth/register", {
+    ...payload,
+    name: `${payload.firstName} ${payload.lastName}`,
+  });
 
   saveAuthToken(res.data);
 
@@ -40,7 +43,7 @@ export const register = async (payload: {
 };
 
 export const loginWithGoogle = async (credential: string) => {
-  const res = await api.post<AuthResponse>("/api/auth/google-login", { idToken: credential });
+  const res = await api.post<AuthResponse>("/auth/google-login", { idToken: credential });
 
   saveAuthToken(res.data);
 
@@ -48,6 +51,6 @@ export const loginWithGoogle = async (credential: string) => {
 };
 
 export const getCurrentUser = async () => {
-  const res = await api.get("/api/auth/current-user");
+  const res = await api.get("/auth/current-user");
   return res.data;
 };

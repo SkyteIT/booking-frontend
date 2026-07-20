@@ -1,157 +1,189 @@
 // Main feature hook (business logic):
 // 1) fetches listings from the backend
-// 2) reads filters from URL params
-// 3) filters listings
-// 4) exposes simple handlers that update URL params.
-import { useEffect, useMemo, useState } from "react";
+// 2) loads active categories from the backend
+// 3) reads filters from URL params
+// 4) exposes simple handlers that update URL params
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getListings } from "../../../../services/Vendor/listingService";
-import { filterListings } from "../utils/filterListings";
-import { mapApiListing } from "../utils/mapApiListing";
-import { CATEGORIES, parseSearchFilters } from "../utils/searchParams";
-import type { Listing, ListingCategory } from "../utils/types";
-
-const ratingOptions = [3, 4, 4.5] as const;
+import { fetchCategories, type ApiCategory } from "../../../../services/categoryService";
+import { searchListings, type SearchListing } from "../../../../services/searchService";
+import { parseSearchFilters } from "../utils/searchParams";
 
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [listings, setListings] = useState<SearchListing[]>([]);
+  const [allCategories, setAllCategories] = useState<ApiCategory[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
   useEffect(() => {
     let cancelled = false;
 
-    const fetchData = async () => {
+    const loadCategories = async () => {
       try {
-        setLoading(true);
-        const data = await getListings();
+        const data = await fetchCategories();
         if (cancelled) return;
-        setListings(data.map(mapApiListing));
-        setError(null);
-      } catch (err) {
+        setAllCategories(Array.isArray(data) ? data : []);
+      } catch {
         if (cancelled) return;
-        console.error("Error fetching listings:", err);
-        setError("Failed to load listings.");
+        setAllCategories([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setCategoriesLoaded(true);
       }
     };
 
-    fetchData();
+    loadCategories();
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
-
-  const filteredListings = useMemo(
-    () => filterListings(listings, filters),
-    [listings, filters],
+  const categories = useMemo(
+    () => allCategories.filter((category) => category.isActive),
+    [allCategories]
   );
 
-  // Updates the main text query (`q`) in URL params.
-  const setQuery = (value: string) => {
-    const next = new URLSearchParams(searchParams);
-    const query = value.trim();
+  const activeCategoryNames = useMemo(
+    () => new Set(categories.map((category) => category.name.toLowerCase())),
+    [categories]
+  );
 
-    if (query) {
-      next.set("q", query);
-    } else {
-      next.delete("q");
-    }
+  useEffect(() => {
+    if (!categoriesLoaded) return;
 
-    setSearchParams(next);
-  };
+    let cancelled = false;
 
-  // Updates minimum price in URL after removing non-numeric characters.
-  const setMinPrice = (value: string) => {
-    const next = new URLSearchParams(searchParams);
-    const normalized = value.replace(/[^0-9]/g, "");
+    const runSearch = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    if (normalized) {
-      next.set("minPrice", normalized);
-    } else {
-      next.delete("minPrice");
-    }
+        const selectedCategoryIds = filters.categories
+          .map(
+            (name) =>
+              categories.find((category) => category.name.toLowerCase() === name.toLowerCase())
+                ?.id
+          )
+          .filter((id): id is string => Boolean(id));
 
-    setSearchParams(next);
-  };
+        const data = await searchListings({
+          searchTerm: filters.q || undefined,
+          categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          minRating: filters.minRating,
+        });
 
-  // Updates maximum price in URL after removing non-numeric characters.
-  const setMaxPrice = (value: string) => {
-    const next = new URLSearchParams(searchParams);
-    const normalized = value.replace(/[^0-9]/g, "");
+        if (cancelled) return;
 
-    if (normalized) {
-      next.set("maxPrice", normalized);
-    } else {
-      next.delete("maxPrice");
-    }
+        const results = Array.isArray(data) ? data : [];
+        const filtered =
+          activeCategoryNames.size > 0
+            ? results.filter((listing) =>
+                activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
+              )
+            : results;
 
-    setSearchParams(next);
-  };
+        setListings(filtered);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error fetching search results:", err);
+        setListings([]);
+        setError("Failed to load results. Please try again.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-  // Removes all selected categories from URL params.
-  const clearCategories = () => {
+    runSearch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [filters, categories, categoriesLoaded, activeCategoryNames]);
+
+  const setQuery = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams);
+      value.trim() ? next.set("q", value.trim()) : next.delete("q");
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const setMinPrice = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams);
+      const n = value.replace(/[^0-9]/g, "");
+      n ? next.set("minPrice", n) : next.delete("minPrice");
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const setMaxPrice = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams);
+      const n = value.replace(/[^0-9]/g, "");
+      n ? next.set("maxPrice", n) : next.delete("maxPrice");
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const toggleCategory = useCallback(
+    (categoryName: string) => {
+      const next = new URLSearchParams(searchParams);
+      const current = filters.categories;
+      const isSelected = current.includes(categoryName);
+
+      const updated = isSelected
+        ? current.filter((category) => category !== categoryName)
+        : [...current, categoryName];
+
+      updated.length > 0 ? next.set("category", updated.join(",")) : next.delete("category");
+
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams, filters.categories]
+  );
+
+  const clearCategories = useCallback(() => {
     const next = new URLSearchParams(searchParams);
     next.delete("category");
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Adds/removes one category in the URL category list.
-  const toggleCategory = (category: ListingCategory) => {
+  const setMinRating = useCallback(
+    (rating?: number) => {
+      const next = new URLSearchParams(searchParams);
+      rating !== undefined ? next.set("minRating", String(rating)) : next.delete("minRating");
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const clearFilters = useCallback(() => {
     const next = new URLSearchParams(searchParams);
-    const isSelected = filters.categories.includes(category);
-    let updatedCategories = [...filters.categories];
-
-    if (isSelected) {
-      updatedCategories = updatedCategories.filter((item) => item !== category);
-    } else {
-      updatedCategories.push(category);
-    }
-
-    if (updatedCategories.length === 0) {
-      next.delete("category");
-    } else {
-      next.set("category", updatedCategories.join(","));
-    }
-
+    ["q", "category", "minPrice", "maxPrice", "minRating", "maxRating"].forEach((key) =>
+      next.delete(key)
+    );
     setSearchParams(next);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Sets or clears minimum rating in URL params.
-  const setMinRating = (rating?: number) => {
-    const next = new URLSearchParams(searchParams);
-
-    if (rating === undefined) {
-      next.delete("minRating");
-    } else {
-      next.set("minRating", String(rating));
-    }
-
-    setSearchParams(next);
-  };
-
-  // Clears sidebar filters but keeps other params like `q`.
-  const clearFilters = () => {
-    const next = new URLSearchParams(searchParams);
-
-    next.delete("category");
-    next.delete("minPrice");
-    next.delete("maxPrice");
-    next.delete("minRating");
-
-    setSearchParams(next);
-  };
+  const ratingOptions = [3, 4, 4.5] as const;
 
   return {
     filters,
-    filteredListings,
+    listings,
+    filteredListings: listings,
     loading,
     error,
-    categories: CATEGORIES,
+    categories,
     ratingOptions,
     setQuery,
     setMinPrice,

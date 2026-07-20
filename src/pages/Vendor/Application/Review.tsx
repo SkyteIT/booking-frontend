@@ -66,7 +66,7 @@ const Review = () => {
       // API CALL — routed through our shared api instance so the auth
       // token (and its automatic refresh-on-401) is handled consistently
       // with the rest of the app, instead of reading localStorage directly.
-      await api.post("/api/vendor-register/submit", formData);
+      await api.post("/vendor-register/submit", formData);
 
       // SUCCESS
       resetApplication();
