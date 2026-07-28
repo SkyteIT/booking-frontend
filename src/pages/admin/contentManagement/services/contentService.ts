@@ -1,10 +1,11 @@
 // src/pages/admin/contentManagement/services/contentService.ts
 
 import api from "../../../../services/api";
+import type { ListingType } from "../../../../services/Vendor/listingService";
 import type { Category, Banner, Promotion } from "../types/contentType";
 
 // ════════════════════════════════════════════════════════════
-// CATEGORIES  (unchanged)
+// CATEGORIES
 // ════════════════════════════════════════════════════════════
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -15,12 +16,14 @@ export const getCategories = async (): Promise<Category[]> => {
     listings: c.listingCount ?? 0,
     status: c.status === "Active",
     icon: c.icon ?? "",
+    type: c.type ?? null,
   }));
 };
 
 export const createCategory = async (payload: {
   name: string;
   description?: string;
+  type: ListingType;
   bookingType?: string;
   serviceModel?: string;
   dateSelectionEnabled?: boolean;
@@ -42,12 +45,13 @@ export const createCategory = async (payload: {
     listings: data.listingCount ?? 0,
     status: data.status === "Active",
     icon: data.icon ?? "",
+    type: data.type ?? null,
   };
 };
 
 export const updateCategory = async (
   id: string,
-  payload: { name?: string; description?: string; icon?: string }
+  payload: { name?: string; description?: string; icon?: string; type?: ListingType }
 ): Promise<Category> => {
   const { data } = await api.put(`/categories/${id}`, payload);
   return {
@@ -56,6 +60,7 @@ export const updateCategory = async (
     listings: data.listingCount ?? 0,
     status: data.status === "Active",
     icon: data.icon ?? "",
+    type: data.type ?? null,
   };
 };
 
@@ -76,6 +81,7 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
       listings: data.listingCount ?? 0,
       status: data.status === "Active",
       icon: data.icon ?? "",
+      type: data.type ?? null,
     };
   } catch {
     return null;
@@ -84,13 +90,14 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
 
 export const updateCategoryFull = async (
   id: string,
-  payload: { name: string; description?: string; icon?: string; status?: string }
+  payload: { name: string; description?: string; icon?: string; status?: string; type?: ListingType }
 ): Promise<void> => {
   await api.put(`/categories/${id}`, {
     name: payload.name,
     description: payload.description ?? "",
     icon: payload.icon ?? "",
     status: payload.status,
+    type: payload.type,
   });
 };
 

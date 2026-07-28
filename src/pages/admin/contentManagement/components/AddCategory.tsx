@@ -10,6 +10,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
+import type { ListingType } from "../../../../services/Vendor/listingService";
 import { createCategory } from "../services/contentService";
 
 // ─── Types ───────────────────────────────────────────────
@@ -20,10 +21,12 @@ interface CustomField {
   required: boolean;
 }
 
+const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental", "Activity"];
 const BOOKING_TYPES = ["Instant Confirmation", "Request to Confirm"];
 const SERVICE_MODELS = ["Per Night", "Per Hour", "Per Person", "Per Day", "Fixed Price"];
 const FIELD_TYPES    = ["Text", "Number", "Date", "Dropdown", "Checkbox", "File Upload"];
-const STATUS_OPTIONS = ["Active", "Draft", "Inactive"];
+// Backend only accepts "Active"/"Inactive" (CreateCategoryDtoValidator) — no "Draft".
+const STATUS_OPTIONS = ["Active", "Inactive"];
 
 const cardStyle = {
   p: 3, borderRadius: 3,
@@ -40,6 +43,7 @@ export default function AddCategory() {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    type: "" as ListingType | "",
     bookingType: "",
     serviceModel: "",
     dateSelection: false,
@@ -96,6 +100,7 @@ export default function AddCategory() {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Category name is required";
+    if (!form.type) e.type = "Select a listing type";
     if (!form.bookingType)  e.bookingType = "Select a booking type";
     if (!form.serviceModel) e.serviceModel = "Select a service model";
     if (Number(form.commission) < 0 || Number(form.commission) > 100)
@@ -111,6 +116,7 @@ export default function AddCategory() {
       await createCategory({
         name: form.name,
         description: form.description || undefined,
+        type: form.type as ListingType,
         bookingType: form.bookingType || undefined,
         serviceModel: form.serviceModel || undefined,
         dateSelectionEnabled: form.dateSelection,
@@ -195,6 +201,17 @@ export default function AddCategory() {
               helperText={errors.name}
               sx={{ mb: 2 }}
             />
+            <TextField
+              label="Listing Type"
+              select fullWidth required
+              value={form.type}
+              onChange={(e) => set("type", e.target.value)}
+              error={!!errors.type}
+              helperText={errors.type || "Which kind of listing can be created under this category"}
+              sx={{ mb: 2 }}
+            >
+              {LISTING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            </TextField>
             <TextField
               label="Description"
               placeholder="Describe this category and what services it includes..."
@@ -569,6 +586,7 @@ export default function AddCategory() {
 
             {[
               { label: "Name",       value: form.name || "—" },
+              { label: "Type",       value: form.type || "—" },
               { label: "Booking",    value: form.bookingType || "—" },
               { label: "Model",      value: form.serviceModel || "—" },
               { label: "Commission", value: form.commission ? `${form.commission}%` : "—" },

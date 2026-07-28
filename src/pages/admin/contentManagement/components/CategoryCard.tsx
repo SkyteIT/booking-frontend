@@ -143,6 +143,22 @@ export default function CategoryCard({
           </Typography>
         </Box>
 
+        {/* Listing type chip */}
+        {category.type && (
+          <Chip
+            label={category.type}
+            size="small"
+            sx={{
+              fontWeight: 600,
+              fontSize: 12,
+              borderRadius: "8px",
+              background: "#F1F5F9",
+              color: "#475569",
+              border: "1px solid #E2E8F0",
+            }}
+          />
+        )}
+
         {/* Status chip */}
         <Chip
           label={category.status ? "Active" : "Inactive"}
@@ -320,6 +336,23 @@ export default function CategoryCard({
         <Typography fontWeight={800} fontSize={16} color="#0F172A" mb={0.5}>
           {category.name}
         </Typography>
+
+        {/* Listing type */}
+        {category.type && (
+          <Chip
+            label={category.type}
+            size="small"
+            sx={{
+              fontWeight: 600,
+              fontSize: 11,
+              borderRadius: "8px",
+              background: "#F1F5F9",
+              color: "#475569",
+              border: "1px solid #E2E8F0",
+              mb: 1,
+            }}
+          />
+        )}
 
         {/* Listings count */}
         <Box display="flex" alignItems="center" gap={0.6} mb={2.5}>

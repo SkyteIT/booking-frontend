@@ -12,6 +12,7 @@ import {
   Link as MuiLink,
   CircularProgress,
 } from "@mui/material";
+import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -20,12 +21,12 @@ import {
   updateListing,
   getCategories,
   getListingById,
-  ListingType,
 } from "../../../services/Vendor/listingService";
 import type {
   CreateListingRequest,
   CategoryDto,
   ListingResponse,
+  ListingType,
 } from "../../../services/Vendor/listingService";
 import type { ListingFormData, ListingCategory } from "../../../utils/types";
 import ActivityFields from "./components/ActivityFields";
@@ -36,12 +37,15 @@ import HotelFields from "./components/HotelFields";
 import ListingPreview from "./components/ListingPreview";
 import RestaurantFields from "./components/RestaurantFields";
 
+// ListingType and ListingCategory are the same set of string literals
+// (Hotel/Restaurant/Event/CarRental/Activity) — kept as an explicit map
+// rather than a cast so the two concepts read as distinct at each call site.
 const typeToCategory: Record<ListingType, ListingCategory> = {
-  [ListingType.Hotel]: "Hotel",
-  [ListingType.Restaurant]: "Restaurant",
-  [ListingType.Event]: "Event",
-  [ListingType.CarRental]: "CarRental",
-  [ListingType.Activity]: "Activity",
+  Hotel: "Hotel",
+  Restaurant: "Restaurant",
+  Event: "Event",
+  CarRental: "CarRental",
+  Activity: "Activity",
 };
 
 function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
@@ -51,6 +55,7 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     location: listing.location ?? "",
     price: listing.price,
     category: typeToCategory[listing.type] ?? "Hotel",
+    categoryId: listing.categoryId,
     isActive: listing.isActive,
     imageUrls: listing.images?.join(", ") ?? "",
     tagsInput: listing.tags?.join(", ") ?? "",
@@ -123,7 +128,6 @@ function buildCreateListingRequest(
 ): CreateListingRequest {
   const request: CreateListingRequest = {
     categoryId,
-    type: ListingType[data.category],
     title: data.title,
     description: data.description ?? "",
     price: Number(data.price) || 0,
@@ -224,6 +228,7 @@ const CreateListing = () => {
     register,
     control,
     watch,
+    setValue,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
@@ -262,20 +267,31 @@ const CreateListing = () => {
 
   const formData = watch();
   const selectedCategory = watch("category");
+  const selectedCategoryId = watch("categoryId");
+
+  // ListingType is no longer picked independently — it's derived from the
+  // chosen category's Type, which decides which detail-fields section
+  // renders below (see typeToCategory above).
+  useEffect(() => {
+    const chosen = categories.find((c) => c.id === selectedCategoryId);
+    if (chosen?.type !== undefined && chosen.type !== null) {
+      setValue("category", typeToCategory[chosen.type]);
+    }
+  }, [selectedCategoryId, categories, setValue]);
 
   const onSubmit = async (data: ListingFormData) => {
     try {
-      const categoryMatch = categories.find(
-        (c) => c.name.toLowerCase() === data.category.toLowerCase(),
-      );
-      const categoryId = categoryMatch?.id ?? categories[0]?.id;
-
-      if (!categoryId) {
-        alert("No listing categories are available yet. Please try again later.");
+      // The category select is required and only ever offers real,
+      // currently-fetched admin categories — no fallback to "closest match"
+      // or "first available". If it doesn't exist as a real category, this
+      // listing cannot be published as that category.
+      const categoryExists = categories.some((c) => c.id === data.categoryId);
+      if (!categoryExists) {
+        alert("Please select a valid category.");
         return;
       }
 
-      const request = buildCreateListingRequest(data, categoryId);
+      const request = buildCreateListingRequest(data, data.categoryId);
 
       if (isEditMode && id) {
         await updateListing(id, request);
@@ -287,7 +303,10 @@ const CreateListing = () => {
       navigate("/vendor/listings");
     } catch (error) {
       console.error(error);
-      alert(`Failed to ${isEditMode ? "update" : "publish"} listing.`);
+      const backendMessage = isAxiosError(error)
+        ? (error.response?.data as { message?: string } | undefined)?.message
+        : undefined;
+      alert(backendMessage || `Failed to ${isEditMode ? "update" : "publish"} listing.`);
     }
   };
 
@@ -355,7 +374,7 @@ const CreateListing = () => {
       >
         <CardContent sx={{ p: { xs: 3, md: 5 } }}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <BaseFields register={register} control={control} errors={errors} />
+            <BaseFields register={register} control={control} errors={errors} categories={categories} />
 
             {renderCategoryFields()}
 

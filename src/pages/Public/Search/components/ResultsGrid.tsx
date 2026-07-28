@@ -54,8 +54,8 @@ export default function ResultsGrid({ listings, loading, error }: Props) {
             image={listing.thumbnailUrl ?? ""}
             title={listing.title}
             category={listing.categoryName}
-            price={`$${listing.priceFrom}`}
-            rating={listing.rating}
+            price={`$${listing.price}`}
+            rating={listing.averageRating}
             location={listing.location}
             badge={listing.isFeatured ? "Featured" : undefined}
           />

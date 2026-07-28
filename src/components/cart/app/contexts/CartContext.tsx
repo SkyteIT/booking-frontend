@@ -1,13 +1,11 @@
 import React, { createContext, useContext, useState, useEffect,  } from 'react';
 import type { ReactNode } from 'react';
-
-
-
-
+import { useAuth } from '../../../../context/useAuth';
+import { addToCart as syncAddToCart } from '../../../../services/cartService';
 export interface BookingItem {
   id: string;
   name: string;
-  category: 'car' | 'hotel' | 'tool' | 'other' | 'restaurant' | 'activity' | 'event' | 'apartment';
+  category: string; // real category name/id from the admin-managed category list (services/categoryService.ts), not a fixed set
   price: number;
   image: string;
   description: string;
@@ -23,7 +21,11 @@ export interface CartItem extends BookingItem {
   totalPrice: number;
 }
 
-// Helper function to check if item allows multiple quantities
+// Helper function to check if item allows multiple quantities.
+// NOTE: matches literal category names because the real admin-managed
+// Category (services/categoryService.ts) has no "allows multiple" flag —
+// this needs a backend field to become category-driven instead of
+// name-matched. See .claude/BACKEND-TODO-cart.md.
 export const canBookMultiple = (category: string): boolean => {
   return category === 'tool' || category === 'other';
 };
@@ -53,6 +55,7 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [cart, setCart] = useState<CartItem[]>(() => {
     // Load cart from localStorage on initial render
     const savedCart = localStorage.getItem('bookingCart');
@@ -94,7 +97,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       alert(`${item.name} is already in your cart!`);
       return;
     }
-    
+
       // Update existing item
       const updatedCart = [...cart];
       updatedCart[existingItemIndex].quantity += quantity;
@@ -111,6 +114,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         totalPrice,
       };
       setCart([...cart, cartItem]);
+    }
+
+    // Best-effort background sync for signed-in users. The backend cart has
+    // mirrors listingId/quantity — it never reads from or overwrites local
+    // state. Remove/update aren't synced: the backend needs its own
+    // CartItemId (not the listingId we have locally) to target those calls.
+    if (isAuthenticated) {
+      syncAddToCart(item.id, quantity).catch((err) => {
+        console.error('Failed to sync cart item to backend:', err);
+      });
     }
   };
 

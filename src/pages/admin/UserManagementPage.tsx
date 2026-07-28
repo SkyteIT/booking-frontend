@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Typography, Paper, TextField, IconButton, Chip,
   InputAdornment, Table, TableBody, TableCell, TableContainer,
@@ -8,43 +8,47 @@ import {
 } from '@mui/material';
 import {
   Search, FilterList, Visibility, Block, MoreVert,
-  Close, Edit, CheckCircle, Person,
+  Close, Edit, CheckCircle,
 } from '@mui/icons-material';
-//import AdminLayout from '../../layouts/AdminLayout/AdminLayout';
-//import MainFooter from '../../components/footer/MainFooter';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'Customer' | 'Vendor' | 'Admin';
-  status: 'Active' | 'Inactive' | 'Suspended';
-  joinDate: string;
-  bookings: number;
-  phone?: string;
-  location?: string;
-}
-
-const initialUsers: User[] = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Customer', status: 'Active', joinDate: '2024-01-15', bookings: 12, phone: '+1 555-0101', location: 'New York, USA' },
-  { id: 2, name: 'Sarah Smith', email: 'sarah@example.com', role: 'Customer', status: 'Active', joinDate: '2024-01-20', bookings: 8, phone: '+1 555-0102', location: 'Miami, USA' },
-  { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'Vendor', status: 'Active', joinDate: '2024-02-01', bookings: 145, phone: '+1 555-0103', location: 'Chicago, USA' },
-  { id: 4, name: 'Emma Wilson', email: 'emma@example.com', role: 'Customer', status: 'Inactive', joinDate: '2024-01-10', bookings: 3, phone: '+1 555-0104', location: 'Los Angeles, USA' },
-  { id: 5, name: 'David Brown', email: 'david@example.com', role: 'Vendor', status: 'Active', joinDate: '2024-01-25', bookings: 67, phone: '+1 555-0105', location: 'Houston, USA' },
-];
+import {
+  getAllUsers,
+  updateUserRole,
+  updateUserStatus,
+  type AdminUserDto,
+} from '../../services/Admin/adminService';
 
 export const UserManagementPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<AdminUserDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUserDto | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const [editForm, setEditForm] = useState<Partial<User>>({});
+  const [editRole, setEditRole] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, user: User) => {
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const data = await getAllUsers();
+      setUsers(data);
+    } catch {
+      setErrorMsg('Failed to load users.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, user: AdminUserDto) => {
     setAnchorEl(event.currentTarget);
     setSelectedUser(user);
   };
@@ -53,43 +57,54 @@ export const UserManagementPage: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleView = (user: User) => {
+  const handleView = (user: AdminUserDto) => {
     setSelectedUser(user);
     setViewOpen(true);
     handleMenuClose();
   };
 
-  const handleEditOpen = (user: User) => {
+  const handleEditOpen = (user: AdminUserDto) => {
     setSelectedUser(user);
-    setEditForm({ ...user });
+    setEditRole(user.role);
     setEditOpen(true);
     handleMenuClose();
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!selectedUser) return;
-    setUsers(users.map(u => u.id === selectedUser.id ? { ...u, ...editForm } as User : u));
-    setEditOpen(false);
-    showSuccess('User updated successfully');
+    setSaving(true);
+    try {
+      const updated = await updateUserRole(selectedUser.id, editRole);
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      setEditOpen(false);
+      showSuccess('User role updated successfully');
+    } catch {
+      setErrorMsg('Failed to update user role.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleBlock = (user: User) => {
+  const handleBlock = (user: AdminUserDto) => {
     setSelectedUser(user);
     setBlockOpen(true);
     handleMenuClose();
   };
 
-  const handleBlockConfirm = () => {
+  const handleBlockConfirm = async () => {
     if (!selectedUser) return;
-    const newStatus = selectedUser.status === 'Suspended' ? 'Active' : 'Suspended';
-    setUsers(users.map(u => u.id === selectedUser.id ? { ...u, status: newStatus } : u));
-    setBlockOpen(false);
-    showSuccess(`User ${newStatus === 'Suspended' ? 'suspended' : 'reactivated'} successfully`);
-  };
-
-  const handleSendMessage = () => {
-    handleMenuClose();
-    showSuccess(`Message sent to ${selectedUser?.name}`);
+    const suspend = selectedUser.status !== 'Suspended';
+    setSaving(true);
+    try {
+      const updated = await updateUserStatus(selectedUser.id, suspend);
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      setBlockOpen(false);
+      showSuccess(`User ${suspend ? 'suspended' : 'reactivated'} successfully`);
+    } catch {
+      setErrorMsg('Failed to update user status.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const showSuccess = (msg: string) => {
@@ -99,13 +114,13 @@ export const UserManagementPage: React.FC = () => {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'Customer': return { bg: '#DBEAFE', color: '#1D4ED8' };
+      case 'User': return { bg: '#DBEAFE', color: '#1D4ED8' };
       case 'Vendor': return { bg: '#E0E7FF', color: '#6366F1' };
       case 'Admin': return { bg: '#FEE2E2', color: '#DC2626' };
       default: return { bg: '#E5E7EB', color: '#6B7280' };
@@ -115,7 +130,6 @@ export const UserManagementPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return '#10B981';
-      case 'Inactive': return '#6B7280';
       case 'Suspended': return '#DC2626';
       default: return '#6B7280';
     }
@@ -127,6 +141,9 @@ export const UserManagementPage: React.FC = () => {
 
         {successMsg && (
           <Alert icon={<CheckCircle />} severity="success" sx={{ mb: 2 }}>{successMsg}</Alert>
+        )}
+        {errorMsg && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg('')}>{errorMsg}</Alert>
         )}
 
         <Box sx={{ mb: 3 }}>
@@ -163,41 +180,63 @@ export const UserManagementPage: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredUsers.map((user) => {
-                    const roleStyle = getRoleColor(user.role);
-                    return (
-                      <TableRow key={user.id} hover>
-                        <TableCell>
-                          <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>{user.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">{user.email}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={user.role} size="small" sx={{ bgcolor: roleStyle.bg, color: roleStyle.color, fontWeight: 600, fontSize: '0.75rem' }} />
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: getStatusColor(user.status) }} />
-                            <Typography variant="body2" sx={{ color: getStatusColor(user.status), fontWeight: 600 }}>{user.status}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell><Typography variant="body2">{user.joinDate}</Typography></TableCell>
-                        <TableCell><Typography variant="body2" sx={{ fontWeight: 600 }}>{user.bookings}</Typography></TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            <IconButton size="small" sx={{ color: '#64748B' }} onClick={() => handleView(user)} title="View Details">
-                              <Visibility fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" sx={{ color: user.status === 'Suspended' ? '#10B981' : '#EF4444' }} onClick={() => handleBlock(user)} title={user.status === 'Suspended' ? 'Unblock' : 'Block'}>
-                              <Block fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" sx={{ color: '#64748B' }} onClick={(e) => handleMenuClick(e, user)}>
-                              <MoreVert fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                          Loading users...
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+                          No users found
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => {
+                      const roleStyle = getRoleColor(user.role);
+                      return (
+                        <TableRow key={user.id} hover>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>{user.fullName}</Typography>
+                            <Typography variant="caption" color="text.secondary">{user.email}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={user.role} size="small" sx={{ bgcolor: roleStyle.bg, color: roleStyle.color, fontWeight: 600, fontSize: '0.75rem' }} />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: getStatusColor(user.status) }} />
+                              <Typography variant="body2" sx={{ color: getStatusColor(user.status), fontWeight: 600 }}>{user.status}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </Typography>
+                          </TableCell>
+                          <TableCell><Typography variant="body2" sx={{ fontWeight: 600 }}>{user.totalBookings}</Typography></TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                              <IconButton size="small" sx={{ color: '#64748B' }} onClick={() => handleView(user)} title="View Details">
+                                <Visibility fontSize="small" />
+                              </IconButton>
+                              <IconButton size="small" sx={{ color: user.status === 'Suspended' ? '#10B981' : '#EF4444' }} onClick={() => handleBlock(user)} title={user.status === 'Suspended' ? 'Unblock' : 'Block'}>
+                                <Block fontSize="small" />
+                              </IconButton>
+                              <IconButton size="small" sx={{ color: '#64748B' }} onClick={(e) => handleMenuClick(e, user)}>
+                                <MoreVert fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -209,10 +248,7 @@ export const UserManagementPage: React.FC = () => {
             <Visibility fontSize="small" sx={{ mr: 1 }} /> View Details
           </MenuItem>
           <MenuItem onClick={() => selectedUser && handleEditOpen(selectedUser)}>
-            <Edit fontSize="small" sx={{ mr: 1 }} /> Edit User
-          </MenuItem>
-          <MenuItem onClick={handleSendMessage}>
-            <Person fontSize="small" sx={{ mr: 1 }} /> Send Message
+            <Edit fontSize="small" sx={{ mr: 1 }} /> Change Role
           </MenuItem>
           <Divider />
           <MenuItem onClick={() => selectedUser && handleBlock(selectedUser)} sx={{ color: '#EF4444' }}>
@@ -232,10 +268,10 @@ export const UserManagementPage: React.FC = () => {
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <Avatar sx={{ width: 64, height: 64, bgcolor: '#0891B2', fontSize: '1.5rem' }}>
-                    {selectedUser.name.charAt(0)}
+                    {selectedUser.fullName.charAt(0)}
                   </Avatar>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{selectedUser.name}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{selectedUser.fullName}</Typography>
                     <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
                   </Box>
                 </Box>
@@ -243,10 +279,9 @@ export const UserManagementPage: React.FC = () => {
                 {[
                   { label: 'Role', value: selectedUser.role },
                   { label: 'Status', value: selectedUser.status },
-                  { label: 'Join Date', value: selectedUser.joinDate },
-                  { label: 'Total Bookings', value: selectedUser.bookings },
-                  { label: 'Phone', value: selectedUser.phone || 'N/A' },
-                  { label: 'Location', value: selectedUser.location || 'N/A' },
+                  { label: 'Join Date', value: new Date(selectedUser.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) },
+                  { label: 'Total Bookings', value: selectedUser.totalBookings },
+                  { label: 'Phone', value: selectedUser.phoneNumber || 'N/A' },
                 ].map((item) => (
                   <Box key={item.label} sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #F1F5F9' }}>
                     <Typography variant="body2" color="text.secondary">{item.label}</Typography>
@@ -258,48 +293,39 @@ export const UserManagementPage: React.FC = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setViewOpen(false)} sx={{ textTransform: 'none' }}>Close</Button>
-            <Button variant="contained" onClick={() => { setViewOpen(false); selectedUser && handleEditOpen(selectedUser); }}
+            <Button variant="contained" onClick={() => { setViewOpen(false); if (selectedUser) handleEditOpen(selectedUser); }}
               sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
-              Edit User
+              Change Role
             </Button>
           </DialogActions>
         </Dialog>
 
-        {/* Edit Dialog */}
+        {/* Edit (role-only — that's the only field the admin API supports changing besides status) */}
         <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            Edit User
+            Change Role
             <IconButton onClick={() => setEditOpen(false)}><Close /></IconButton>
           </DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-              <TextField label="Name" fullWidth value={editForm.name || ''} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-              <TextField label="Email" fullWidth value={editForm.email || ''} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
-              <TextField label="Phone" fullWidth value={editForm.phone || ''} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
-              <TextField label="Location" fullWidth value={editForm.location || ''} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+              <Typography variant="body2" color="text.secondary">
+                {selectedUser?.fullName} ({selectedUser?.email})
+              </Typography>
               <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
-                <Select label="Role" value={editForm.role || ''} onChange={(e) => setEditForm({ ...editForm, role: e.target.value as User['role'] })}>
-                  <MenuItem value="Customer">Customer</MenuItem>
+                <Select label="Role" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                  <MenuItem value="User">User</MenuItem>
                   <MenuItem value="Vendor">Vendor</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select label="Status" value={editForm.status || ''} onChange={(e) => setEditForm({ ...editForm, status: e.target.value as User['status'] })}>
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Inactive">Inactive</MenuItem>
-                  <MenuItem value="Suspended">Suspended</MenuItem>
                 </Select>
               </FormControl>
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setEditOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
-            <Button variant="contained" onClick={handleEditSave}
+            <Button variant="contained" disabled={saving} onClick={handleEditSave}
               sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
-              Save Changes
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogActions>
         </Dialog>
@@ -310,15 +336,15 @@ export const UserManagementPage: React.FC = () => {
           <DialogContent>
             <DialogContentText>
               {selectedUser?.status === 'Suspended'
-                ? `Are you sure you want to reactivate ${selectedUser?.name}? They will regain access to the platform.`
-                : `Are you sure you want to suspend ${selectedUser?.name}? They will lose access to the platform.`}
+                ? `Are you sure you want to reactivate ${selectedUser?.fullName}? They will regain access to the platform.`
+                : `Are you sure you want to suspend ${selectedUser?.fullName}? They will lose access to the platform.`}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setBlockOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
-            <Button variant="contained" onClick={handleBlockConfirm}
+            <Button variant="contained" disabled={saving} onClick={handleBlockConfirm}
               sx={{ textTransform: 'none', bgcolor: selectedUser?.status === 'Suspended' ? '#10B981' : '#EF4444', '&:hover': { bgcolor: selectedUser?.status === 'Suspended' ? '#059669' : '#DC2626' } }}>
-              {selectedUser?.status === 'Suspended' ? 'Reactivate' : 'Suspend'}
+              {saving ? 'Working...' : selectedUser?.status === 'Suspended' ? 'Reactivate' : 'Suspend'}
             </Button>
           </DialogActions>
         </Dialog>

@@ -2,6 +2,7 @@
 // Shared TypeScript interfaces for the Content Management domain.
 // These types are the single source of truth consumed by the service layer,
 // the useContent hook, and every component in this feature folder.
+import type { ListingType } from "../../../../services/Vendor/listingService";
 
 // ── Category ─────────────────────────────────────────────
 // Represents a booking category (e.g. Hotels, Car Rentals).
@@ -13,6 +14,9 @@ export interface Category {
   listings: number; // Total active listings belonging to this category
   status: boolean;  // true = Active, false = Inactive
   icon: string;     // Emoji character or empty string
+  // Which ListingType this category's listings must use — every real
+  // category has one; only the internal "Uncategorized" sentinel doesn't.
+  type: ListingType | null;
 }
 
 // ── Banner ───────────────────────────────────────────────
