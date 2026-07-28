@@ -6,6 +6,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import SettingsIcon from "@mui/icons-material/Settings";
+import StarIcon from "@mui/icons-material/Star";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import {
   Box,
@@ -22,6 +23,7 @@ const menuItems = [
   { path: "/vendor/bookings", label: "Bookings", icon: CalendarMonthIcon },
   { path: "/vendor/listings", label: "Listings", icon: Inventory2Icon },
   { path: "/vendor/availability", label: "Availability", icon: AccessTimeIcon },
+  { path: "/vendor/reviews", label: "Reviews", icon: StarIcon },
   { path: "/vendor/pricing", label: "Pricing & Promotions", icon: LocalOfferIcon },
   { path: "/vendor/reports", label: "Reports", icon: BarChartIcon },
   { path: "/vendor/settings", label: "Settings", icon: SettingsIcon },

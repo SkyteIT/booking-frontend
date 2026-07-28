@@ -1,23 +1,17 @@
 import { Box, MenuItem, Switch, TextField, Typography } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+import type { CategoryDto } from "../../../../services/Vendor/listingService";
 import type { ListingFormData } from "../../../../utils/types";
 
 interface BaseFieldsProps {
   register: UseFormRegister<ListingFormData>;
   control: Control<ListingFormData>;
   errors: FieldErrors<ListingFormData>;
+  categories: CategoryDto[];
 }
 
-const categoryOptions: ListingFormData["category"][] = [
-  "Hotel",
-  "Restaurant",
-  "Activity",
-  "Event",
-  "CarRental",
-];
-
-export default function BaseFields({ register, control, errors }: BaseFieldsProps) {
+export default function BaseFields({ register, control, errors, categories }: BaseFieldsProps) {
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
       <TextField
@@ -42,11 +36,19 @@ export default function BaseFields({ register, control, errors }: BaseFieldsProp
         select
         fullWidth
         label="Category"
-        {...register("category")}
+        disabled={categories.length === 0}
+        helperText={
+          errors.categoryId?.message ??
+          (categories.length === 0
+            ? "No categories exist yet — ask an admin to create one before publishing."
+            : "Determines which detail fields appear below")
+        }
+        error={!!errors.categoryId}
+        {...register("categoryId", { required: "Select a category" })}
       >
-        {categoryOptions.map((option) => (
-          <MenuItem key={option} value={option}>
-            {option}
+        {categories.map((cat) => (
+          <MenuItem key={cat.id} value={cat.id}>
+            {cat.name}
           </MenuItem>
         ))}
       </TextField>

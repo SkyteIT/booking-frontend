@@ -12,6 +12,7 @@ import {
   getPromotions, createPromotion, deletePromotion,
 } from "../services/contentService";
 import type { Category, Banner, Promotion } from "../types/contentType";
+import type { ListingType } from "../../../../services/Vendor/listingService";
 
 export const useContent = () => {
   // ── Shared data state ────────────────────────────────────
@@ -48,8 +49,8 @@ export const useContent = () => {
 
   // Creates a new category then re-fetches the full list so we always
   // show the real server state (including restored listings count).
-  const addCategory = useCallback(async (name: string, icon?: string) => {
-    await createCategory({ name, icon });
+  const addCategory = useCallback(async (name: string, type: ListingType, icon?: string) => {
+    await createCategory({ name, type, icon });
     await refresh();
   }, [refresh]);
 

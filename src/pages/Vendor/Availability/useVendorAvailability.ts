@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { getAvailability, blockDates, unblockDates } from "../../../services/Vendor/availability";
-import { getVendorListings } from "../../../services/Vendor/listing";
+import { getVendorListings } from "../../../services/Vendor/listingService";
 import type { RawApiRecord } from "../../../utils/types";
 import {
   normalizeCalendarResponse,
