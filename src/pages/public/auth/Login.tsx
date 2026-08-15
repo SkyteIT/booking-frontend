@@ -1,37 +1,66 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { Snackbar, Alert } from "@mui/material";
+import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/useAuth"; // ✅ IMPORTANT
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import { useAuth } from "../../../context/useAuth";
-import { login } from "../../../services/authService";
+import { login as loginRequest, loginWithGoogle } from "../../../services/authService";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
 
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
+function getAuthErrorMessage(error: unknown, fallback: string) {
+  const response = error as {
+    response?: {
+      data?: {
+        message?: unknown;
+        title?: unknown;
+        errors?: Record<string, unknown>;
+      };
+    };
+  };
 
-  const data = error.response?.data;
-  if (!data) return error.message;
+  const message = response?.response?.data?.message;
+  if (typeof message === "string" && message.trim()) return message;
 
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
+  const title = response?.response?.data?.title;
+  if (typeof title === "string" && title.trim()) return title;
+
+  const errors = response?.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    return Object.values(errors)
+      .flat()
+      .map(String)
+      .filter(Boolean)
+      .join(" ") || fallback;
   }
 
-  return error.message;
-};
+  return error instanceof Error ? error.message || fallback : fallback;
+}
 
 function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+
   const { refreshUser } = useAuth();
-  const [error, setError] = useState<string>("");
+
+  const nextPath = new URLSearchParams(location.search).get("next") ?? "";
+
+  const isSafeRedirect = (path: string) => path.startsWith("/");
+
+  const getRoleRedirect = (role?: string) => {
+    const normalizedRole = String(role ?? "").toLowerCase();
+
+    if (normalizedRole === "admin") return "/admin/dashboard";
+    if (normalizedRole === "vendor") return "/vendor/dashboard";
+    return "/";
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [successSnackbar, setSuccessSnackbar] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState("");
 
   const {
     register,
@@ -42,92 +71,164 @@ function Login(): JSX.Element {
     mode: "onBlur",
   });
 
+  const redirectAfterLogin = (role?: string) => {
+    const roleRedirect = getRoleRedirect(role);
+    const redirectTarget =
+      isSafeRedirect(nextPath) && nextPath !== "/" ? nextPath : roleRedirect;
+
+    navigate(redirectTarget, { replace: true });
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setError("");
-      const response = (await login(data.email, data.password)) as {
-        role?: string;
-        user?: { role?: string };
-      };
+      const authResponse = await loginRequest(data.email, data.password);
 
-      await refreshUser();
+      const currentUser = await refreshUser();
 
-      const next = new URLSearchParams(location.search).get("next");
-      if (next) {
-        navigate(next, { replace: true });
-        return;
-      }
+      setSuccessSnackbar(true);
 
-      const role = String(response.role ?? response.user?.role ?? "").toLowerCase();
+      setTimeout(() => {
+        const role =
+          currentUser?.role ??
+          authResponse.role ??
+          (typeof authResponse.user === "object" && authResponse.user
+            ? String((authResponse.user as { role?: string }).role ?? "")
+            : "");
 
-      if (role === "admin") {
-        navigate("/admin/dashboard", { replace: true });
-        return;
-      }
-
-      if (role === "vendor") {
-        navigate("/vendor/dashboard", { replace: true });
-        return;
-      }
-
-      navigate("/", { replace: true });
+        redirectAfterLogin(role);
+      }, 800);
     } catch (error) {
-      setError(getApiErrorMessage(error) ?? "Invalid email or password.");
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Login failed. Please try again.")
+      );
+    }
+  };
+
+  const handleGoogleLogin = async (credential?: string) => {
+    if (!credential) {
+      setErrorSnackbar("Google login failed. Please try again.");
+      return;
+    }
+
+    try {
+      const authResponse = await loginWithGoogle(credential);
+      const currentUser = await refreshUser();
+
+      setSuccessSnackbar(true);
+
+      setTimeout(() => {
+        redirectAfterLogin(currentUser?.role ?? authResponse.role);
+      }, 800);
+    } catch (error) {
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Google login failed. Please try again.")
+      );
     }
   };
 
   return (
     <AuthLayout>
       <div className="auth-card">
-        <h2 className="title center">Login</h2>
-        <p className="subtitle center">Sign in to continue.</p>
+        <h2 className="title center">Welcome Back</h2>
+        <p className="subtitle center">
+          Sign in to continue
+        </p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          {/* EMAIL */}
           <div className="input-group">
             <label>Email Address</label>
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter email"
               {...register("email")}
               className={errors.email ? "input-error" : ""}
             />
             {errors.email && <p className="error-text">{errors.email.message}</p>}
           </div>
 
+          {/* PASSWORD */}
           <div className="input-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              {...register("password")}
-              className={errors.password ? "input-error" : ""}
-            />
-            {errors.password && <p className="error-text">{errors.password.message}</p>}
+
+            <div className="password-wrapper styled">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                {...register("password")}
+                className={errors.password ? "input-error" : ""}
+              />
+
+              <span className="eye-icon" onClick={() => setShowPassword((p) => !p)}>
+                {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              </span>
+            </div>
+
+            {errors.password && (
+              <p className="error-text">{errors.password.message}</p>
+            )}
           </div>
 
-          {error && <p className="error-text">{error}</p>}
+          <div className="forgot center">
+            <Link to="/forgot-password">Forgot Password?</Link>
+          </div>
 
           <button
             type="submit"
             className="primary-btn"
             disabled={isSubmitting}
-            style={{
-              opacity: isSubmitting ? 0.7 : 1,
-              cursor: isSubmitting ? "not-allowed" : "pointer",
-            }}
           >
-            {isSubmitting ? "Signing in..." : "Login"}
+            {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
-        <div style={{ marginTop: "16px", textAlign: "center" }}>
-          <Link to="/forgot-password" className="back-link">
-            Forgot password?
-          </Link>
-          <p className="subtitle" style={{ marginTop: "12px" }}>
-            Don&apos;t have an account? <Link to="/register">Register</Link>
-          </p>
+        <div className="divider">
+          <span>OR CONTINUE WITH</span>
         </div>
+
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={(credentialResponse) =>
+              handleGoogleLogin(credentialResponse.credential)
+            }
+            onError={() => setErrorSnackbar("Google login failed. Please try again.")}
+            width="400"
+          />
+        </div>
+
+        <p className="bottom-text">
+          Don’t have an account?{" "}
+          <Link
+            to={
+              isSafeRedirect(nextPath)
+                ? `/register?next=${encodeURIComponent(nextPath)}`
+                : "/register"
+            }
+            className="bold-link"
+          >
+            Sign Up
+          </Link>
+        </p>
+
+        {/* SUCCESS */}
+        <Snackbar
+          open={successSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setSuccessSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="success">Login Successful!</Alert>
+        </Snackbar>
+
+        {/* ERROR */}
+        <Snackbar
+          open={Boolean(errorSnackbar)}
+          autoHideDuration={2500}
+          onClose={() => setErrorSnackbar("")}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="error">{errorSnackbar}</Alert>
+        </Snackbar>
       </div>
     </AuthLayout>
   );
