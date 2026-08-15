@@ -26,6 +26,7 @@ import LandingPage from "../pages/Public/LandingPage";
 import SearchResultsPage from "../pages/Public/Search/SearchResultsPage";
 import ViewProduct from "../pages/Public/ViewProduct/ViewProduct";
 import Availability from "../pages/Vendor/Availability/Availability";
+import VendorReviews from "../pages/Vendor/Reviews/VendorReviews";
 import Bookings from "../pages/Vendor/Bookings/Bookings";
 import BusinessInfo from "../pages/Vendor/Application/BusinessInfo";
 import Categories from "../pages/Vendor/Application/Categories";
@@ -134,6 +135,7 @@ function AppRouter() {
           <Route path="listings/new" element={<CreateListing />} />
           <Route path="listings/edit/:id" element={<CreateListing />} />
           <Route path="availability" element={<Availability />} />
+          <Route path="reviews" element={<VendorReviews />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 

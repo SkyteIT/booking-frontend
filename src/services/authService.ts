@@ -5,6 +5,7 @@ import tokenStorage from "./tokenStorage";
 type AuthResponse = {
   token?: string;
   accessToken?: string;
+  refreshToken?: string;
   user?: unknown;
   role?: string;
   email?: string;
@@ -15,6 +16,9 @@ const saveAuthToken = (response: AuthResponse) => {
 
   if (token) {
     tokenStorage.setToken(token);
+  }
+  if (response.refreshToken) {
+    tokenStorage.setRefreshToken(response.refreshToken);
   }
 };
 
@@ -53,4 +57,10 @@ export const loginWithGoogle = async (credential: string) => {
 export const getCurrentUser = async () => {
   const res = await api.get("/auth/current-user");
   return res.data;
+};
+
+// Revokes the refresh token server-side. Best-effort — callers should clear
+// local tokens regardless of whether this succeeds.
+export const logout = async (refreshToken: string) => {
+  await api.post("/auth/logout", { refreshToken });
 };

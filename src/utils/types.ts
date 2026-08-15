@@ -21,6 +21,10 @@ export interface ListingFormData {
     title: string;
     location: string;
     category: ListingCategory;
+    // The real admin-created Category's id (services/Vendor/listingService.ts
+    // CategoryDto) — distinct from `category` above, which only selects the
+    // fixed ListingType and determines which detail-fields section renders.
+    categoryId: string;
     images: string[];
     imageUrls?: string;
     description?: string;

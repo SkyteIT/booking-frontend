@@ -1,14 +1,9 @@
 import api from "../api";
 
-export const ListingType = {
-  Hotel: 0,
-  Restaurant: 1,
-  Event: 2,
-  CarRental: 3,
-  Activity: 4,
-} as const;
-
-export type ListingType = (typeof ListingType)[keyof typeof ListingType];
+// The backend serializes all enums as their string name globally
+// (Program.cs: AddJsonOptions -> JsonStringEnumConverter()), so this is
+// always e.g. "Hotel", never the underlying numeric value.
+export type ListingType = "Hotel" | "Restaurant" | "Event" | "CarRental" | "Activity";
 
 export interface HotelDetailsDto {
   pricePerNight: number;
@@ -79,9 +74,11 @@ export interface EventDetailsDto {
 
 // Matches Ube.Application.Features.Listings.CreateListingRequest —
 // vendor is derived server-side from the authenticated user, not sent here.
+// No `type` field: ListingType is derived server-side from the chosen
+// category's Type — a listing can't be created under a category that has
+// no Type configured (backend returns a 400 naming the category).
 export interface CreateListingRequest {
   categoryId: string;
-  type: ListingType;
 
   title: string;
   description: string;
@@ -113,6 +110,9 @@ export interface CategoryDto {
   id: string;
   name: string;
   description?: string;
+  // Null only for the internal "Uncategorized" sentinel — every
+  // admin-created category has a Type once configured.
+  type?: ListingType | null;
 }
 
 export const getCategories = async (): Promise<CategoryDto[]> => {
@@ -172,4 +172,8 @@ export const getListingById = async (id: string): Promise<ListingResponse> => {
 export const updateListing = async (id: string, data: CreateListingRequest) => {
   const res = await api.put(`/listings/${id}`, data);
   return res.data;
+};
+
+export const deleteListing = async (id: string): Promise<void> => {
+  await api.delete(`/listings/${id}`);
 };

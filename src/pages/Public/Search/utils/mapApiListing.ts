@@ -1,12 +1,17 @@
 import type { ListingResponse, ListingType } from "../../../../services/Vendor/listingService";
 import type { Listing } from "./types";
 
+// ListingType's string values already match the labels we want to show —
+// this used to be keyed by the enum's numeric value (0/1/2/...), which
+// never matched anything since the backend serializes enums as strings
+// (see services/Vendor/listingService.ts). Every listing silently fell
+// back to "Other" here until this was caught.
 const typeLabels: Record<ListingType, string> = {
-  0: "Hotel",
-  1: "Restaurant",
-  2: "Event",
-  3: "CarRental",
-  4: "Activity",
+  Hotel: "Hotel",
+  Restaurant: "Restaurant",
+  Event: "Event",
+  CarRental: "CarRental",
+  Activity: "Activity",
 };
 
 const priceUnitByCategory: Record<string, string> = {
@@ -31,7 +36,12 @@ function amenitiesFor(api: ListingResponse): string[] {
 }
 
 export function mapApiListing(api: ListingResponse): Listing {
-  const category = typeLabels[api.type] ?? "Other";
+  // `category` shown to customers is the real admin-created category name
+  // (e.g. "Luxury Hotels", "Budget Hotels") — two categories can share the
+  // same underlying `type`, so the type label is only used as a fallback
+  // and to look up the price unit, never as the displayed category itself.
+  const typeLabel = typeLabels[api.type] ?? "Other";
+  const category = api.categoryName || typeLabel;
   const images = api.images?.length ? api.images : api.primaryImage ? [api.primaryImage] : [];
 
   return {
@@ -40,7 +50,7 @@ export function mapApiListing(api: ListingResponse): Listing {
     category,
     location: api.location || "Online",
     price: api.price,
-    priceUnit: priceUnitByCategory[category] ?? "unit",
+    priceUnit: priceUnitByCategory[typeLabel] ?? "unit",
     rating: api.averageRating,
     reviews: api.totalReviews,
     image: api.primaryImage || images[0] || FALLBACK_IMAGE,

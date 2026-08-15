@@ -34,20 +34,6 @@ interface ListingCardProps {
 
 
 
-const getCategoryForCart = (cat: string) => {
-  const map: Record<string, string> = {
-    'hotel': 'hotel',
-    'car rental': 'car',
-    'restaurant': 'restaurant',
-    'activity': 'activity',
-    'event': 'event',
-    'apartment': 'apartment',
-  };
-  return map[cat.toLowerCase()] || 'other';
-};
-
-
-
 const ListingCard = ({
   id,
   image,
@@ -83,7 +69,7 @@ const ListingCard = ({
     const item: BookingItem = {
       id:String(id),
       name: title,
-      category: getCategoryForCart(category) as any,
+      category,
       price: priceNumber,
       priceUnit: "per night",
       description: "",

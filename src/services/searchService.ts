@@ -12,15 +12,19 @@ export interface SearchParams {
   pageSize?: number;
 }
 
+// Matches Ube.Application.Features.Search.SearchListingDto exactly — this
+// used to declare priceFrom/rating/isAvailable, none of which the backend
+// ever sends (it sends price/averageRating/isActive), so every listing
+// silently rendered "$undefined" and a 0 rating until this was caught.
 export interface SearchListing {
   id: string;
   title: string;
   categoryName: string;
   location: string;
-  priceFrom: number;
-  rating: number;
+  price: number;
+  averageRating: number;
   isFeatured: boolean;
-  isAvailable: boolean;
+  isActive: boolean;
   thumbnailUrl: string | null;
 }
 

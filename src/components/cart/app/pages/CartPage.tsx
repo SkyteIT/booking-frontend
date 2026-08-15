@@ -45,6 +45,9 @@ export const CartPage: React.FC = () => {
     return diffDays || 1;
   };
 
+  // Same gap as CartContext's canBookMultiple: no "allows multiple" flag
+  // exists on the real admin-managed Category yet, so this still matches
+  // literal names. See .claude/BACKEND-TODO-cart.md.
   const canIncreaseQuantity = (category: string) => {
     return category !== 'hotel' && category !== 'car';
   };
@@ -54,23 +57,19 @@ export const CartPage: React.FC = () => {
   const serviceFee = 25;
   const total = subtotal + tax + serviceFee;
 
-  const categories = ['All', 'Hotels', 'Cars', 'Activities', 'Transfers', 'Restaurants', 'Events'];
-  
-const getFilteredCart = () => {
-  if (activeTab === 0) return cart; // "All" tab
-  const categoryMap: Record<number, string> = {
-    1: 'hotel',
-    2: 'car',
-    3: 'activity',
-    4: 'transfer',
-    5: 'restaurant',
-    6: 'event',
-  };
-  const selectedCategory = categoryMap[activeTab];
-  return cart.filter(item => item.category === selectedCategory);
-};
+  // Tabs are derived from whatever real categories are actually in the
+  // cart (item.category now comes straight from the admin-managed category
+  // list, see CartContext's BookingItem) instead of a fixed hardcoded set.
+  const cartCategories = Array.from(new Set(cart.map((item) => item.category)));
+  const categories = ['All', ...cartCategories];
 
-const filteredCart = getFilteredCart();
+  const getFilteredCart = () => {
+    if (activeTab === 0) return cart; // "All" tab
+    const selectedCategory = cartCategories[activeTab - 1];
+    return cart.filter((item) => item.category === selectedCategory);
+  };
+
+  const filteredCart = getFilteredCart();
 
 
 

@@ -51,10 +51,10 @@ export const getVendorApplications = async ({
   return res.data;
 };
 
-export const reviewVendorApplication = async (id: string, status: string, Reason?: string) => {
+export const reviewVendorApplication = async (id: string, status: string, reason?: string) => {
   await api.patch(`/admin/vendor-applications/${id}/review`, {
     status,
-    rejectedReason: Reason,
+    rejectionReason: reason,
   });
 };
 export const getVendorApplicationById = async (id: string) => {

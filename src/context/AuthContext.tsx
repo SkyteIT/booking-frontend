@@ -1,3 +1,6 @@
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import type { ReactNode } from "react";
+import { getCurrentUser, logout as logoutApi } from "../services/authService";
 import {
   useCallback,
   useEffect,
@@ -73,10 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   const logout = useCallback(() => {
+    const refreshToken = tokenStorage.getRefreshToken();
     cancelScheduledRefresh();
     tokenStorage.removeToken();
     setUser(null);
     setVendorApplicationSubmitted(false);
+
+    // Best-effort — revokes the refresh token server-side, but local state
+    // is already cleared above regardless of whether this succeeds.
+    if (refreshToken) {
+      logoutApi(refreshToken).catch(() => {});
+    }
   }, [cancelScheduledRefresh]);
   const refreshUser = useCallback(async () => {
   const token = tokenStorage.getToken();

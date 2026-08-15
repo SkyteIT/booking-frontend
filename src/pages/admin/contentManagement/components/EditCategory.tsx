@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import {
   Box, Typography, TextField, Button, Paper,
-  FormControlLabel, Switch, IconButton, Chip,
+  FormControlLabel, Switch, IconButton, Chip, MenuItem,
   Dialog, DialogTitle, DialogContent, DialogActions,
   CircularProgress,
 } from "@mui/material";
@@ -10,7 +10,10 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useParams } from "react-router-dom";
+import type { ListingType } from "../../../../services/Vendor/listingService";
 import { getCategoryById, updateCategoryFull } from "../services/contentService";
+
+const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental", "Activity"];
 
 const cardStyle = {
   p: 3,
@@ -42,6 +45,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
     description: "",
     icon: "",
     status: true,
+    type: "" as ListingType | "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -58,6 +62,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
           description: "",
           icon: cat.icon ?? "",
           status: cat.status ?? true,
+          type: cat.type ?? "",
         });
       })
       .finally(() => setLoading(false));
@@ -71,6 +76,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.name.trim()) errs.name = "Category name is required";
+    if (!form.type) errs.type = "Select a listing type";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -84,6 +90,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
         description: form.description || undefined,
         icon: form.icon || undefined,
         status: form.status ? "Active" : "Inactive",
+        type: form.type as ListingType,
       });
       if (onSaved) onSaved();
       else navigate("/admin/content");
@@ -125,6 +132,19 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
           error={!!errors.name}
           helperText={errors.name}
         />
+        <TextField
+          label="Listing Type"
+          select
+          fullWidth
+          required
+          sx={{ mb: 2 }}
+          value={form.type}
+          onChange={(e) => set("type", e.target.value)}
+          error={!!errors.type}
+          helperText={errors.type || "Which kind of listing can be created under this category"}
+        >
+          {LISTING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+        </TextField>
         <TextField
           label="Description"
           fullWidth
@@ -306,6 +326,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
             <Typography fontWeight={600} mb={2}>Category Preview</Typography>
             {[
               { label: "Name",   value: form.name   || "—" },
+              { label: "Type",   value: form.type   || "—" },
               { label: "Icon",   value: form.icon   || "—" },
             ].map((row) => (
               <Box key={row.label} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
