@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+
 import type { ReactNode } from "react";
-import { getCurrentUser, logout as logoutApi } from "../services/authService";
 import {
   useCallback,
   useEffect,
