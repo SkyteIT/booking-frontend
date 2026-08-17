@@ -36,6 +36,7 @@ import {
 } from "../../../services/Admin/adminService";
 import { getVendorApplications, type VendorApplication } from "../../../services/Admin/vendor";
 import { getListings, type ListingResponse } from "../../../services/Vendor/listingService";
+import { useRealtimeHub } from "../../../hooks/useRealtimeHub";
 
 interface StatCard {
   label: string;
@@ -261,6 +262,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     snapshotRef.current = snapshot;
   }, [snapshot]);
+
+  useRealtimeHub(
+    {
+      "dashboard.refresh": () => {
+        void loadDashboard(true);
+      },
+    },
+    { enabled: true }
+  );
 
   const loadDashboard = useCallback(async (isRefresh = false) => {
     try {
@@ -674,3 +684,6 @@ export default function AdminDashboard() {
     </Box>
   );
 }
+
+
+

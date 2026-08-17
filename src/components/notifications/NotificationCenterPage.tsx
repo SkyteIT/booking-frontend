@@ -50,6 +50,10 @@ type NotificationCenterPageProps = {
   showTopCategories?: boolean;
   showPreferences?: boolean;
   allowReadActions?: boolean;
+  compactHero?: boolean;
+  showHeaderStats?: boolean;
+  showHeaderEmail?: boolean;
+  modernFilterBar?: boolean;
 };
 
 const PAGE_SIZE = 8;
@@ -106,6 +110,10 @@ export default function NotificationCenterPage({
   showTopCategories = true,
   showPreferences = true,
   allowReadActions = true,
+  compactHero = false,
+  showHeaderStats = true,
+  showHeaderEmail = true,
+  modernFilterBar = false,
 }: NotificationCenterPageProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -285,6 +293,15 @@ export default function NotificationCenterPage({
 
   const showEmptyState = !userId;
   const subtitle = showEmptyState ? "Sign in to load your live notification feed." : config.subtitle;
+  const filterButtons = [
+    { key: "all", label: "All", count: summary.total },
+    { key: "unread", label: "Unread", count: summary.unread },
+    ...visibleGroups.map((group) => ({
+      key: group.key,
+      label: group.title,
+      count: group.count,
+    })),
+  ];
 
   return (
     <Box sx={{ display: "grid", gap: 3 }}>
@@ -316,11 +333,11 @@ export default function NotificationCenterPage({
             justifyContent="space-between"
             gap={2}
           >
-            <Stack direction="row" spacing={1.5} alignItems="center">
+            <Stack direction="row" spacing={compactHero ? 1.25 : 1.5} alignItems="center">
               <Avatar
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: compactHero ? 44 : 48,
+                  height: compactHero ? 44 : 48,
                   bgcolor: "rgba(255,255,255,0.15)",
                   border: "1px solid rgba(255,255,255,0.2)",
                 }}
@@ -328,7 +345,7 @@ export default function NotificationCenterPage({
                 <NotificationsNoneOutlinedIcon />
               </Avatar>
               <Box>
-                <Typography variant="h4" fontWeight={800} lineHeight={1.1}>
+                <Typography variant={compactHero ? "h5" : "h4"} fontWeight={800} lineHeight={1.1}>
                   {config.title}
                 </Typography>
                 <Typography sx={{ opacity: 0.86, mt: 0.5, maxWidth: 760 }}>
@@ -349,12 +366,14 @@ export default function NotificationCenterPage({
             />
           </Stack>
 
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            <Chip label={`${summary.unread} unread`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-            <Chip label={`${summary.total} total`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-            <Chip label={`${summary.critical} priority`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-            <Chip label={`${summary.activeGroups} groups active`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-          </Stack>
+          {showHeaderStats && (
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Chip label={`${summary.unread} unread`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
+              <Chip label={`${summary.total} total`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
+              <Chip label={`${summary.critical} priority`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
+              <Chip label={`${summary.activeGroups} groups active`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
+            </Stack>
+          )}
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
             <Button
@@ -394,7 +413,7 @@ export default function NotificationCenterPage({
             >
               Refresh
             </Button>
-            {email && (
+            {showHeaderEmail && email && (
               <Chip
                 label={email}
                 sx={{
@@ -570,7 +589,75 @@ export default function NotificationCenterPage({
                   Filter the inbox by category and keep unread items visible.
                 </Typography>
               </Box>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+            </Stack>
+
+            {modernFilterBar ? (
+              <Box
+                sx={{
+                  mt: 2,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                  gap: 0.6,
+                  width: "100%",
+                  maxWidth: "100%",
+                  justifyItems: "stretch",
+                }}
+              >
+                {filterButtons.map((filter) => {
+                  const isActive = activeFilter === filter.key;
+                  const accent = filter.key === "all" ? "#2563eb" : filter.key === "unread" ? "#0f766e" : visibleGroups.find((group) => group.key === filter.key)?.accent ?? "#2563eb";
+
+                  return (
+                    <Button
+                      key={filter.key}
+                      onClick={() => setActiveFilter(filter.key)}
+                      variant={isActive ? "contained" : "outlined"}
+                      sx={{
+                        width: "100%",
+                        minWidth: 0,
+                        borderRadius: 999,
+                        textTransform: "none",
+                        px: 1,
+                        py: 0.7,
+                        minHeight: 38,
+                        borderColor: isActive ? accent : "rgba(15,23,42,0.12)",
+                        bgcolor: isActive ? accent : "#fff",
+                        color: isActive ? "#fff" : "#334155",
+                        boxShadow: isActive ? `0 10px 22px ${accent}2a` : "0 1px 2px rgba(15,23,42,0.04)",
+                        "&:hover": {
+                          bgcolor: isActive ? accent : "#eff6ff",
+                          borderColor: accent,
+                          color: isActive ? "#fff" : accent,
+                        },
+                      }}
+                      >
+                      <Stack direction="row" alignItems="center" spacing={0.55} sx={{ width: "100%" }}>
+                        <Typography
+                          fontWeight={800}
+                          fontSize="0.72rem"
+                          sx={{ lineHeight: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
+                        >
+                          {filter.label}
+                        </Typography>
+                        <Chip
+                          label={filter.count}
+                          size="small"
+                          sx={{
+                            height: 18,
+                            fontWeight: 800,
+                            bgcolor: isActive ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.06)",
+                            color: isActive ? "#fff" : accent,
+                            flexShrink: 0,
+                            "& .MuiChip-label": { px: 0.6, fontSize: "0.62rem" },
+                          }}
+                        />
+                      </Stack>
+                    </Button>
+                  );
+                })}
+              </Box>
+            ) : (
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 2 }}>
                 {["all", "unread"].map((filter) => (
                   <Chip
                     key={filter}
@@ -582,24 +669,7 @@ export default function NotificationCenterPage({
                   />
                 ))}
               </Stack>
-            </Stack>
-
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 2 }}>
-              {visibleGroups.map((group) => (
-                <Chip
-                  key={group.key}
-                  label={`${group.title} (${group.count})`}
-                  onClick={() => setActiveFilter(group.key)}
-                  clickable
-                  variant={activeFilter === group.key ? "filled" : "outlined"}
-                  sx={{
-                    borderColor: `${group.accent}40`,
-                    bgcolor: activeFilter === group.key ? group.accent : "transparent",
-                    color: activeFilter === group.key ? "#fff" : "text.primary",
-                  }}
-                />
-              ))}
-            </Stack>
+            )}
 
             <TextField
               fullWidth

@@ -11,7 +11,16 @@ export default function CustomerNotifications() {
       title="Notifications"
       subtitle="A focused inbox for booking, payment, review, and account updates."
     >
-      <NotificationCenterPage role="customer" userId={userId} showTopCategories showPreferences={false} />
+      <NotificationCenterPage
+        role="customer"
+        userId={userId}
+        showTopCategories={false}
+        showPreferences={false}
+        compactHero
+        showHeaderStats={false}
+        showHeaderEmail={false}
+        modernFilterBar
+      />
     </CustomerPageLayout>
   );
 }
