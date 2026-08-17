@@ -4,9 +4,13 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import AddIcon from "@mui/icons-material/Add";
 import icon2 from "../../assets/icons/icon2.png";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { useNotifications } from "../../hooks/useNotifications";
 
 export default function VendorHeader() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { unreadCount } = useNotifications(user?.userId ?? user?.id ?? null);
   return (
     <Box
       sx={{
@@ -54,7 +58,7 @@ export default function VendorHeader() {
         </Button>
 
         <IconButton onClick={() => navigate("/vendor/notifications")}>
-          <Badge badgeContent={3} color="error">
+          <Badge badgeContent={unreadCount} color="error">
             <NotificationsIcon />
           </Badge>
         </IconButton>
@@ -63,10 +67,12 @@ export default function VendorHeader() {
           <Avatar
             sx={{ width: 34, height: 34, bgcolor: "#0077B6", fontSize: 13, fontWeight: 700 }}
           >
-            VU
+            {user?.firstName?.[0] ?? "V"}
           </Avatar>
           <Box>
-            <Typography fontSize={13} fontWeight={600}>Vendor User</Typography>
+            <Typography fontSize={13} fontWeight={600}>
+              {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Vendor User"}
+            </Typography>
             <Typography fontSize={11} color="text.secondary">Vendor</Typography>
           </Box>
         </Box>

@@ -4,6 +4,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import SettingsIcon from "@mui/icons-material/Settings";
 import StarIcon from "@mui/icons-material/Star";
@@ -26,9 +27,12 @@ const menuItems = [
   { path: "/vendor/reviews", label: "Reviews", icon: StarIcon },
   { path: "/vendor/pricing", label: "Pricing & Promotions", icon: LocalOfferIcon },
   { path: "/vendor/reports", label: "Reports", icon: BarChartIcon },
+  { path: "/vendor/notifications", label: "Notifications", icon: NotificationsActiveIcon },
   { path: "/vendor/settings", label: "Settings", icon: SettingsIcon },
   { path: "/vendor/support", label: "Support", icon: SupportAgentIcon },
 ];
+
+const mobileMenuItems = [...menuItems.slice(0, 5), menuItems[7]];
 
 export default function VendorSidebar() {
   const location = useLocation();
@@ -56,7 +60,7 @@ export default function VendorSidebar() {
           showLabels
           sx={{ background: "transparent" }}
         >
-          {menuItems.slice(0, 5).map((item) => (
+          {mobileMenuItems.map((item) => (
             <BottomNavigationAction
               key={item.path}
               label={item.label.split(" ")[0]}
@@ -91,6 +95,11 @@ export default function VendorSidebar() {
         borderRadius: 3,
         boxShadow: "0 12px 24px rgba(0,0,0,0.12)", 
         overflowY: "auto",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
         background: "linear-gradient(to bottom, #0077b6, #005a8d)",
         p: 1.5, 
       }}

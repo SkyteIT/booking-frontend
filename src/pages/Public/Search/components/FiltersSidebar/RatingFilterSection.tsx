@@ -4,7 +4,6 @@ import StarIcon from "@mui/icons-material/Star";
 import { Box, Button, Typography } from "@mui/material";
 import {
   filterTitleSx,
-  ratingButtonsContainerSx,
   ratingButtonBaseSx,
 } from "./styles";
 

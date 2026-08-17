@@ -2,15 +2,38 @@ import api from "../api";
 
 export interface DashboardStatsDto {
   totalUsers: number;
+  activeUsers?: number;
   totalBookings: number;
   activeBookings: number;
   pendingBookings: number;
   cancelledBookings: number;
+  pendingApprovals?: number;
   totalRevenue: number;
   currency: string;
   totalListings: number;
   activeListings: number;
   totalVendors: number;
+  recentActivities?: AdminActivityDto[];
+  topPerformingVendors?: AdminVendorPerformanceDto[];
+}
+
+export interface AdminActivityDto {
+  id?: string;
+  title: string;
+  description?: string;
+  createdAt?: string;
+  timeLabel?: string;
+  type?: "success" | "warning" | "info" | "error";
+}
+
+export interface AdminVendorPerformanceDto {
+  id?: string;
+  name: string;
+  category?: string;
+  revenue: number;
+  bookings: number;
+  rating?: number;
+  trend?: number;
 }
 
 export const getDashboardStats = async (): Promise<DashboardStatsDto> => {

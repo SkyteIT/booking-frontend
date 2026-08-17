@@ -48,6 +48,10 @@ const VendorListings = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const notifyDashboardRefresh = () => {
+    window.dispatchEvent(new Event("admin-dashboard-refresh"));
+  };
+
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -84,6 +88,7 @@ const VendorListings = () => {
     try {
       await deleteListing(menuListing.id);
       setListings((prev) => prev.filter((l) => l.id !== menuListing.id));
+      notifyDashboardRefresh();
       setDeleteOpen(false);
     } catch (err) {
       console.error("Error deleting listing:", err);
