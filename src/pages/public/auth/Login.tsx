@@ -188,7 +188,7 @@ function Login(): JSX.Element {
 
         <div className="google-login-container">
           <GoogleLogin
-            onSuccess={(credentialResponse) =>
+            onSuccess={(credentialResponse: { credential?: string }) =>
               handleGoogleLogin(credentialResponse.credential)
             }
             onError={() => setErrorSnackbar("Google login failed. Please try again.")}

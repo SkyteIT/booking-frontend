@@ -20,6 +20,7 @@ import VendorLayout from "../layouts/VendorLayout/VendorLayout";
 import CustomerMain from "../pages/Customer/customerMain";
 import UserDashboard from "../pages/Customer/UserDashboard";
 import ForgotPassword from "../pages/Public/Auth/ForgotPassword";
+import ResetPassword from "../pages/Public/Auth/ResetPassword";
 import Login from "../pages/Public/Auth/Login";
 import Register from "../pages/Public/Auth/Register";
 import LandingPage from "../pages/Public/LandingPage";
@@ -113,6 +114,7 @@ function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/customer" element={<CustomerMain />}>
           <Route index element={<Navigate to="dashboard" replace />} />

@@ -8,7 +8,7 @@ import {
   useRef,
   useContext
 } from "react";
-import { getCurrentUser } from "../services/authService";
+import { getCurrentUser, logout as logoutApi } from "../services/authService";
 import { refreshAccessToken } from "../services/tokenRefresh";
 import tokenStorage from "../services/tokenStorage";
 import { getJwtExpiryMs, parseJwt } from "../utils/jwt";

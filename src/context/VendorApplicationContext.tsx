@@ -1,4 +1,4 @@
-import React, {createContext,
+import {
   useEffect,
   useState,
 } from "react";
@@ -68,17 +68,6 @@ export const defaultVendorApplicationState: VendorApplicationData = {
 }; */
 
 
-// Context type
-
-interface VendorContextType {
-  data: VendorApplicationData;
-
-  setData: React.Dispatch<
-    React.SetStateAction<VendorApplicationData>
-  >;
-
-  resetApplication: () => void;
-}
 
 
 // Create context (only once)
