@@ -6,6 +6,7 @@ import {
   Box,
   Divider,
   Container,
+  Badge,
   IconButton,
   Stack,
   Toolbar,
@@ -17,10 +18,12 @@ import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import icon2 from "../../assets/icons/icon2.png";
 import { useAuth } from "../../context/useAuth";
+import { useNotifications } from "../../hooks/useNotifications";
 
 export default function AdminNavbar() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { unreadCount } = useNotifications(user?.userId ?? user?.id ?? null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -109,6 +112,7 @@ export default function AdminNavbar() {
           <Stack direction="row" alignItems="center" spacing={1}>
             {/* Notification */}
             <IconButton
+              onClick={() => navigate("/admin/notifications")}
               sx={{
                 bgcolor: "rgba(0,0,0,0.04)",
                 "&:hover": {
@@ -116,7 +120,9 @@ export default function AdminNavbar() {
                 },
               }}
             >
-              <NotificationsNoneOutlinedIcon fontSize="small" />
+              <Badge badgeContent={unreadCount} color="error">
+                <NotificationsNoneOutlinedIcon fontSize="small" />
+              </Badge>
             </IconButton>
 
             {/* Profile */}

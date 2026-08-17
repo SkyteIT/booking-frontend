@@ -12,6 +12,10 @@ import {
   isPastDay,
 } from "./vendorAvailability";
 
+const notifyDashboardRefresh = () => {
+  window.dispatchEvent(new Event("admin-dashboard-refresh"));
+};
+
 type ListingCard = {
   id: string;
   name: string;
@@ -127,6 +131,8 @@ export function useVendorAvailability() {
         await unblockDates(selectedListingId, { dates: formattedDates });
         showMessage("Dates unblocked successfully", "success");
       }
+
+      notifyDashboardRefresh();
 
       const data = await getAvailability(selectedListingId, month, year);
       const normalized = normalizeCalendarResponse(data);

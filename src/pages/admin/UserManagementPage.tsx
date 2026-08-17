@@ -31,6 +31,10 @@ export const UserManagementPage: React.FC = () => {
   const [editRole, setEditRole] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const refreshDashboard = () => {
+    window.dispatchEvent(new Event("admin-dashboard-refresh"));
+  };
+
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setErrorMsg('');
@@ -76,6 +80,7 @@ export const UserManagementPage: React.FC = () => {
     try {
       const updated = await updateUserRole(selectedUser.id, editRole);
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      refreshDashboard();
       setEditOpen(false);
       showSuccess('User role updated successfully');
     } catch {
@@ -98,6 +103,7 @@ export const UserManagementPage: React.FC = () => {
     try {
       const updated = await updateUserStatus(selectedUser.id, suspend);
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      refreshDashboard();
       setBlockOpen(false);
       showSuccess(`User ${suspend ? 'suspended' : 'reactivated'} successfully`);
     } catch {

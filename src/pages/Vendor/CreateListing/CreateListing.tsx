@@ -48,6 +48,10 @@ const typeToCategory: Record<ListingType, ListingCategory> = {
   Activity: "Activity",
 };
 
+const notifyDashboardRefresh = () => {
+  window.dispatchEvent(new Event("admin-dashboard-refresh"));
+};
+
 function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
   const data: Partial<ListingFormData> = {
     title: listing.title,
@@ -300,6 +304,7 @@ const CreateListing = () => {
         await createListing(request);
         alert("Listing published successfully!");
       }
+      notifyDashboardRefresh();
       navigate("/vendor/listings");
     } catch (error) {
       console.error(error);
