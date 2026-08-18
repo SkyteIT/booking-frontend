@@ -58,6 +58,27 @@ export const getCurrentUser = async () => {
   const res = await api.get("/auth/current-user");
   return res.data;
 };
+export const forgotPassword = async (email: string) => {
+  const res = await api.post("/auth/forgot-password", {
+    email,
+  });
+
+  return res.data;
+};
+
+export const resetPassword = async (
+  email: string,
+  token: string,
+  newPassword: string
+) => {
+  const res = await api.post("/auth/reset-password", {
+    email,
+    token,
+    newPassword,
+  });
+
+  return res.data;
+};
 
 // Revokes the refresh token server-side. Best-effort — callers should clear
 // local tokens regardless of whether this succeeds.
