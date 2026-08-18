@@ -17,7 +17,7 @@ export interface ApiRequestConfig extends AxiosRequestConfig {
 
 const api = axios.create({
   baseURL: "/api", // Vite proxy forwards /api → VITE_API_BASE_URL (see vite.config.ts / .env)
-  headers: { "Content-Type": "application/json" },
+  //headers: { "Content-Type": "application/json" },
 });
 
 // Attach token to outgoing requests
