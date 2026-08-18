@@ -76,13 +76,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     const refreshToken = tokenStorage.getRefreshToken();
+  
     cancelScheduledRefresh();
+  
+    // Clear authentication
     tokenStorage.removeToken();
     setUser(null);
+  
+    // Clear unfinished vendor application
+    localStorage.removeItem("vendor_application");
+  
+    // Clear submitted-status flag for the current user
     setVendorApplicationSubmitted(false);
-
-    // Best-effort — revokes the refresh token server-side, but local state
-    // is already cleared above regardless of whether this succeeds.
+  
+    // Best-effort server-side refresh-token revocation
     if (refreshToken) {
       logoutApi(refreshToken).catch(() => {});
     }
