@@ -11,6 +11,7 @@ import { Search, FilterList, Visibility, Edit, Close, FileDownload } from '@mui/
 import {
   getAllBookings,
   updateBookingStatus,
+  exportBookingsCsv,
   type AdminBookingDto,
 } from '../../services/Admin/adminService';
 
@@ -33,6 +34,7 @@ export const BookingOversightPage: React.FC = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editStatus, setEditStatus] = useState<string>('Pending');
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const loadBookings = useCallback(async () => {
     setLoading(true);
@@ -119,21 +121,22 @@ export const BookingOversightPage: React.FC = () => {
     }
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['Booking ID', 'Customer', 'Service', 'Start', 'End', 'Amount', 'Status'],
-      ...bookings.map((b) => [
-        b.id, b.customerName, b.listingTitle, b.startDateTime, b.endDateTime,
-        `${b.currency} ${b.totalAmount}`, b.status,
-      ]),
-    ].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'bookings.csv';
-    a.click();
-    showSuccess('Bookings exported successfully');
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportBookingsCsv();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bookings-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showSuccess('Bookings exported successfully');
+    } catch {
+      setErrorMsg('Failed to export bookings.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -166,9 +169,9 @@ export const BookingOversightPage: React.FC = () => {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>Booking Oversight</Typography>
           <Typography variant="body2" color="text.secondary">View, modify, and manage all platform bookings</Typography>
         </Box>
-        <Button variant="contained" startIcon={<FileDownload />} onClick={handleExport}
+        <Button variant="contained" startIcon={<FileDownload />} onClick={handleExport} disabled={exporting}
           sx={{ bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' }, textTransform: 'none', px: 3 }}>
-          Export Bookings
+          {exporting ? 'Exporting...' : 'Export Bookings'}
         </Button>
       </Box>
 

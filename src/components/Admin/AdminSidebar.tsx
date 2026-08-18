@@ -8,6 +8,7 @@ import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import GppMaybeOutlinedIcon from "@mui/icons-material/GppMaybeOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { Box, Typography, Divider, Stack } from "@mui/material";
@@ -21,6 +22,7 @@ const menu = [
   { label: "Vendor Management", icon: StorefrontOutlinedIcon, path: "/admin/vendors" },
   { label: "Booking Oversight", icon: EventNoteOutlinedIcon, path: "/admin/bookings" },
   { label: "Disputes & Refunds", icon: ReceiptLongOutlinedIcon, path: "/admin/disputes" },
+  { label: "Fraud Review", icon: GppMaybeOutlinedIcon, path: "/admin/fraud-review" },
   { label: "Finance & Payments", icon: AccountBalanceOutlinedIcon, path: "/admin/finance" },
   { label: "Content Management", icon: ArticleOutlinedIcon, path: "/admin/content" },
   { label: "Reports & Analytics", icon: BarChartOutlinedIcon, path: "/admin/reports" },

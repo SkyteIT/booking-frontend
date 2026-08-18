@@ -14,13 +14,21 @@ import {
     StepConnector,
     stepConnectorClasses,
   } from "@mui/material";
+  import type { SvgIconComponent } from "@mui/icons-material";
   import { styled } from "@mui/material/styles";
-  
+
+  export interface StepperStep {
+    label: string;
+    icon: SvgIconComponent;
+  }
+
   interface StepperBarProps {
     activeStep: number;
+    steps?: StepperStep[];
+    title?: string;
   }
-  
-  const steps = [
+
+  const defaultSteps: StepperStep[] = [
     { label: "Business Info", icon: BusinessIcon },
     { label: "Contact", icon: PersonIcon },
     { label: "Categories", icon: CategoryIcon },
@@ -47,7 +55,7 @@ import {
     },
   }));
   
-  const StepperBar = ({ activeStep }: StepperBarProps) => {
+  const StepperBar = ({ activeStep, steps = defaultSteps, title = "Vendor Application" }: StepperBarProps) => {
     return (
       <Box
         sx={{
@@ -60,7 +68,7 @@ import {
         }}
       >
         <Box sx={{ fontWeight: 600, mb: 3 }}>
-          Vendor Application
+          {title}
         </Box>
   
         <Stepper

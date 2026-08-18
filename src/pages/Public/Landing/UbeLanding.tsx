@@ -184,6 +184,8 @@ const UbeLanding = () => {
         loc: l.location || "Location TBA",
         rating: l.averageRating > 0 ? l.averageRating.toFixed(1) : "New",
         price: `${l.currency} ${l.price}`,
+        hasOffer: l.hasActiveOffer,
+        offerLabel: l.offerBadgeText,
       })),
     [featuredListings]
   );
@@ -411,6 +413,9 @@ const UbeLanding = () => {
                 >
                   <span className="orbit-tag-dark">{fc.cat}</span>
                   <span className="orbit-tag-light">★ {fc.rating}</span>
+                  {fc.hasOffer && (
+                    <span className="orbit-tag-offer">{fc.offerLabel || "Special Offer"}</span>
+                  )}
                 </div>
                 <div className="orbit-flow-body">
                   <div className="orbit-flow-name">{fc.name}</div>

@@ -1,12 +1,34 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { requestPasswordReset } from "../../../services/authService";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../utils/validationSchemas";
+
+const getApiErrorMessage = (error: unknown): string | undefined => {
+  if (!isAxiosError(error)) return undefined;
+
+  const data = error.response?.data;
+  if (!data) return error.message;
+
+  if (typeof data === "string") return data;
+  if (typeof data === "object") {
+    return (
+      (data as { message?: string; error?: string; detail?: string }).message ??
+      (data as { message?: string; error?: string; detail?: string }).error ??
+      (data as { message?: string; error?: string; detail?: string }).detail ??
+      JSON.stringify(data)
+    );
+  }
+
+  return error.message;
+};
 
 function ForgotPassword(): JSX.Element {
   const [message, setMessage] = useState<string>("");
+  const [isError, setIsError] = useState(false);
 
   const {
     register,
@@ -20,13 +42,15 @@ function ForgotPassword(): JSX.Element {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      // TODO: Call your forgot password API endpoint when backend is ready
-      // await api.post("/api/auth/forgot-password", { email: data.email });
-      
-      setMessage(`Password reset link sent to ${data.email} ✅`);
+      setIsError(false);
+      // Backend always returns the same generic response whether or not the
+      // email is registered — never used to tell the user which is true.
+      await requestPasswordReset(data.email);
+      setMessage("If that email is registered, a password reset link has been sent.");
       reset();
-    } catch {
-      setMessage("Failed to send reset link. Please try again.");
+    } catch (error) {
+      setIsError(true);
+      setMessage(getApiErrorMessage(error) ?? "Failed to send reset link. Please try again.");
     }
   };
 
@@ -55,7 +79,7 @@ function ForgotPassword(): JSX.Element {
             />
 
             {errors.email && <p className="error-text">{errors.email.message}</p>}
-            {message && <p className="success-text">{message}</p>}
+            {message && <p className={isError ? "error-text" : "success-text"}>{message}</p>}
           </div>
 
           <button

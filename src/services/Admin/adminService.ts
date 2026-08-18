@@ -69,6 +69,13 @@ export const getAllBookings = async (): Promise<AdminBookingDto[]> => {
   return res.data;
 };
 
+// Fetches the server-generated CSV as a Blob. Needs responseType: "blob" -
+// without it, axios would try to parse the CSV text as JSON and fail.
+export const exportBookingsCsv = async (): Promise<Blob> => {
+  const res = await api.get("/admin/bookings/export", { responseType: "blob" });
+  return res.data as Blob;
+};
+
 export const getBookingById = async (bookingId: string): Promise<AdminBookingDto> => {
   const res = await api.get<AdminBookingDto>(`/admin/bookings/${bookingId}`);
   return res.data;

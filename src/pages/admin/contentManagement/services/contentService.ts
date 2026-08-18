@@ -26,6 +26,7 @@ export const createCategory = async (payload: {
   type: ListingType;
   bookingType?: string;
   serviceModel?: string;
+  paymentCollectionModel?: string;
   dateSelectionEnabled?: boolean;
   timeSlotEnabled?: boolean;
   availabilityCalendarEnabled?: boolean;

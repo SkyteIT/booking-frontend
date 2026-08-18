@@ -41,5 +41,6 @@ export const parseSearchFilters = (
     minPrice: parseNumber(searchParams.get("minPrice")),
     maxPrice: parseNumber(searchParams.get("maxPrice")),
     minRating: parseNumber(searchParams.get("minRating")),
+    hasOffer: searchParams.get("hasOffer") === "true" ? true : undefined,
   };
 };

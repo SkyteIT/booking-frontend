@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { GoogleLogin } from "@react-oauth/google";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useAuth } from "../../../context/useAuth";
-import { login } from "../../../services/authService";
+import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { login, loginWithGoogle } from "../../../services/authService";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
 
 const getApiErrorMessage = (error: unknown): string | undefined => {
@@ -48,7 +49,17 @@ function Login(): JSX.Element {
       const response = (await login(data.email, data.password)) as {
         role?: string;
         user?: { role?: string };
+        requiresTwoFactor?: boolean;
+        requiresEnrollment?: boolean;
+        challengeToken?: string;
       };
+
+      if (response.requiresTwoFactor) {
+        navigate(response.requiresEnrollment ? "/2fa-enroll" : "/2fa-verify", {
+          state: { challengeToken: response.challengeToken },
+        });
+        return;
+      }
 
       await refreshUser();
 
@@ -73,6 +84,46 @@ function Login(): JSX.Element {
       navigate("/", { replace: true });
     } catch (error) {
       setError(getApiErrorMessage(error) ?? "Invalid email or password.");
+    }
+  };
+
+  const handleGoogleLogin = async (credential?: string) => {
+    if (!credential) {
+      setError("Google login failed. Please try again.");
+      return;
+    }
+
+    try {
+      setError("");
+      const response = await loginWithGoogle(credential);
+
+      if (response.requiresTwoFactor) {
+        navigate(response.requiresEnrollment ? "/2fa-enroll" : "/2fa-verify", {
+          state: { challengeToken: response.challengeToken },
+        });
+        return;
+      }
+
+      await refreshUser();
+
+      const next = new URLSearchParams(location.search).get("next");
+      if (next) {
+        navigate(next, { replace: true });
+        return;
+      }
+
+      const role = String(response.role ?? "").toLowerCase();
+      if (role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+        return;
+      }
+      if (role === "vendor") {
+        navigate("/vendor/dashboard", { replace: true });
+        return;
+      }
+      navigate("/", { replace: true });
+    } catch (error) {
+      setError(getApiErrorMessage(error) ?? "Google login failed. Please try again.");
     }
   };
 
@@ -119,6 +170,15 @@ function Login(): JSX.Element {
             {isSubmitting ? "Signing in..." : "Login"}
           </button>
         </form>
+
+        <div style={{ margin: "16px 0", textAlign: "center", color: "#888" }}>OR</div>
+
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => handleGoogleLogin(credentialResponse.credential)}
+            onError={() => setError("Google login failed. Please try again.")}
+          />
+        </div>
 
         <div style={{ marginTop: "16px", textAlign: "center" }}>
           <Link to="/forgot-password" className="back-link">

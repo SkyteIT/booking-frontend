@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { BookingStatusFilter } from "../../../components/Bookings/BookingStatusTabs";
 import { useVendorBookings } from "../../../hooks/useVendorBookings";
-import { useFilteredBookings } from "./vendorBookings";
 
 export function useVendorBookingsPage() {
   const [statusFilter, setFilterStatus] = useState<BookingStatusFilter>("All");
@@ -23,13 +22,16 @@ export function useVendorBookingsPage() {
       sortBy,
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
+      search,
     });
 
   useEffect(() => {
     setPage((p) => Math.min(p, pageCount || 1));
   }, [pageCount, setPage]);
 
-  const filteredRows = useFilteredBookings(data, search);
+  // Search is now a real server-side query param (see booking.ts/BookingRepository),
+  // not a client-side filter over whatever page happened to already be loaded.
+  const filteredRows = data;
 
   const handleStatusChange = (status: BookingStatusFilter) => {
     setFilterStatus(status);

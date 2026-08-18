@@ -3,6 +3,7 @@
 import { Paper } from "@mui/material";
 import CategoryFilterSection from "./CategoryFilterSection";
 import FiltersHeader from "./FiltersHeader";
+import OfferFilterSection from "./OfferFilterSection";
 import PriceRangeFilterSection from "./PriceRangeFilterSection";
 import RatingFilterSection from "./RatingFilterSection";
 import type { FiltersSidebarProps } from "./types";
@@ -14,12 +15,14 @@ const FiltersSidebar = ({
   maxPrice,
   minRating,
   ratingOptions,
+  hasOffer,
   onClearAll,
   onClearCategories,
   onToggleCategory,
   onMinPriceChange,
   onMaxPriceChange,
   onMinRatingChange,
+  onToggleHasOffer,
 }: FiltersSidebarProps) => {
   return (
     <Paper
@@ -52,6 +55,11 @@ const FiltersSidebar = ({
         minRating={minRating}
         ratingOptions={ratingOptions}
         onMinRatingChange={onMinRatingChange}
+      />
+
+      <OfferFilterSection
+        hasOffer={hasOffer}
+        onToggleHasOffer={onToggleHasOffer}
       />
     </Paper>
   );

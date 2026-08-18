@@ -28,6 +28,7 @@ interface ListingCardProps {
   rating: number;
   location: string;
   badge?: "Featured" | "Popular" | "New";
+  offerLabel?: string;
   onClick?: () => void;
 }
 
@@ -44,6 +45,7 @@ const ListingCard = ({
   rating,
   location,
   badge,
+  offerLabel,
   onClick,
 }: ListingCardProps) => {
   const navigate = useNavigate();
@@ -125,6 +127,24 @@ const ListingCard = ({
               backdropFilter: "blur(6px)",
               color: "#ffffff",
               fontWeight: 600,
+              fontSize: "0.7rem",
+              height: "24px",
+            }}
+          />
+        )}
+
+        {/* Offer badge - top-right, distinct from Featured/Popular/New (top-left) */}
+        {offerLabel && (
+          <Chip
+            label={offerLabel}
+            size="small"
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              backgroundColor: "#E85D3D",
+              color: "#ffffff",
+              fontWeight: 700,
               fontSize: "0.7rem",
               height: "24px",
             }}

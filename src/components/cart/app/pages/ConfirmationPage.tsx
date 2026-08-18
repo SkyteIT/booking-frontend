@@ -9,30 +9,25 @@ import {
 } from '@mui/material';
 import { CheckCircle, Download, Email, CalendarMonth } from '@mui/icons-material';
 import { useNavigate } from 'react-router';
+import type { CheckoutResultDto } from '../../../../services/Customer/checkoutService';
 //import { Footer } from '../components/Footer';
 
-interface OrderData {
-  orderId: string;
-  checkoutData: any;
-  cart: any[];
-  total: number;
-  timestamp: string;
+function readOrderData(): CheckoutResultDto | null {
+  const data = sessionStorage.getItem('orderData');
+  return data ? JSON.parse(data) : null;
 }
 
 export const ConfirmationPage: React.FC = () => {
   const navigate = useNavigate();
-  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [result] = useState<CheckoutResultDto | null>(readOrderData);
 
   useEffect(() => {
-    const data = sessionStorage.getItem('orderData');
-    if (!data) {
+    if (!result) {
       navigate('/cart');
-    } else {
-      setOrderData(JSON.parse(data));
     }
-  }, [navigate]);
+  }, [navigate, result]);
 
-  if (!orderData) {
+  if (!result) {
     return null;
   }
 
@@ -41,9 +36,8 @@ export const ConfirmationPage: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const subtotal = orderData.cart.reduce((sum, item) => sum + item.totalPrice, 0);
-  const tax = subtotal * 0.1;
-  const serviceFee = 25;
+  const totalPaid = result.payments.reduce((sum, p) => sum + p.amount, 0);
+  const currency = result.payments[0]?.currency ?? result.bookings[0]?.currency ?? 'LKR';
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
@@ -69,102 +63,63 @@ export const ConfirmationPage: React.FC = () => {
             Booking Confirmed!
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Your booking has been successfully confirmed
+            {result.bookings.length > 1
+              ? `${result.bookings.length} bookings have been created`
+              : 'Your booking has been successfully created'}
           </Typography>
         </Box>
 
         {/* Order Details */}
         <Paper sx={{ p: 4, mb: 3 }}>
-          {/* Booking ID */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 3,
-              pb: 3,
-              borderBottom: '1px solid #E2E8F0',
-            }}
-          >
-            <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                Booking ID
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#0891B2' }}>
-                {orderData.orderId}
-              </Typography>
-            </Box>
-            <Button
-              variant="outlined"
-              startIcon={<Download />}
-              sx={{
-                textTransform: 'none',
-                borderColor: '#E2E8F0',
-                color: '#64748B',
-              }}
-            >
-              Download Receipt
-            </Button>
-          </Box>
-
           {/* Your Bookings */}
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Your Bookings
           </Typography>
 
-          {orderData.cart.map((item, index) => (
+          {result.bookings.map((booking, index) => (
             <Box
-              key={index}
+              key={booking.bookingId}
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 py: 2,
-                borderBottom: index !== orderData.cart.length - 1 ? '1px solid #F1F5F9' : 'none',
+                borderBottom: index !== result.bookings.length - 1 ? '1px solid #F1F5F9' : 'none',
               }}
             >
               <Box>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#0891B2' }}>
+                  {booking.bookingNumber}
+                </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {item.name}
+                  {booking.listingTitle}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                  {formatDate(item.startDate)} - {formatDate(item.endDate)}
+                  {formatDate(booking.startDateTime)} - {formatDate(booking.endDateTime)}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'inline-block',
+                    mt: 0.5,
+                    px: 1,
+                    py: 0.2,
+                    borderRadius: 1,
+                    bgcolor: booking.status === 'Confirmed' ? '#DCFCE7' : '#FEF3C7',
+                    color: booking.status === 'Confirmed' ? '#166534' : '#92400E',
+                    fontWeight: 600,
+                  }}
+                >
+                  {booking.status === 'Confirmed' ? 'Confirmed' : 'Awaiting vendor confirmation'}
                 </Typography>
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 700, color: '#0891B2' }}>
-                ${item.totalPrice}
+                {booking.currency} {booking.totalAmount.toFixed(2)}
               </Typography>
             </Box>
           ))}
 
           <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Subtotal
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                ${subtotal.toFixed(2)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Tax
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                ${tax.toFixed(2)}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Service Fee
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                ${serviceFee.toFixed(2)}
-              </Typography>
-            </Box>
-
             <Divider sx={{ my: 2 }} />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -172,7 +127,7 @@ export const ConfirmationPage: React.FC = () => {
                 Total Paid
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, color: '#0891B2' }}>
-                ${orderData.total.toFixed(2)}
+                {currency} {totalPaid.toFixed(2)}
               </Typography>
             </Box>
           </Box>
@@ -267,6 +222,7 @@ export const ConfirmationPage: React.FC = () => {
           <Button
             variant="outlined"
             size="large"
+            onClick={() => navigate('/customer/bookings')}
             sx={{
               textTransform: 'none',
               px: 4,

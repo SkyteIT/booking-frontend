@@ -7,6 +7,37 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { Box, Typography, Chip, Rating, Divider } from "@mui/material";
 import type { Listing } from "../../../Search/utils/types";
+import LocationMap from "../LocationMap/LocationMap";
+import ListingQuestions from "./ListingQuestions";
+import ListingReviews from "./ListingReviews";
+
+// Small key-value grid, same visual pattern as the amenities grid below,
+// reused for Vehicle Details.
+function SpecGrid({ specs }: { specs: { label: string; value: string }[] }) {
+  return (
+    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, mb: 1 }}>
+      {specs.map((s) => (
+        <Box
+          key={s.label}
+          sx={{
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: "10px",
+            px: 2,
+            py: 1.25,
+          }}
+        >
+          <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+            {s.label}
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {s.value}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+}
 
 interface ProductDetailsProps {
   listing: Listing;
@@ -99,6 +130,41 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
         {listing.description?.trim() || "No description provided for this listing yet."}
       </Typography>
 
+      {/* Venue — Event listings only, shown when the vendor set one */}
+      {listing.type === "Event" && (listing.venueName || listing.venueAddress) && (
+        <>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+            Venue
+          </Typography>
+          <SpecGrid
+            specs={[
+              ...(listing.venueName ? [{ label: "Venue", value: listing.venueName }] : []),
+              ...(listing.venueAddress ? [{ label: "Address", value: listing.venueAddress }] : []),
+            ]}
+          />
+        </>
+      )}
+
+      {/* Vehicle Details — Car Rental listings only */}
+      {listing.type === "CarRental" && (listing.vehicleBrand || listing.vehicleModel) && (
+        <>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+            Vehicle Details
+          </Typography>
+          <SpecGrid
+            specs={[
+              ...(listing.vehicleBrand ? [{ label: "Brand", value: listing.vehicleBrand }] : []),
+              ...(listing.vehicleModel ? [{ label: "Model", value: listing.vehicleModel }] : []),
+              ...(listing.vehicleYear ? [{ label: "Year", value: String(listing.vehicleYear) }] : []),
+              ...(listing.vehicleTransmission ? [{ label: "Transmission", value: listing.vehicleTransmission }] : []),
+              ...(listing.vehicleFuelType ? [{ label: "Fuel Type", value: listing.vehicleFuelType }] : []),
+            ]}
+          />
+        </>
+      )}
+
       {/* Amenities — only shown when the backend actually returned some */}
       {listing.amenities.length > 0 && (
         <>
@@ -138,6 +204,17 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
           </Box>
         </>
       )}
+
+      {/* Real interactive location pin - prefers the Event venue address
+          when set (more precise than the general listing location). */}
+      <Divider sx={{ mb: 3 }} />
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+        Location
+      </Typography>
+      <LocationMap query={listing.venueAddress || listing.location} label={listing.title} />
+
+      <ListingReviews listingId={listing.id} />
+      <ListingQuestions listingId={listing.id} />
     </Box>
   );
 };

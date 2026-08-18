@@ -5,8 +5,10 @@ import { Box, Container, Button, Typography, CircularProgress, Alert } from "@mu
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getListingById } from "../../../services/Vendor/listingService";
+import { getUnits, type ListingUnitDto } from "../../../services/Vendor/listingUnitsService";
 import { mapApiListing } from "../Search/utils/mapApiListing";
 import type { Listing } from "../Search/utils/types";
+import BookingOptions from "./components/BookingOptions/BookingOptions";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
 import PriceCard from "./components/PriceCard/PriceCard";
 import ProductDetails from "./components/ProductDetails/ProductDetails";
@@ -18,13 +20,26 @@ const ViewProduct = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Bookable units + selection state - lifted here so both the main-
+  // section picker (BookingOptions) and the sidebar summary (PriceCard)
+  // read/write the same state, and so we only fetch units once per page
+  // load instead of each child fetching its own copy.
+  const [units, setUnits] = useState<ListingUnitDto[] | null>(null);
+  const [unitsLoading, setUnitsLoading] = useState(true);
+  const [selectedUnitId, setSelectedUnitId] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(1);
+
   useEffect(() => {
     const fetchListing = async () => {
       if (!id) return;
       try {
         setLoading(true);
         const data = await getListingById(id);
-        setListing(mapApiListing(data));
+        const mapped = mapApiListing(data);
+        setListing(mapped);
+        setGuests(mapped.type === "Activity" && mapped.minGroupSize && mapped.minGroupSize > 1 ? mapped.minGroupSize : 1);
         setError(null);
       } catch (err) {
         console.error("Error fetching listing:", err);
@@ -35,6 +50,19 @@ const ViewProduct = () => {
     };
 
     fetchListing();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    setUnitsLoading(true);
+    getUnits(id)
+      .then((data) => {
+        const active = data.filter((u) => u.isActive);
+        setUnits(active);
+        if (active.length > 0) setSelectedUnitId(active[0].id);
+      })
+      .catch(() => setUnits([])) // treat as "no units defined" rather than blocking the page
+      .finally(() => setUnitsLoading(false));
   }, [id]);
 
   if (loading) {
@@ -106,14 +134,34 @@ const ViewProduct = () => {
             alignItems: "start",
           }}
         >
-          {/* Left column: gallery + details */}
+          {/* Left column: gallery + details + booking options */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <ImageGallery listing={listing} />
             <ProductDetails listing={listing} />
+            <BookingOptions
+              listing={listing}
+              units={units}
+              unitsLoading={unitsLoading}
+              selectedUnitId={selectedUnitId}
+              onSelectUnit={setSelectedUnitId}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onCheckInChange={setCheckIn}
+              onCheckOutChange={setCheckOut}
+              guests={guests}
+              onGuestsChange={setGuests}
+            />
           </Box>
 
-          {/* Right column: price card */}
-          <PriceCard listing={listing} />
+          {/* Right column: price summary card */}
+          <PriceCard
+            listing={listing}
+            units={units}
+            selectedUnitId={selectedUnitId}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+          />
         </Box>
       </Container>
     </Box>

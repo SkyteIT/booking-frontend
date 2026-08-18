@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { GoogleLogin } from "@react-oauth/google";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { useAuth } from "../../../context/useAuth";
-import { register as registerUser } from "../../../services/authService";
+import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { register as registerUser, loginWithGoogle } from "../../../services/authService";
 import {
   registerSchema,
   type RegisterFormData,
@@ -61,6 +62,22 @@ function Register(): JSX.Element {
       navigate("/", { replace: true });
     } catch (error) {
       setError(getApiErrorMessage(error) ?? "Unable to create your account. Please try again.");
+    }
+  };
+
+  const handleGoogleSignUp = async (credential?: string) => {
+    if (!credential) {
+      setError("Google sign-up failed. Please try again.");
+      return;
+    }
+
+    try {
+      setError("");
+      await loginWithGoogle(credential);
+      await refreshUser();
+      navigate("/", { replace: true });
+    } catch (error) {
+      setError(getApiErrorMessage(error) ?? "Google sign-up failed. Please try again.");
     }
   };
 
@@ -131,6 +148,15 @@ function Register(): JSX.Element {
             {isSubmitting ? "Creating account..." : "Register"}
           </button>
         </form>
+
+        <div style={{ margin: "16px 0", textAlign: "center", color: "#888" }}>OR</div>
+
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => handleGoogleSignUp(credentialResponse.credential)}
+            onError={() => setError("Google sign-up failed. Please try again.")}
+          />
+        </div>
 
         <div style={{ marginTop: "16px", textAlign: "center" }}>
           <p className="subtitle">

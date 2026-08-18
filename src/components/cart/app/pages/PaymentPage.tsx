@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { Lock, CreditCard } from '@mui/icons-material';
 import {
   Box,
   Typography,
@@ -10,8 +10,10 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Lock, CreditCard } from '@mui/icons-material';
+import { isAxiosError } from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { checkout } from '../../../../services/Customer/checkoutService';
 import { useCart } from '../contexts/CartContext';
 //import { Footer } from '../components/Footer';
 //import { toast } from 'sonner';
@@ -22,7 +24,7 @@ import { useCart } from '../contexts/CartContext';
 
 export const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal, clearCart } = useCart();
+  const { selectedCart, getSelectedTotal, removeCartItems } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [paymentData, setPaymentData] = useState({
@@ -33,6 +35,7 @@ export const PaymentPage: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if checkout data exists
@@ -115,38 +118,44 @@ export const PaymentPage: React.FC = () => {
       return;
     }
 
+    setCheckoutError(null);
     setIsProcessing(true);
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const idempotencyKey = crypto.randomUUID();
+      const items = selectedCart.map((item) => ({
+        listingId: item.id,
+        quantity: item.quantity,
+        startDateTime: item.startDate,
+        endDateTime: item.endDate,
+        listingUnitId: item.listingUnitId ?? null,
+      }));
 
-    // Generate order ID
-    const orderId = 'UBE-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+      const result = await checkout(items, idempotencyKey);
 
-    // Store order data
-    const checkoutData = JSON.parse(sessionStorage.getItem('checkoutData') || '{}');
-    const orderData = {
-      orderId,
-      checkoutData,
-      cart: [...cart],
-      total: getCartTotal() * 1.1 + 25,
-      timestamp: new Date().toISOString(),
-    };
-
-    sessionStorage.setItem('orderData', JSON.stringify(orderData));
-
-    setIsProcessing(false);
-    navigate('/confirmation');
-    clearCart();
-    //toast.success('Payment successful!');
-      alert('Payment successful!');
-    
+      sessionStorage.setItem('orderData', JSON.stringify(result));
+      // Only remove the lines that were actually just checked out - any
+      // unselected cart lines stay put for a later checkout.
+      removeCartItems(selectedCart);
+      navigate('/confirmation');
+    } catch (err) {
+      // All-or-nothing on the backend: nothing was booked or charged, so
+      // the cart stays untouched and the user can adjust and retry.
+      const serverMsg = isAxiosError(err)
+        ? (err.response?.data as { error?: string; message?: string } | undefined)?.error ??
+          (err.response?.data as { error?: string; message?: string } | undefined)?.message
+        : undefined;
+      setCheckoutError(serverMsg ?? (err instanceof Error ? err.message : 'Checkout failed. Please try again.'));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const subtotal = getCartTotal();
-  const tax = subtotal * 0.1;
-  const serviceFee = 25;
-  const total = subtotal + tax + serviceFee;
+  // No backend tax/fee concept exists - this is the cart's own client-side
+  // estimate (price * quantity * days per item), the real total (which may
+  // differ per category's pricing unit / per-unit price overrides) is
+  // computed server-side during checkout and shown on the confirmation page.
+  const total = getSelectedTotal();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
@@ -198,6 +207,12 @@ export const PaymentPage: React.FC = () => {
               All transactions are encrypted and secure
             </Typography>
           </Alert>
+
+          {checkoutError && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {checkoutError}
+            </Alert>
+          )}
 
           <Grid container spacing={2.5}>
             {/* Card Number */}
@@ -291,7 +306,7 @@ export const PaymentPage: React.FC = () => {
           </Box>
 
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-            Includes all taxes and fees
+            Estimated total — final amount is confirmed after payment
           </Typography>
 
           {/* Confirm Payment Button */}

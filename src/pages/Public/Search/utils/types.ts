@@ -10,10 +10,37 @@ export interface ApiCategory {
 export interface Listing {
   id: string;
   title: string;
-  category: ListingCategory | string;
+  category: ListingCategory | string; // admin-chosen display name, NOT the raw type - see `type` below
+  // Raw ListingType (Hotel/Restaurant/Event/CarRental/Activity) from
+  // ListingResponse.type - `category` above is the admin's display
+  // name (e.g. "Hotels & Resorts"), which can't be pattern-matched
+  // reliably. Use this field for any category-specific branching.
+  type?: string;
   location: string;
   price: number;
   priceUnit?: string;
+  // Category pricing model (PerNight/PerHour/PerPerson/PerDay/FixedPrice)
+  // from the backend's ListingResponse.PricingUnit - lets the cart
+  // compute an accurate total estimate matching BookingPricingRules.
+  pricingUnit?: string;
+  // Category-specific bounds for the booking-configuration quantity
+  // control (see PriceCard.tsx) - drives what "quantity" honestly means
+  // per category (rooms/party size/participants) instead of one
+  // generic "guests" field with a fixed 1-6 range everywhere.
+  availableRooms?: number;   // Hotel
+  tableCapacity?: number;    // Restaurant
+  minGroupSize?: number;     // Activity
+  maxGroupSize?: number;     // Activity
+  // Event venue + Car Rental vehicle specs - real data the backend
+  // already returns but the product page never surfaced.
+  venueName?: string;        // Event
+  venueAddress?: string;     // Event
+  eventType?: string;        // Event
+  vehicleBrand?: string;     // CarRental
+  vehicleModel?: string;     // CarRental
+  vehicleYear?: number;      // CarRental
+  vehicleTransmission?: string; // CarRental
+  vehicleFuelType?: string;  // CarRental
   rating: number;
   reviews: number;
   image: string;
@@ -23,6 +50,8 @@ export interface Listing {
   vendorName?: string;
   cancellationPolicy?: string;
   amenities: string[];
+  hasActiveOffer?: boolean;
+  offerBadgeText?: string | null;
 }
 
 export interface SearchFilters {
@@ -32,4 +61,5 @@ export interface SearchFilters {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
+  hasOffer?: boolean;
 }

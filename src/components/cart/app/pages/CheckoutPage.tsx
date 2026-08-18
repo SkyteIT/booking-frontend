@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { CheckCircle } from '@mui/icons-material';
 import {
   Box,
   Typography,
@@ -12,7 +12,7 @@ import {
   FormControlLabel,
   
 } from '@mui/material';
-import { CheckCircle } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useCart } from '../contexts/CartContext';
 //import { Footer } from '../components/Footer';
@@ -20,7 +20,7 @@ import { useCart } from '../contexts/CartContext';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal } = useCart();
+  const { selectedCart, getSelectedTotal } = useCart();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -39,10 +39,12 @@ export const CheckoutPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (cart.length === 0) {
+    // Nothing selected (or nothing left in the cart at all) - there's
+    // nothing to check out, so send the user back to select something.
+    if (selectedCart.length === 0) {
       navigate('/cart');
     }
-  }, [cart, navigate]);
+  }, [selectedCart, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -104,7 +106,7 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
-  const subtotal = getCartTotal();
+  const subtotal = getSelectedTotal();
   const tax = subtotal * 0.1;
   const serviceFee = 25;
   const total = subtotal + tax + serviceFee;
@@ -364,7 +366,7 @@ export const CheckoutPage: React.FC = () => {
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Items
+                  Items ({selectedCart.length})
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   ${subtotal.toFixed(2)}

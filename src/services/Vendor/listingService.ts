@@ -133,6 +133,9 @@ export interface ListingResponse {
   isActive: boolean;
   categoryName: string;
   vendorName: string;
+  // PerNight | PerHour | PerPerson | PerDay | FixedPrice, from the
+  // listing's Category.ServiceModel - null if the admin never set it.
+  pricingUnit?: string | null;
   type: ListingType;
   averageRating: number;
   totalReviews: number;
@@ -140,6 +143,8 @@ export interface ListingResponse {
   images: string[];
   tags: string[];
   cancellationPolicy?: string;
+  hasActiveOffer: boolean;
+  offerBadgeText?: string | null;
 
   hotelDetails?: HotelDetailsDto;
   restaurantDetails?: RestaurantDetailsDto;

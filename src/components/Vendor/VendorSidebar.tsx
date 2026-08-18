@@ -1,6 +1,6 @@
 
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import BarChartIcon from "@mui/icons-material/BarChart";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
@@ -24,8 +24,8 @@ const menuItems = [
   { path: "/vendor/listings", label: "Listings", icon: Inventory2Icon },
   { path: "/vendor/availability", label: "Availability", icon: AccessTimeIcon },
   { path: "/vendor/reviews", label: "Reviews", icon: StarIcon },
+  { path: "/vendor/payouts", label: "Earnings", icon: AccountBalanceWalletIcon },
   { path: "/vendor/pricing", label: "Pricing & Promotions", icon: LocalOfferIcon },
-  { path: "/vendor/reports", label: "Reports", icon: BarChartIcon },
   { path: "/vendor/settings", label: "Settings", icon: SettingsIcon },
   { path: "/vendor/support", label: "Support", icon: SupportAgentIcon },
 ];

@@ -21,6 +21,7 @@ const SearchResultsScreen = () => {
     clearCategories,
     toggleCategory,
     setMinRating,
+    toggleHasOffer,
     clearFilters,
   } = useSearchResults();
 
@@ -54,12 +55,14 @@ const SearchResultsScreen = () => {
               maxPrice={filters.maxPrice}
               minRating={filters.minRating}
               ratingOptions={ratingOptions}
+              hasOffer={filters.hasOffer}
               onClearAll={clearFilters}
               onClearCategories={clearCategories}
               onToggleCategory={toggleCategory}
               onMinPriceChange={setMinPrice}
               onMaxPriceChange={setMaxPrice}
               onMinRatingChange={setMinRating}
+              onToggleHasOffer={toggleHasOffer}
             />
           </Grid>
 

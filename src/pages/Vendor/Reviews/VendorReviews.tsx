@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ReplyIcon from "@mui/icons-material/Reply";
 import {
   Box,
   Card,
@@ -7,15 +8,16 @@ import {
   Typography,
   Avatar,
   Rating,
-  Pagination,
   Button,
   TextField,
   Chip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import ReplyIcon from "@mui/icons-material/Reply";
-import { useAuth } from "../../../context/useAuth";
+import { useEffect, useState } from "react";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
+import { useAuth } from "../../../context/useAuth";
 import {
   getVendorReviews,
   getVendorRating,
@@ -23,18 +25,21 @@ import {
   type ReviewDto,
   type VendorRatingDto,
 } from "../../../services/reviewService";
+import VendorQuestionsTab from "./VendorQuestionsTab";
 
 const PAGE_SIZE = 10;
 
 export default function VendorReviews() {
   const { user } = useAuth();
   const vendorId = String(user?.userId ?? user?.id ?? "");
+  const [activeTab, setActiveTab] = useState<"reviews" | "questions">("reviews");
 
   const [reviews, setReviews] = useState<ReviewDto[]>([]);
   const [summary, setSummary] = useState<VendorRatingDto | null>(null);
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -47,28 +52,48 @@ export default function VendorReviews() {
     severity: "success",
   });
 
-  const load = useCallback(async () => {
+  // Reset and load page 1 whenever the vendor changes.
+  useEffect(() => {
     if (!vendorId) return;
+    let cancelled = false;
     setLoading(true);
     setError(null);
-    try {
-      const [ratingRes, reviewsRes] = await Promise.all([
-        getVendorRating(vendorId),
-        getVendorReviews(vendorId, { pageNumber: page, pageSize: PAGE_SIZE }),
-      ]);
-      setSummary(ratingRes);
-      setReviews(reviewsRes.items);
-      setPageCount(reviewsRes.totalPages || 1);
-    } catch {
-      setError("Failed to load reviews.");
-    } finally {
-      setLoading(false);
-    }
-  }, [vendorId, page]);
+    Promise.all([
+      getVendorRating(vendorId),
+      getVendorReviews(vendorId, { pageNumber: 1, pageSize: PAGE_SIZE }),
+    ])
+      .then(([ratingRes, reviewsRes]) => {
+        if (cancelled) return;
+        setSummary(ratingRes);
+        setReviews(reviewsRes.items);
+        setPage(1);
+        setPageCount(reviewsRes.totalPages || 1);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Failed to load reviews.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [vendorId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const handleSeeMore = async () => {
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await getVendorReviews(vendorId, { pageNumber: nextPage, pageSize: PAGE_SIZE });
+      setReviews((prev) => [...prev, ...res.items]);
+      setPage(nextPage);
+      setPageCount(res.totalPages || 1);
+    } catch {
+      setError("Failed to load more reviews.");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const handleSendReply = async (reviewId: string) => {
     if (!replyText.trim()) return;
@@ -89,13 +114,26 @@ export default function VendorReviews() {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h4" sx={{ fontWeight: 600 }}>
-          Reviews
+          Reviews & Questions
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          See what customers are saying and reply to their feedback
+          See what customers are saying, reply to reviews, and answer their questions
         </Typography>
       </Box>
 
+      <Tabs
+        value={activeTab}
+        onChange={(_, value) => setActiveTab(value)}
+        sx={{ borderBottom: 1, borderColor: "divider" }}
+      >
+        <Tab label="Reviews" value="reviews" sx={{ textTransform: "none", fontWeight: 500 }} />
+        <Tab label="Questions" value="questions" sx={{ textTransform: "none", fontWeight: 500 }} />
+      </Tabs>
+
+      {activeTab === "questions" ? (
+        <VendorQuestionsTab />
+      ) : (
+        <>
       <Card
         sx={{
           borderRadius: 3,
@@ -182,6 +220,14 @@ export default function VendorReviews() {
                       <Typography variant="body2" sx={{ mt: 1, color: "text.primary" }}>
                         {review.comment}
                       </Typography>
+                      {review.likeCount > 0 && (
+                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
+                          <FavoriteIcon fontSize="small" sx={{ color: "error.main" }} />
+                          <Typography variant="caption" color="text.secondary">
+                            {review.likeCount} like{review.likeCount === 1 ? "" : "s"}
+                          </Typography>
+                        </Stack>
+                      )}
 
                       {replyingTo === review.id ? (
                         <Stack spacing={1} sx={{ mt: 1.5 }}>
@@ -234,25 +280,19 @@ export default function VendorReviews() {
             </Stack>
           )}
 
-          <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-            <Pagination
-              count={pageCount || 1}
-              page={page}
-              onChange={(_, value) => setPage(value)}
-              siblingCount={1}
-              boundaryCount={1}
-              showFirstButton
-              showLastButton
-              sx={{
-                "& .MuiPaginationItem-root": { color: "text.secondary" },
-                "& .MuiPaginationItem-root.Mui-selected": {
-                  bgcolor: (t) => alpha(t.palette.primary.main, 0.12),
-                  color: "primary.main",
-                  fontWeight: 500,
-                },
-              }}
-            />
-          </Box>
+          {!loading && page < pageCount && (
+            <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleSeeMore}
+                disabled={loadingMore}
+                sx={{ textTransform: "none", borderRadius: "10px" }}
+              >
+                {loadingMore ? "Loading..." : "See more reviews"}
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
 
@@ -262,6 +302,8 @@ export default function VendorReviews() {
         severity={snackbar.severity}
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
       />
+        </>
+      )}
     </Stack>
   );
 }

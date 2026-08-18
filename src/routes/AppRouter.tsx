@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { CartProvider } from "../components/cart/app/contexts/CartContext";
 import { BookingOversightPage } from "../pages/admin/BookingOversightPage";
+import { DisputesRefundsPage } from "../pages/admin/DisputesRefundsPage";
+import { FraudReviewPage } from "../pages/admin/FraudReviewPage";
 import AdminSectionPlaceholder from "../pages/admin/AdminSectionPlaceholder";
 import DashboardAdmin from "../pages/admin/Dashboard";
 import { UserManagementPage } from "../pages/admin/UserManagementPage";
@@ -19,14 +21,22 @@ import MainLayout from "../layouts/MainLayout/MainLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";
 import CustomerMain from "../pages/Customer/customerMain";
 import UserDashboard from "../pages/Customer/UserDashboard";
+import CustomerReviews from "../pages/Customer/CustomerReviews";
+import CustomerBookings from "../pages/Customer/CustomerBookings";
 import ForgotPassword from "../pages/Public/Auth/ForgotPassword";
 import Login from "../pages/Public/Auth/Login";
 import Register from "../pages/Public/Auth/Register";
+import ResetPassword from "../pages/Public/Auth/ResetPassword";
+import VerifyEmail from "../pages/Public/Auth/VerifyEmail";
+import TwoFactorEnroll from "../pages/Public/Auth/TwoFactorEnroll";
+import TwoFactorVerify from "../pages/Public/Auth/TwoFactorVerify";
 import LandingPage from "../pages/Public/LandingPage";
 import SearchResultsPage from "../pages/Public/Search/SearchResultsPage";
 import ViewProduct from "../pages/Public/ViewProduct/ViewProduct";
 import Availability from "../pages/Vendor/Availability/Availability";
+import Pricing from "../pages/Vendor/Pricing/Pricing";
 import VendorReviews from "../pages/Vendor/Reviews/VendorReviews";
+import Payouts from "../pages/Vendor/Payouts/Payouts";
 import Bookings from "../pages/Vendor/Bookings/Bookings";
 import BusinessInfo from "../pages/Vendor/Application/BusinessInfo";
 import Categories from "../pages/Vendor/Application/Categories";
@@ -113,10 +123,16 @@ function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/2fa-enroll" element={<TwoFactorEnroll />} />
+        <Route path="/2fa-verify" element={<TwoFactorVerify />} />
 
         <Route path="/customer" element={<CustomerMain />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<UserDashboard />} />
+          <Route path="reviews" element={<CustomerReviews />} />
+          <Route path="bookings" element={<CustomerBookings />} />
         </Route>
 
         <Route
@@ -135,7 +151,13 @@ function AppRouter() {
           <Route path="listings/new" element={<CreateListing />} />
           <Route path="listings/edit/:id" element={<CreateListing />} />
           <Route path="availability" element={<Availability />} />
+          <Route path="pricing" element={<Pricing />} />
           <Route path="reviews" element={<VendorReviews />} />
+          <Route path="payouts" element={<Payouts />} />
+          {/* Kept as a redirect, not a second page - "Earnings" (payouts)
+              absorbed the old standalone Reports tab; this just saves
+              anyone with the old URL bookmarked from hitting a dead link. */}
+          <Route path="reports" element={<Navigate to="/vendor/payouts" replace />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
@@ -193,6 +215,8 @@ function AppRouter() {
           <Route path="dashboard" element={<DashboardAdmin />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="bookings" element={<BookingOversightPage />} />
+          <Route path="disputes" element={<DisputesRefundsPage />} />
+          <Route path="fraud-review" element={<FraudReviewPage />} />
           <Route path="vendors" element={<VendorManagement />} />
           <Route path="notifications" element={<AdminNotifications />} />
           <Route path="content" element={<ContentManagement />} />

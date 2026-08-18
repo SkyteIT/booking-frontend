@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { Delete, Remove, Add, ArrowBack, Lock, CreditCard } from '@mui/icons-material';
 import {
   Box,
   Typography,
@@ -10,8 +10,10 @@ import {
   Tabs,
   Tab,
   Chip,
+  Checkbox,
+  Alert,
 } from '@mui/material';
-import { Delete, Remove, Add, ArrowBack, Lock, CreditCard } from '@mui/icons-material';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useCart } from '../contexts/CartContext';
 //import { Footer } from '../components/Footer';
@@ -25,10 +27,21 @@ const categoryColors: Record<string, string> = {
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateCartItem, getCartTotal } = useCart();
+  const {
+    cart,
+    removeFromCart,
+    updateCartItem,
+    selectedCart,
+    isItemSelected,
+    toggleItemSelected,
+    selectAllItems,
+    deselectAllItems,
+    getSelectedTotal,
+  } = useCart();
   const [activeTab, setActiveTab] = useState(0);
 
   const handleCheckout = () => {
+    if (selectedCart.length === 0) return;
     navigate('/checkout');
   };
 
@@ -52,10 +65,14 @@ export const CartPage: React.FC = () => {
     return category !== 'hotel' && category !== 'car';
   };
 
-  const subtotal = getCartTotal();
+  // Order summary reflects only the selected lines - the whole point of
+  // selection is to check out a subset, so the total shown must match
+  // what checkout will actually charge.
+  const subtotal = getSelectedTotal();
   const tax = subtotal * 0.1;
-  const serviceFee = 25;
+  const serviceFee = selectedCart.length > 0 ? 25 : 0;
   const total = subtotal + tax + serviceFee;
+  const allSelected = cart.length > 0 && selectedCart.length === cart.length;
 
   // Tabs are derived from whatever real categories are actually in the
   // cart (item.category now comes straight from the admin-managed category
@@ -132,10 +149,22 @@ export const CartPage: React.FC = () => {
           </Tabs>
         </Box>
 
+        {/* Select all / selection count - checkout only acts on what's checked below */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Checkbox
+            checked={allSelected}
+            indeterminate={selectedCart.length > 0 && !allSelected}
+            onChange={(e) => (e.target.checked ? selectAllItems() : deselectAllItems())}
+          />
+          <Typography variant="body2" color="text.secondary">
+            {selectedCart.length} of {cart.length} selected
+          </Typography>
+        </Box>
+
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
           {/* Cart Items */}
           <Box sx={{ flex: 1 }}>
-            
+
             {filteredCart.map((item, index) => (
               <Paper
                 key={index}
@@ -162,6 +191,13 @@ export const CartPage: React.FC = () => {
                 </IconButton>
 
                 <Box sx={{ display: 'flex', gap: 2 }}>
+                  {/* Selection */}
+                  <Checkbox
+                    checked={isItemSelected(item)}
+                    onChange={() => toggleItemSelected(item)}
+                    sx={{ alignSelf: 'flex-start', mt: -0.5, ml: -1 }}
+                  />
+
                   {/* Image */}
                   <Box
                     component="img"
@@ -301,11 +337,18 @@ export const CartPage: React.FC = () => {
                 </Typography>
               </Box>
 
+              {selectedCart.length === 0 && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Select at least one item to check out.
+                </Alert>
+              )}
+
               <Button
                 variant="contained"
                 fullWidth
                 size="large"
                 onClick={handleCheckout}
+                disabled={selectedCart.length === 0}
                 sx={{
                   bgcolor: '#0891B2',
                   '&:hover': { bgcolor: '#0E7490' },
@@ -316,7 +359,9 @@ export const CartPage: React.FC = () => {
                   mb: 2,
                 }}
               >
-                Proceed to Checkout
+                {selectedCart.length > 0
+                  ? `Proceed to Checkout (${selectedCart.length})`
+                  : 'Proceed to Checkout'}
               </Button>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>

@@ -8,6 +8,7 @@ export interface SearchParams {
   maxPrice?: number;
   minRating?: number;
   isAvailable?: boolean;
+  hasActiveOffer?: boolean;
   page?: number;
   pageSize?: number;
 }
@@ -26,6 +27,8 @@ export interface SearchListing {
   isFeatured: boolean;
   isActive: boolean;
   thumbnailUrl: string | null;
+  hasActiveOffer: boolean;
+  offerBadgeText: string | null;
 }
 
 export const searchListings = async (params: SearchParams): Promise<SearchListing[]> => {

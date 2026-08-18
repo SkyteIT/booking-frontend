@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect,  } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../../../context/useAuth';
 import { addToCart as syncAddToCart } from '../../../../services/cartService';
+import { calculatePricingTotal } from '../../../../utils/pricingCalculator';
 export interface BookingItem {
   id: string;
   name: string;
@@ -12,6 +13,8 @@ export interface BookingItem {
   priceUnit: string; // e.g., "per day", "per hour", "per night"
   location?: string;
   allowMultiple?: boolean; // Whether multiple quantities can be booked
+  listingUnitId?: string; // specific room type/seat/fleet unit/time slot chosen, if the listing has any defined
+  pricingUnit?: string; // PerNight | PerHour | PerPerson | PerDay | FixedPrice, from the listing's Category
 }
 
 export interface CartItem extends BookingItem {
@@ -20,6 +23,14 @@ export interface CartItem extends BookingItem {
   endDate: string;
   totalPrice: number;
 }
+
+// A cart line isn't uniquely identified by `id` alone - the same listing
+// can appear twice with different date ranges (addToCart's own merge
+// check already keys on id+startDate+endDate). Selection needs a key
+// that's actually unique per line, or selecting one date-range of a
+// listing would silently select every other date-range of it too.
+const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate'>): string =>
+  `${item.id}::${item.startDate}::${item.endDate}`;
 
 // Helper function to check if item allows multiple quantities.
 // NOTE: matches literal category names because the real admin-managed
@@ -38,6 +49,19 @@ interface CartContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemsCount: () => number;
+  // Selection - which cart lines checkout should actually act on. Defaults
+  // to "everything selected" so existing single-item-cart flows behave
+  // exactly as before.
+  selectedCart: CartItem[];
+  isItemSelected: (item: CartItem) => boolean;
+  toggleItemSelected: (item: CartItem) => void;
+  selectAllItems: () => void;
+  deselectAllItems: () => void;
+  getSelectedTotal: () => number;
+  // Removes only the given lines (e.g. after a successful checkout of the
+  // selected subset) - unlike clearCart(), leaves everything else in the
+  // cart untouched.
+  removeCartItems: (items: CartItem[]) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -67,13 +91,15 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     localStorage.setItem('bookingCart', JSON.stringify(cart));
   }, [cart]);
 
-  const calculateDays = (startDate: string, endDate: string): number => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays || 1; // At least 1 day
-  };
+  // Tracks *deselected* lines (keyed by getCartItemKey) rather than
+  // selected ones, so "select everything" is the implicit default with
+  // no separate effect needed to keep it in sync as lines are added or
+  // removed - a line just falls out of this set the moment it's gone
+  // from the cart, and a brand-new line is selected by construction
+  // (its key was never added here).
+  const [deselectedKeys, setDeselectedKeys] = useState<Set<string>>(() => new Set());
+
+  const calculateItemTotal = calculatePricingTotal;
 
   const addToCart = (
     item: BookingItem,
@@ -81,8 +107,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     startDate: string,
     endDate: string
   ) => {
-    const days = calculateDays(startDate, endDate);
-    const totalPrice = item.price * quantity * days;
+    const totalPrice = calculateItemTotal(item.price, quantity, startDate, endDate, item.pricingUnit);
 
     const existingItemIndex = cart.findIndex(
       (cartItem) =>
@@ -101,8 +126,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       // Update existing item
       const updatedCart = [...cart];
       updatedCart[existingItemIndex].quantity += quantity;
-      updatedCart[existingItemIndex].totalPrice =
-        item.price * updatedCart[existingItemIndex].quantity * days;
+      updatedCart[existingItemIndex].totalPrice = calculateItemTotal(
+        item.price,
+        updatedCart[existingItemIndex].quantity,
+        startDate,
+        endDate,
+        item.pricingUnit
+      );
       setCart(updatedCart);
     } else {
       // Add new item
@@ -139,8 +169,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   ) => {
     const updatedCart = cart.map((item) => {
       if (item.id === id) {
-        const days = calculateDays(startDate, endDate);
-        const totalPrice = item.price * quantity * days;
+        const totalPrice = calculateItemTotal(item.price, quantity, startDate, endDate, item.pricingUnit);
         return {
           ...item,
           quantity,
@@ -166,6 +195,30 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return cart.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const isItemSelected = (item: CartItem) => !deselectedKeys.has(getCartItemKey(item));
+
+  const toggleItemSelected = (item: CartItem) => {
+    const key = getCartItemKey(item);
+    setDeselectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const selectAllItems = () => setDeselectedKeys(new Set());
+  const deselectAllItems = () => setDeselectedKeys(new Set(cart.map(getCartItemKey)));
+
+  const selectedCart = cart.filter(isItemSelected);
+
+  const getSelectedTotal = () => selectedCart.reduce((total, item) => total + item.totalPrice, 0);
+
+  const removeCartItems = (items: CartItem[]) => {
+    const keysToRemove = new Set(items.map(getCartItemKey));
+    setCart((prev) => prev.filter((item) => !keysToRemove.has(getCartItemKey(item))));
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -176,6 +229,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         clearCart,
         getCartTotal,
         getCartItemsCount,
+        selectedCart,
+        isItemSelected,
+        toggleItemSelected,
+        selectAllItems,
+        deselectAllItems,
+        getSelectedTotal,
+        removeCartItems,
       }}
     >
       {children}
