@@ -1,10 +1,18 @@
 // src/pages/admin/contentManagement/components/AddCategory.tsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Box, Typography, TextField, Button, Paper, Switch,
   FormControlLabel, MenuItem, IconButton, Chip, InputAdornment,
 } from "@mui/material";
+import CategoryIcon from "@mui/icons-material/Category";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import SettingsIcon from "@mui/icons-material/Settings";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import ImageIcon from "@mui/icons-material/Image";
+import LockIcon from "@mui/icons-material/Lock";
+import ExtensionIcon from "@mui/icons-material/Extension";
 import SaveIcon from "@mui/icons-material/Save";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -12,6 +20,7 @@ import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
 import type { ListingType } from "../../../../services/Vendor/listingService";
 import { createCategory } from "../services/contentService";
+import { filterEmojiOptions } from "../utils/emojiOptions";
 
 // ─── Types ───────────────────────────────────────────────
 interface CustomField {
@@ -65,6 +74,8 @@ export default function AddCategory() {
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [emojiSearch, setEmojiSearch] = useState("");
+  const filteredEmojiOptions = useMemo(() => filterEmojiOptions(emojiSearch), [emojiSearch]);
 
   // ── Handlers ──
   const set = (field: string, value: string | boolean) => {
@@ -186,7 +197,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>🗂️</Typography>
+                <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
               </Box>
               <Typography fontWeight={600}>1. Basic Information</Typography>
             </Box>
@@ -225,7 +236,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>⚙️</Typography>
+                <SettingsIcon sx={{ fontSize: 18, color: "#2E7D32" }} />
               </Box>
               <Typography fontWeight={600}>2. Category Configuration</Typography>
             </Box>
@@ -287,7 +298,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>💰</Typography>
+                <AttachMoneyIcon sx={{ fontSize: 18, color: "#EF6C00" }} />
               </Box>
               <Typography fontWeight={600}>3. Pricing & Commission Settings</Typography>
             </Box>
@@ -330,19 +341,111 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>🖼️</Typography>
+                <ImageIcon sx={{ fontSize: 18, color: "#C2185B" }} />
               </Box>
               <Typography fontWeight={600}>4. Media & Display Settings</Typography>
             </Box>
 
-            <TextField
-              label="Category Icon"
-              placeholder="Enter emoji or icon code (e.g., 🏨 🚗 🎭)"
-              fullWidth required
-              value={form.icon}
-              onChange={(e) => set("icon", e.target.value)}
-              sx={{ mb: 2 }}
-            />
+            <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <TextField
+                size="small"
+                fullWidth
+                value={emojiSearch}
+                onChange={(e) => setEmojiSearch(e.target.value)}
+                placeholder="Search emoji or keyword"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18, color: "#94A3B8" }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: emojiSearch ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => setEmojiSearch("")}>
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+                sx={{ maxWidth: 320 }}
+              />
+              <Typography fontSize={13} color="text.secondary">
+                Choose a category emoji
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(8, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
+              {filteredEmojiOptions.map((option) => {
+                const selected = form.icon === option.emoji;
+                return (
+                  <Box
+                    key={option.emoji}
+                    onClick={() => set("icon", option.emoji)}
+                    title={`${option.label} ${option.keywords.join(", ")}`}
+                    sx={{
+                      height: 42,
+                      borderRadius: "12px",
+                      border: selected ? "2px solid #6366F1" : "1px solid #E2E8F0",
+                      bgcolor: selected ? "#EEF2FF" : "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "transform .15s ease, border-color .15s ease, background .15s ease",
+                      "&:hover": {
+                        borderColor: "#6366F1",
+                        bgcolor: "#EEF2FF",
+                        transform: "translateY(-1px)",
+                      },
+                    }}
+                  >
+                    <Typography fontSize={22} lineHeight={1}>
+                      {option.emoji}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+
+            {filteredEmojiOptions.length === 0 ? (
+              <Typography fontSize={13} color="text.secondary" sx={{ mt: -0.5, mb: 2 }}>
+                No emoji found for "{emojiSearch}".
+              </Typography>
+            ) : null}
+
+            {form.icon && (
+              <Box
+                sx={{
+                  mb: 2,
+                  p: 1.5,
+                  borderRadius: 2,
+                  border: "1px solid #E2E8F0",
+                  background: "#F8FAFC",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
+                <Typography fontSize={13} color="text.secondary">
+                  Selected:
+                </Typography>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "12px",
+                    background: "linear-gradient(135deg,#6366F1,#4F46E5)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography fontSize={24} lineHeight={1}>
+                    {form.icon}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
 
             {/* Banner upload */}
             <Typography fontSize={13} color="text.secondary" mb={0.8}>Banner Image</Typography>
@@ -414,7 +517,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={1}>
               <Box sx={{ bgcolor: "#fdecea", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>🔒</Typography>
+                <LockIcon sx={{ fontSize: 18, color: "#B91C1C" }} />
               </Box>
               <Typography fontWeight={600}>5. Listing Control</Typography>
             </Box>
@@ -438,7 +541,7 @@ export default function AddCategory() {
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Box display="flex" alignItems="center" gap={1}>
                 <Box sx={{ bgcolor: "#ede7f6", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                  <Typography fontSize={18}>🧩</Typography>
+                  <ExtensionIcon sx={{ fontSize: 18, color: "#673AB7" }} />
                 </Box>
                 <Typography fontWeight={600}>7. Custom Fields Builder</Typography>
               </Box>
@@ -523,7 +626,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <Typography fontSize={18}>📡</Typography>
+                <SettingsIcon sx={{ fontSize: 18, color: "#2E7D32" }} />
               </Box>
               <Typography fontWeight={600}>6. Status & Controls</Typography>
             </Box>
@@ -547,7 +650,7 @@ export default function AddCategory() {
               }}
             >
               <Typography fontSize={13} mb={1} color="#7c5a00">
-                ⚠️ Soft Delete — This category can be hidden without permanently removing data.
+                Soft Delete - This category can be hidden without permanently removing data.
               </Typography>
               <Button
                 size="small"
@@ -612,7 +715,7 @@ export default function AddCategory() {
                 <Chip label="Calendar" size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11 }} />
               )}
               {form.featuredCategory && (
-                <Chip label="⭐ Featured" size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11 }} />
+                <Chip label="Featured" size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11 }} />
               )}
               {form.taxApplicable && (
                 <Chip label="Tax" size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11 }} />
@@ -625,13 +728,13 @@ export default function AddCategory() {
 
           {/* Tips */}
           <Paper sx={{ ...cardStyle, bgcolor: "#fff8e1", border: "1px solid #ffe082" }}>
-            <Typography fontWeight={600} mb={1} fontSize={14}>💡 Tips</Typography>
+            <Typography fontWeight={600} mb={1} fontSize={14}>Tips</Typography>
             <Typography fontSize={12} color="text.secondary" lineHeight={1.8}>
-              • Use clear, recognizable icons (emoji work great)<br />
+              • Use clear, recognizable emoji<br />
               • "Instant Confirmation" is best for fixed-availability services<br />
-              • Enable Availability Calendar for accommodation & rentals<br />
+              • Enable Availability Calendar for accommodation and rentals<br />
               • Custom fields help vendors provide category-specific info<br />
-              • Re-adding a deleted category automatically restores all its previous listings
+              • Re-adding a deleted category automatically restores its previous listings
             </Typography>
           </Paper>
         </Box>
