@@ -48,6 +48,14 @@ export const CartPage: React.FC = () => {
   // Same gap as CartContext's canBookMultiple: no "allows multiple" flag
   // exists on the real admin-managed Category yet, so this still matches
   // literal names. See .claude/BACKEND-TODO-cart.md.
+
+//does not use anyware  for now might delet this function
+  // const canIncreaseQuantity = (category: string) => {
+  //   return category !== 'hotel' && category !== 'car';
+  // };
+
+
+
   const subtotal = getCartTotal();
   const tax = subtotal * 0.1;
   const serviceFee = 25;

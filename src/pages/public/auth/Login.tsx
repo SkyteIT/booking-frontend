@@ -96,6 +96,7 @@ function Login(): JSX.Element {
 
           <div className="input-group">
             <label>Password</label>
+{/*<<<<<<< HEAD:src/pages/Public/Auth/Login.tsx*/}
             <input
               type="password"
               placeholder="Enter your password"
@@ -103,6 +104,31 @@ function Login(): JSX.Element {
               className={errors.password ? "input-error" : ""}
             />
             {errors.password && <p className="error-text">{errors.password.message}</p>}
+
+{/*
+=======
+
+
+            <div className="password-wrapper styled">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                {...register("password")}
+                className={errors.password ? "input-error" : ""}
+              />
+
+              <span className="eye-icon" onClick={() => setShowPassword((p) => !p)}>
+                {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              </span>
+            </div>
+
+            {errors.password && (
+              <p className="error-text">{errors.password.message}</p>
+            )}
+>>>>>>> origin/develop:src/pages/public/auth/Login.tsx
+*/}
+
+
           </div>
 
           {error && <p className="error-text">{error}</p>}
@@ -120,9 +146,41 @@ function Login(): JSX.Element {
           </button>
         </form>
 
+{/*<<<<<<< HEAD:src/pages/Public/Auth/Login.tsx*/}
         <div style={{ marginTop: "16px", textAlign: "center" }}>
           <Link to="/forgot-password" className="back-link">
-            Forgot password?
+       
+       
+       {/*    Forgot password?
+=======
+        <div className="divider">
+          <span>OR CONTINUE WITH</span>
+        </div>
+
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={(credentialResponse: { credential?: string }) =>
+              handleGoogleLogin(credentialResponse.credential)
+            }
+            onError={() => setErrorSnackbar("Google login failed. Please try again.")}
+            width="400"
+          />
+        </div>
+
+        <p className="bottom-text">
+          Don’t have an account?{" "}
+          <Link
+            to={
+              isSafeRedirect(nextPath)
+                ? `/register?next=${encodeURIComponent(nextPath)}`
+                : "/register"
+            }
+            className="bold-link"
+          >
+            Sign Up
+>>>>>>> origin/develop:src/pages/public/auth/Login.tsx
+ */}
+
           </Link>
           <p className="subtitle" style={{ marginTop: "12px" }}>
             Don&apos;t have an account? <Link to="/register">Register</Link>

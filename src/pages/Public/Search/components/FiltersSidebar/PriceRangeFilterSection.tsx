@@ -34,7 +34,7 @@ const PriceRangeFilterSection = ({
   return (
     <>
       <Typography sx={filterTitleSx}>Price range</Typography>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2.2 }}>
         <TextField
           size="small"
           placeholder="0"

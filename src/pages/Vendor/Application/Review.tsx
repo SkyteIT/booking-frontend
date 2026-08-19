@@ -16,11 +16,11 @@ import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import api from "../../../services/api";
 import "./application.css";
-
+//import { useAuth } from "../../../context/AuthContext";
 const Review = () => {
   const navigate = useNavigate();
   const { data, resetApplication } = useVendorApplication();
-
+  //const { markVendorApplicationSubmitted } = useAuth();
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
@@ -75,11 +75,22 @@ const Review = () => {
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
-    } catch (err) {
+    }  catch (err) {
       if (isAxiosError(err)) {
-        console.error("Submission failed:", err.response?.data ?? err.message);
+        console.error("Submission failed:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+    
+        alert(
+          `Submission failed.\nStatus: ${
+            err.response?.status ?? "Unknown"
+          }\n${JSON.stringify(err.response?.data) || err.message}`
+        );
       } else {
         console.error("Submission failed:", err);
+        alert("Submission failed. Check the browser console.");
       }
     }
   };

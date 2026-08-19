@@ -7,6 +7,7 @@ import AdminSectionPlaceholder from "../pages/admin/AdminSectionPlaceholder";
 import DashboardAdmin from "../pages/admin/Dashboard";
 import { UserManagementPage } from "../pages/admin/UserManagementPage";
 import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
+import CustomerNotifications from "../pages/customer/notifications/CustomerNotifications";
 import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddCategory from "../pages/admin/contentManagement/components/AddCategory";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
@@ -18,8 +19,13 @@ import LandingLayout from "../layouts/MainLayout/LandingLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";
 import CustomerMain from "../pages/Customer/customerMain";
+import CustomerBookings from "../pages/Customer/CustomerBookings";
+import CustomerPaymentMethods from "../pages/Customer/CustomerPaymentMethods";
+import CustomerReviews from "../pages/Customer/CustomerReviews";
 import UserDashboard from "../pages/Customer/UserDashboard";
+import CustomerSettings from "../pages/Customer/CustomerSettings";
 import ForgotPassword from "../pages/Public/Auth/ForgotPassword";
+import ResetPassword from "../pages/Public/Auth/ResetPassword";
 import Login from "../pages/Public/Auth/Login";
 import Register from "../pages/Public/Auth/Register";
 import LandingPage from "../pages/Public/LandingPage";
@@ -36,6 +42,7 @@ import Review from "../pages/Vendor/Application/Review";
 import CreateListing from "../pages/Vendor/CreateListing/CreateListing";
 import Dashboard from "../pages/Vendor/Dashboard/Dashboard";
 import VendorListings from "../pages/Vendor/Listings/VendorListings";
+import VendorNotifications from "../pages/vendor/notifications/VendorNotifications";
 import Settings from "../pages/Vendor/Settings/Settings";
 import VendorManagement from "../pages/admin/VendorManagement";
 import { CartPage } from "../components/cart/app/pages/CartPage";
@@ -113,10 +120,16 @@ function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/customer" element={<CustomerMain />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<UserDashboard />} />
+          <Route path="bookings" element={<CustomerBookings />} />
+          <Route path="reviews" element={<CustomerReviews />} />
+          <Route path="payments" element={<CustomerPaymentMethods />} />
+          <Route path="settings" element={<CustomerSettings />} />
+          <Route path="notifications" element={<CustomerNotifications />} />
         </Route>
 
         <Route
@@ -136,6 +149,7 @@ function AppRouter() {
           <Route path="listings/edit/:id" element={<CreateListing />} />
           <Route path="availability" element={<Availability />} />
           <Route path="reviews" element={<VendorReviews />} />
+          <Route path="notifications" element={<VendorNotifications />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 

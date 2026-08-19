@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+
 import type { ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useContext
+} from "react";
 import { getCurrentUser, logout as logoutApi } from "../services/authService";
 import { refreshAccessToken } from "../services/tokenRefresh";
 import tokenStorage from "../services/tokenStorage";
@@ -68,9 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     const refreshToken = tokenStorage.getRefreshToken();
+
     cancelScheduledRefresh();
+  
+    // Clear authentication
     tokenStorage.removeToken();
     setUser(null);
+  
+    // Clear unfinished vendor application
+    localStorage.removeItem("vendor_application");
+  
+    // Clear submitted-status flag for the current user
     setVendorApplicationSubmitted(false);
 
     // Best-effort — revokes the refresh token server-side, but local state
@@ -166,4 +182,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
+  }
+
+  return context;
 }

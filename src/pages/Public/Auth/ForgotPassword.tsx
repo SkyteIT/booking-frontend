@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../utils/validationSchemas";
-
+import { forgotPassword } from "../../../services/authService";
 function ForgotPassword(): JSX.Element {
   const [message, setMessage] = useState<string>("");
 
@@ -20,10 +20,13 @@ function ForgotPassword(): JSX.Element {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      // TODO: Call your forgot password API endpoint when backend is ready
-      // await api.post("/api/auth/forgot-password", { email: data.email });
-      
-      setMessage(`Password reset link sent to ${data.email} ✅`);
+      const response = await forgotPassword(data.email);
+  
+      setMessage(
+        response.message ||
+          "If an account exists with this email, password reset instructions have been sent."
+      );
+  
       reset();
     } catch {
       setMessage("Failed to send reset link. Please try again.");

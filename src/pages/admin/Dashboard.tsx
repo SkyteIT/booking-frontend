@@ -1,3 +1,5 @@
+/*
+//<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { Typography, Grid, Card, CardContent, Alert } from "@mui/material";
 import { getDashboardStats, type DashboardStatsDto } from "../../services/Admin/adminService";
@@ -76,3 +78,8 @@ export default function Dashboard() {
     </>
   );
 }
+=======
+
+*/
+export { default } from "./dashboard/AdminDashboard";
+

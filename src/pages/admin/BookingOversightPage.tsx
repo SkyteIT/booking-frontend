@@ -34,6 +34,10 @@ export const BookingOversightPage: React.FC = () => {
   const [editStatus, setEditStatus] = useState<string>('Pending');
   const [saving, setSaving] = useState(false);
 
+  const refreshDashboard = () => {
+    window.dispatchEvent(new Event("admin-dashboard-refresh"));
+  };
+
   const loadBookings = useCallback(async () => {
     setLoading(true);
     setErrorMsg('');
@@ -90,6 +94,7 @@ export const BookingOversightPage: React.FC = () => {
     try {
       const updated = await updateBookingStatus(selectedBooking.id, editStatus as 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed');
       setBookings((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+      refreshDashboard();
       setEditOpen(false);
       showSuccess('Booking status updated successfully');
     } catch {
@@ -110,6 +115,7 @@ export const BookingOversightPage: React.FC = () => {
     try {
       const updated = await updateBookingStatus(selectedBooking.id, 'Cancelled');
       setBookings((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+      refreshDashboard();
       setCancelOpen(false);
       showSuccess(`Booking ${selectedBooking.id} has been cancelled`);
     } catch {

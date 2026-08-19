@@ -132,11 +132,64 @@ function Register(): JSX.Element {
           </button>
         </form>
 
+
+
+
+
         <div style={{ marginTop: "16px", textAlign: "center" }}>
           <p className="subtitle">
             Already have an account? <Link to="/login">Login</Link>
           </p>
         </div>
+
+      {/*
+        <div className="divider">
+          <span>OR CONTINUE WITH</span>
+        </div>
+
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={(credentialResponse: { credential?: string }) =>
+              handleGoogleSignUp(credentialResponse.credential)
+            }
+            onError={() => setErrorSnackbar("Google sign-up failed. Please try again.")}
+            width="400"
+          />
+        </div>
+
+        <p className="bottom-text">
+          Already have an account?{" "}
+          <Link to="/login" className="bold-link">
+            Sign in
+          </Link>
+        </p>
+*/}
+        {/*  Success Snackbar */}
+        {/*
+        <Snackbar
+          open={successSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setSuccessSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="success" sx={{ width: "100%" }}>
+            Registration Successful!
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={Boolean(errorSnackbar)}
+          autoHideDuration={2500}
+          onClose={() => setErrorSnackbar("")}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="error" sx={{ width: "100%" }} onClose={() => setErrorSnackbar("")}>
+            {errorSnackbar}
+          </Alert>
+        </Snackbar>
+//>>>>>>>
+*/}
+
       </div>
     </AuthLayout>
   );

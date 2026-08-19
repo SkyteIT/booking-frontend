@@ -10,11 +10,25 @@ import {
   type NotificationPreference,
   type UpdatePreferencePayload,
 } from "../services/notificationService";
-
+/*
+//<<<<<<< HEAD
 export const useNotifications = (userId: string | null) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [loading, setLoading] = useState(false);
+=======
+*/
+export const useNotifications = (
+  userId: string | null,
+  options?: {
+    refreshIntervalMs?: number;
+  }
+) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
+  const [loading, setLoading] = useState(false);
+  const refreshIntervalMs = options?.refreshIntervalMs ?? 0;
+
 
   const loadAll = useCallback(async () => {
     if (!userId) return;
@@ -34,6 +48,18 @@ export const useNotifications = (userId: string | null) => {
   }, [userId]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+
+  useEffect(() => {
+    if (!userId || refreshIntervalMs <= 0) return;
+
+    const intervalId = window.setInterval(() => {
+      void loadAll();
+    }, refreshIntervalMs);
+
+    return () => window.clearInterval(intervalId);
+  }, [loadAll, refreshIntervalMs, userId]);
+
 
   const handleMarkAsRead = useCallback(async (id: string) => {
     await markAsRead(id);
@@ -73,4 +99,6 @@ export const useNotifications = (userId: string | null) => {
     savePreference: handleSavePreference,
     reload: loadAll,
   };
+
 };
+

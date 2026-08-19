@@ -149,7 +149,13 @@ export interface ListingResponse {
 }
 
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
+//<<<<<<< HEAD
   const res = await api.get<ListingResponse[]>("/listings/me");
+{/*
+  =======
+  const res = await api.get<ListingResponse[]>("/listings");
+>>>>>>> origin/develop
+*/}
   return res.data;
 };
 
