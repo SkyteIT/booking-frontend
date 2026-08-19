@@ -5,6 +5,7 @@ import tokenStorage from "./tokenStorage";
 type AuthResponse = {
   token?: string;
   accessToken?: string;
+  refreshToken?: string;
   user?: unknown;
   role?: string;
   email?: string;
@@ -16,10 +17,13 @@ const saveAuthToken = (response: AuthResponse) => {
   if (token) {
     tokenStorage.setToken(token);
   }
+  if (response.refreshToken) {
+    tokenStorage.setRefreshToken(response.refreshToken);
+  }
 };
 
 export const login = async (email: string, password: string) => {
-  const res = await api.post<AuthResponse>("/api/auth/login", { email, password });
+  const res = await api.post<AuthResponse>("/auth/login", { email, password });
 
   saveAuthToken(res.data);
 
@@ -32,7 +36,10 @@ export const register = async (payload: {
   email: string;
   password: string;
 }) => {
-  const res = await api.post<AuthResponse>("/api/auth/register", payload);
+  const res = await api.post<AuthResponse>("/auth/register", {
+    ...payload,
+    name: `${payload.firstName} ${payload.lastName}`,
+  });
 
   saveAuthToken(res.data);
 
@@ -40,7 +47,7 @@ export const register = async (payload: {
 };
 
 export const loginWithGoogle = async (credential: string) => {
-  const res = await api.post<AuthResponse>("/api/auth/google-login", { idToken: credential });
+  const res = await api.post<AuthResponse>("/auth/google-login", { idToken: credential });
 
   saveAuthToken(res.data);
 
@@ -48,6 +55,12 @@ export const loginWithGoogle = async (credential: string) => {
 };
 
 export const getCurrentUser = async () => {
-  const res = await api.get("/api/auth/current-user");
+  const res = await api.get("/auth/current-user");
   return res.data;
+};
+
+// Revokes the refresh token server-side. Best-effort — callers should clear
+// local tokens regardless of whether this succeeds.
+export const logout = async (refreshToken: string) => {
+  await api.post("/auth/logout", { refreshToken });
 };

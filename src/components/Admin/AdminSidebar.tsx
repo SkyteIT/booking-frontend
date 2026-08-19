@@ -12,7 +12,8 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { Box, Typography, Divider, Stack } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 
 const menu = [
   { label: "Dashboard", icon: DashboardOutlinedIcon, path: "/admin/dashboard" },
@@ -28,40 +29,37 @@ const menu = [
 ] as const;
 
 export default function AdminSidebar() {
+  const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
   return (
     <Box
       sx={(theme) => ({
         height: "100%",
-        borderRadius: 4,
-        p: 1.5,
-
-        bgcolor: alpha(theme.palette.background.paper, 0.85),
-        backdropFilter: "blur(14px)",
-
-        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-        boxShadow: "0 8px 25px rgba(15,23,42,0.05)",
+        borderRadius: 3,
+        p: 2,
+        bgcolor: alpha(theme.palette.background.paper, 0.96),
+        backdropFilter: "blur(18px)",
+        border: `1px solid ${alpha(theme.palette.divider, 0.14)}`,
+        boxShadow: "0 22px 55px rgba(15,23,42,0.09)",
       })}
     >
-      {/* 🔹 SECTION LABEL */}
-      <Typography
-        sx={{
-          px: 1.25,
-          fontSize: "0.7rem",
-          fontWeight: 700,
-          letterSpacing: "0.6px",
-          color: "text.secondary",
-          mb: 1,
-        }}
-      >
-        NAVIGATION
-      </Typography>
+      <Box mb={3} px={1.25}>
+        <Typography sx={{ fontSize: "0.82rem", fontWeight: 800, letterSpacing: "0.08em", mb: 0.75 }}>
+          ADMIN PORTAL
+        </Typography>
+        <Typography sx={{ fontSize: "0.78rem", color: "text.secondary", lineHeight: 1.6 }}>
+          Manage your platform modules with quick access.
+        </Typography>
+      </Box>
 
-      <Stack spacing={0.5}>
+      <Stack spacing={0.75}>
         {menu.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive =
+            location.pathname === item.path ||
+            location.pathname.startsWith(`${item.path}/`);
 
           return (
             <Box
@@ -74,28 +72,24 @@ export default function AdminSidebar() {
                 alignItems: "center",
                 gap: 1.5,
                 px: 1.5,
-                py: 1.1,
-                borderRadius: 2.5,
+                py: 1.15,
+                borderRadius: 3,
                 textDecoration: "none",
-
-                transition: "all 0.2s ease",
-
+                transition: "all 0.24s ease",
+                border: "1px solid transparent",
                 ...(isActive
                   ? {
-                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                      bgcolor: alpha(theme.palette.primary.main, 0.12),
                       color: theme.palette.primary.main,
+                      borderColor: alpha(theme.palette.primary.main, 0.22),
+                      boxShadow: `inset 0 0 0 1px ${alpha(theme.palette.primary.main, 0.16)}`,
                     }
                   : {
                       color: theme.palette.text.secondary,
                       "&:hover": {
-                        bgcolor: alpha(theme.palette.action.hover, 0.06),
+                        bgcolor: alpha(theme.palette.primary.main, 0.08),
                         color: theme.palette.primary.main,
-                        transform: "translateX(3px)",
-
-                        "& .sidebar-icon": {
-                            bgcolor: alpha(theme.palette.primary.main, 0.12),
-                            color: theme.palette.primary.main,
-                        },
+                        transform: "translateX(2px)",
                       },
                     }),
               })}
@@ -104,20 +98,18 @@ export default function AdminSidebar() {
               <Box
                 className="sidebar-icon"
                 sx={(theme) => ({
-                  width: 34,
-                  height: 34,
-                  borderRadius: 2,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 3,
                   display: "grid",
                   placeItems: "center",
-                  transition: "all 0.2s ease",
-
+                  transition: "all 0.24s ease",
                   bgcolor: isActive
-                    ? alpha(theme.palette.primary.main, 0.12)
-                    : "transparent",
-
+                    ? alpha(theme.palette.primary.main, 0.18)
+                    : alpha(theme.palette.primary.main, 0.06),
                   color: isActive
                     ? theme.palette.primary.main
-                    : alpha(theme.palette.text.primary, 0.6),
+                    : alpha(theme.palette.text.primary, 0.72),
                 })}
               >
                 <Icon sx={{ fontSize: 18 }} />
@@ -137,25 +129,28 @@ export default function AdminSidebar() {
         })}
       </Stack>
 
-      <Divider sx={{ my: 1.5, opacity: 0.6 }} />
+      <Divider sx={{ my: 2, opacity: 0.35 }} />
 
       {/* 🔹 LOGOUT */}
       <Box
+        onClick={() => {
+          logout();
+          navigate("/login");
+        }}
         sx={(theme) => ({
           display: "flex",
           alignItems: "center",
           gap: 1.5,
           px: 1.5,
-          py: 1.1,
-          borderRadius: 2.5,
+          py: 1.15,
+          borderRadius: 3,
           color: theme.palette.error.main,
           cursor: "pointer",
-
-          transition: "all 0.2s ease",
-
-          "&:hover": {
-            bgcolor: alpha(theme.palette.error.main, 0.08),
-            transform: "translateX(3px)",
+          transition: "all 0.24s ease",
+          bgcolor: alpha(theme.palette.error.main, 0.08),
+          '&:hover': {
+            bgcolor: alpha(theme.palette.error.main, 0.18),
+            transform: "translateX(2px)",
           },
         })}
       >

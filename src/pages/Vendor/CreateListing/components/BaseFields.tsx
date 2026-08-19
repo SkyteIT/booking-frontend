@@ -1,41 +1,23 @@
-// src/pages/Vendor/CreateListing/components/BaseFields.tsx
-import {
-  Box,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Typography,
-  Switch,
-  FormControlLabel,
-  Stack,
-} from "@mui/material";
+import { Box, MenuItem, Switch, TextField, Typography } from "@mui/material";
 import { Controller } from "react-hook-form";
-import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
+import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+import type { CategoryDto } from "../../../../services/Vendor/listingService";
 import type { ListingFormData } from "../../../../utils/types";
 
 interface BaseFieldsProps {
   register: UseFormRegister<ListingFormData>;
   control: Control<ListingFormData>;
   errors: FieldErrors<ListingFormData>;
+  categories: CategoryDto[];
 }
 
-const categories = [
-  "Hotel",
-  "Restaurant",
-  "Activity",
-  "Event",
-  "CarRental",
-] as const;
-
-const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
+export default function BaseFields({ register, control, errors, categories }: BaseFieldsProps) {
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
       <TextField
         fullWidth
-        label="Listing Title"
-        placeholder="e.g., Luxury Beachfront Hotel"
+        label="Title"
+        placeholder="Enter listing title"
         {...register("title", { required: "Title is required" })}
         error={!!errors.title}
         helperText={errors.title?.message}
@@ -44,141 +26,87 @@ const BaseFields = ({ register, control, errors }: BaseFieldsProps) => {
       <TextField
         fullWidth
         label="Location"
-        placeholder="e.g., Miami Beach, FL"
+        placeholder="Enter location"
         {...register("location", { required: "Location is required" })}
         error={!!errors.location}
         helperText={errors.location?.message}
       />
 
-      <Stack direction="row" spacing={3}>
+      <TextField
+        select
+        fullWidth
+        label="Category"
+        disabled={categories.length === 0}
+        helperText={
+          errors.categoryId?.message ??
+          (categories.length === 0
+            ? "No categories exist yet — ask an admin to create one before publishing."
+            : "Determines which detail fields appear below")
+        }
+        error={!!errors.categoryId}
+        {...register("categoryId", { required: "Select a category" })}
+      >
+        {categories.map((cat) => (
+          <MenuItem key={cat.id} value={cat.id}>
+            {cat.name}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      <TextField
+        fullWidth
+        type="number"
+        label="Base Price"
+        placeholder="Enter price"
+        {...register("price", { valueAsNumber: true })}
+        error={!!errors.price}
+        helperText={errors.price?.message}
+      />
+
+      <Box sx={{ gridColumn: "1 / -1" }}>
         <TextField
           fullWidth
-          type="number"
-          label="Base Price (LKR)"
-          placeholder="e.g., 25000"
-          {...register("price", { required: "Price is required" })}
-          error={!!errors.price}
-          helperText={errors.price?.message}
+          multiline
+          minRows={3}
+          label="Description"
+          placeholder="Enter listing description"
+          {...register("description")}
         />
+      </Box>
 
-        <FormControlLabel
-          sx={{ minWidth: 220 }}
-          control={
-            <Controller
-              name="isActive"
-              control={control}
-              defaultValue={true}
-              render={({ field }) => (
-                <Switch
-                  checked={field.value ?? true}
-                  onChange={(e) => field.onChange(e.target.checked)}
-                />
-              )}
-            />
-          }
-          label="Active / Available for Booking"
+      <Box sx={{ gridColumn: "1 / -1" }}>
+        <TextField
+          fullWidth
+          label="Image URLs"
+          placeholder="Paste comma-separated image URLs"
+          {...register("imageUrls")}
         />
-      </Stack>
+      </Box>
 
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="Description"
-        placeholder="Provide a detailed description of your listing..."
-        {...register("description", { required: "Description is required" })}
-        error={!!errors.description}
-        helperText={errors.description?.message}
-      />
+      <Box sx={{ gridColumn: "1 / -1" }}>
+        <TextField
+          fullWidth
+          label="Tags"
+          placeholder="Comma-separated tags"
+          {...register("tagsInput")}
+        />
+      </Box>
 
-      <TextField
-        fullWidth
-        label="Tags (comma separated)"
-        placeholder="e.g., luxury, city, business"
-        {...register("tagsInput")}
-      />
-
-      <TextField
-        fullWidth
-        label="Cancellation Policy"
-        placeholder="e.g., Free cancellation within 24 hours"
-        {...register("cancellationPolicy")}
-      />
-
-      <FormControl fullWidth error={!!errors.category}>
-        <InputLabel id="category-label">Category</InputLabel>
+      <Box sx={{ gridColumn: "1 / -1" }}>
+        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+          Listing Status
+        </Typography>
         <Controller
-          name="category"
+          name="isActive"
           control={control}
-          rules={{ required: "Category is required" }}
           render={({ field }) => (
-            <Select labelId="category-label" label="Category" {...field}>
-              {categories.map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  {cat}
-                </MenuItem>
-              ))}
-            </Select>
+            <Switch
+              checked={Boolean(field.value)}
+              onChange={(event) => field.onChange(event.target.checked)}
+            />
           )}
         />
-        {errors.category?.message && (
-          <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
-            {errors.category.message}
-          </Typography>
-        )}
-      </FormControl>
-
-      <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-          Listing Images
-        </Typography>
-
-        <Box
-          sx={{
-            border: "2px dashed",
-            borderColor: "divider",
-            borderRadius: "12px",
-            p: 4,
-            textAlign: "center",
-            cursor: "pointer",
-            mb: 2,
-            "&:hover": {
-              borderColor: "primary.main",
-              backgroundColor: "action.hover",
-            },
-          }}
-          onClick={() => document.getElementById("image-upload")?.click()}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Click or drag images to upload (0/10)
-          </Typography>
-
-          <input
-            id="image-upload"
-            type="file"
-            multiple
-            hidden
-            accept="image/*"
-            {...register("images")}
-          />
-        </Box>
-
-        <TextField
-          fullWidth
-          label="Image URLs (comma separated)"
-          placeholder="e.g., https://example.com/image1.jpg, https://example.com/image2.jpg"
-          {...register("imageUrls")}
-          helperText="Or paste direct image links here"
-        />
-
-        {errors.images && (
-          <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
-            {errors.images.message}
-          </Typography>
-        )}
       </Box>
     </Box>
   );
-};
-
-export default BaseFields;
+}

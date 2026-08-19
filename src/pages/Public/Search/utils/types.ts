@@ -1,6 +1,12 @@
 // Feature-level types shared across search hook, utils, data, and components.
 export type ListingCategory = string;
 
+export interface ApiCategory {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
 export interface Listing {
   id: string;
   title: string;

@@ -1,5 +1,6 @@
 // src/pages/Vendor/Listings/VendorListings.tsx
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -19,14 +20,20 @@ import {
   Select,
   MenuItem,
   IconButton,
+  Menu,
   Chip,
   Stack,
   CircularProgress,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getVendorListings } from "../../../services/Vendor/listingService";
+import { getVendorListings, deleteListing } from "../../../services/Vendor/listingService";
 import type { ListingResponse } from "../../../services/Vendor/listingService";
 
 const VendorListings = () => {
@@ -35,6 +42,11 @@ const VendorListings = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [menuListing, setMenuListing] = useState<ListingResponse | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -53,6 +65,34 @@ const VendorListings = () => {
 
     fetchListings();
   }, []);
+
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, listing: ListingResponse) => {
+    setMenuAnchor(e.currentTarget);
+    setMenuListing(listing);
+  };
+
+  const handleMenuClose = () => setMenuAnchor(null);
+
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+    setMenuAnchor(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!menuListing) return;
+    setDeleting(true);
+    try {
+      await deleteListing(menuListing.id);
+      setListings((prev) => prev.filter((l) => l.id !== menuListing.id));
+      setDeleteOpen(false);
+    } catch (err) {
+      console.error("Error deleting listing:", err);
+      setError("Failed to delete listing. Please try again later.");
+      setDeleteOpen(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filteredListings = listings.filter((listing) => {
     const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -275,6 +315,7 @@ const VendorListings = () => {
                       Edit
                     </Button>
                     <IconButton
+                      onClick={(e) => handleMenuOpen(e, listing)}
                       sx={{
                         border: "1px solid #E2E8F0",
                         borderRadius: "10px",
@@ -290,6 +331,35 @@ const VendorListings = () => {
           ))}
         </Grid>
       )}
+
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
+        <MenuItem onClick={handleDeleteOpen} sx={{ color: "#DC2626" }}>
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+        <DialogTitle>Delete Listing</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete <strong>{menuListing?.title}</strong>? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteOpen(false)} sx={{ textTransform: "none" }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={deleting}
+            onClick={handleDeleteConfirm}
+            sx={{ textTransform: "none", bgcolor: "#DC2626", "&:hover": { bgcolor: "#B91C1C" } }}
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

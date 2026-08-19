@@ -17,7 +17,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../../context/useAuth";
-import { addToCart } from "../../../../../services/cartService";
+import { useCart } from "../../../../../components/cart/app/contexts/CartContext";
 import type { Listing } from "../../../Search/utils/types";
 
 interface PriceCardProps {
@@ -27,6 +27,7 @@ interface PriceCardProps {
 const PriceCard = ({ listing }: PriceCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
@@ -42,12 +43,33 @@ const PriceCard = ({ listing }: PriceCardProps) => {
     setStatus("loading");
     setErrorMessage("");
     try {
-      await addToCart(listing.id, guests);
+      if (!checkIn || !checkOut) {
+        throw new Error("Please select a check-in and check-out date.");
+      }
+      if (new Date(checkOut) <= new Date(checkIn)) {
+        throw new Error("Check-out must be after check-in.");
+      }
+      addToCart(
+        {
+          id: listing.id,
+          name: listing.title,
+          category: listing.category,
+          price: listing.price,
+          image: listing.image,
+          description: listing.description ?? "",
+          priceUnit: listing.priceUnit ?? "per day",
+          location: listing.location,
+        },
+        guests,
+        checkIn,
+        checkOut,
+        guests,
+      );
       setStatus("success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
       setStatus("error");
-      setErrorMessage("Couldn't add this to your cart. Please try again.");
+      setErrorMessage(err instanceof Error ? err.message : "Couldn't add this to your cart. Please try again.");
     }
   };
 

@@ -45,32 +45,27 @@ export const CartPage: React.FC = () => {
     return diffDays || 1;
   };
 
-  const canIncreaseQuantity = (category: string) => {
-    return category !== 'hotel' && category !== 'car';
-  };
-
+  // Same gap as CartContext's canBookMultiple: no "allows multiple" flag
+  // exists on the real admin-managed Category yet, so this still matches
+  // literal names. See .claude/BACKEND-TODO-cart.md.
   const subtotal = getCartTotal();
   const tax = subtotal * 0.1;
   const serviceFee = 25;
   const total = subtotal + tax + serviceFee;
 
-  const categories = ['All', 'Hotels', 'Cars', 'Activities', 'Transfers', 'Restaurants', 'Events'];
-  
-const getFilteredCart = () => {
-  if (activeTab === 0) return cart; // "All" tab
-  const categoryMap: Record<number, string> = {
-    1: 'hotel',
-    2: 'car',
-    3: 'activity',
-    4: 'transfer',
-    5: 'restaurant',
-    6: 'event',
-  };
-  const selectedCategory = categoryMap[activeTab];
-  return cart.filter(item => item.category === selectedCategory);
-};
+  // Tabs are derived from whatever real categories are actually in the
+  // cart (item.category now comes straight from the admin-managed category
+  // list, see CartContext's BookingItem) instead of a fixed hardcoded set.
+  const cartCategories = Array.from(new Set(cart.map((item) => item.category)));
+  const categories = ['All', ...cartCategories];
 
-const filteredCart = getFilteredCart();
+  const getFilteredCart = () => {
+    if (activeTab === 0) return cart; // "All" tab
+    const selectedCategory = cartCategories[activeTab - 1];
+    return cart.filter((item) => item.category === selectedCategory);
+  };
+
+  const filteredCart = getFilteredCart();
 
 
 
@@ -137,9 +132,9 @@ const filteredCart = getFilteredCart();
           {/* Cart Items */}
           <Box sx={{ flex: 1 }}>
             
-            {filteredCart.map((item, index) => (
+            {filteredCart.map((item) => (
               <Paper
-                key={index}
+                key={item.backendId ?? `${item.id}:${item.startDate}:${item.endDate}`}
                 sx={{
                   p: 3,
                   pr:6,
@@ -151,7 +146,7 @@ const filteredCart = getFilteredCart();
                 }}
               >
                 <IconButton
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => removeFromCart(item.backendId ?? `${item.id}:${item.startDate}:${item.endDate}`)}
                   sx={{
                     position: 'absolute',
                     top: 18,
@@ -196,44 +191,51 @@ const filteredCart = getFilteredCart();
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                       {item.location}
                     </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {item.guestCount ?? 1} guest{(item.guestCount ?? 1) === 1 ? '' : 's'}
+                    </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                       📅 {formatDate(item.startDate)} - {formatDate(item.endDate)} (
                       {calculateDays(item.startDate, item.endDate)} nights)
                     </Typography>
                   </Box>
 
-                  {/* Quantity & Price */}
+                  {/* Quantity, guests, and price */}
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                    {canIncreaseQuantity(item.category) ? (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          border: '1px solid #E2E8F0',
-                          borderRadius: 1,
-                        }}
-                      >
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" color="text.secondary">Quantity</Typography>
                         <IconButton
                           size="small"
-                          onClick={() => updateCartItem(item.id, Math.max(1, item.quantity - 1), item.startDate, item.endDate)}
-                          sx={{ color: '#64748B' }}
+                          onClick={() => updateCartItem(item.backendId ?? `${item.id}:${item.startDate}:${item.endDate}`, Math.max(1, item.quantity - 1), item.startDate, item.endDate, item.guestCount ?? 1)}
                         >
                           <Remove fontSize="small" />
                         </IconButton>
-                        <Typography sx={{ px: 2, minWidth: 30, textAlign: 'center' }}>
-                          {item.quantity}
-                        </Typography>
+                        <Typography sx={{ minWidth: 24, textAlign: 'center' }}>{item.quantity}</Typography>
                         <IconButton
                           size="small"
-                          onClick={() => updateCartItem(item.id, item.quantity + 1, item.startDate, item.endDate)}
-                          sx={{ color: '#64748B' }}
+                          onClick={() => updateCartItem(item.backendId ?? `${item.id}:${item.startDate}:${item.endDate}`, item.quantity + 1, item.startDate, item.endDate, item.guestCount ?? 1)}
                         >
                           <Add fontSize="small" />
                         </IconButton>
                       </Box>
-                    ) : (
-                      <Box sx={{ height: 36 }} />
-                    )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" color="text.secondary">Guests</Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => updateCartItem(item.backendId ?? `${item.id}:${item.startDate}:${item.endDate}`, item.quantity, item.startDate, item.endDate, Math.max(1, (item.guestCount ?? 1) - 1))}
+                        >
+                          <Remove fontSize="small" />
+                        </IconButton>
+                        <Typography sx={{ minWidth: 24, textAlign: 'center' }}>{item.guestCount ?? 1}</Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => updateCartItem(item.backendId ?? `${item.id}:${item.startDate}:${item.endDate}`, item.quantity, item.startDate, item.endDate, (item.guestCount ?? 1) + 1)}
+                        >
+                          <Add fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Box>
 
                     <Typography variant="h5" sx={{ fontWeight: 700, color: '#0891B2' }}>
                       ${item.totalPrice}

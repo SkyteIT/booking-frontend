@@ -26,14 +26,13 @@ const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          
+         
         }}
       >
         <Outlet />
       </Box>
 
-      {/* Footer */}
-      <MainFooter />
+       <MainFooter />
     </Box>
   );
 };
