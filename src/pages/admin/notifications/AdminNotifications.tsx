@@ -231,10 +231,15 @@ export default function AdminNotifications() {
                 <NotificationsActiveOutlinedIcon />
               </Avatar>
               <Box>
-                <Typography variant="h4" fontWeight={900} lineHeight={1.05}>
+                <Typography
+                  variant="h4"
+                  fontWeight={800}
+                  lineHeight={1.05}
+                  sx={{ letterSpacing: "-0.5px", color: "#0F172A" }}
+                >
                   Admin command inbox
                 </Typography>
-                <Typography sx={{ mt: 0.75, maxWidth: 780, color: "text.secondary" }}>
+                <Typography sx={{ mt: 0.75, maxWidth: 780, color: "#64748B", fontSize: 14 }}>
                   Monitor onboarding, moderation, operations, and safety events from a single queue.
                 </Typography>
               </Box>
@@ -411,11 +416,32 @@ export default function AdminNotifications() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search notifications"
                   size="small"
-                  sx={{ width: { xs: "100%", md: 300 } }}
+                  sx={{
+                    width: { xs: "100%", md: 300 },
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#E8F1FF",
+                      borderRadius: 999,
+                      transition: "all 0.18s ease",
+                      "& fieldset": {
+                        borderColor: "rgba(37,99,235,0.22)",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "rgba(37,99,235,0.36)",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#2563EB",
+                        borderWidth: 1,
+                      },
+                    },
+                    "& .MuiInputBase-input": {
+                      fontWeight: 600,
+                      color: "#1E3A8A",
+                    },
+                  }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchOutlinedIcon fontSize="small" />
+                        <SearchOutlinedIcon fontSize="small" sx={{ color: "#3B82F6" }} />
                       </InputAdornment>
                     ),
                   }}

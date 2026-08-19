@@ -44,6 +44,13 @@ export default function VendorDetailsDialog({
   onReject,
 }: Props) {
   const status = String(vendor?.status ?? "").toLowerCase();
+  const isReviewable =
+    status.includes("pending") ||
+    status.includes("submitted") ||
+    status.includes("review");
+  const statusLabel = isReviewable
+    ? "Pending review"
+    : vendor?.status ?? "";
 
   const fieldRow = (label: string, value: React.ReactNode) => (
     <Box
@@ -121,7 +128,7 @@ export default function VendorDetailsDialog({
               </Box>
 
               <Chip
-                label={vendor.status}
+                label={statusLabel}
                 size="small"
                 sx={{
                   fontWeight: 600,
@@ -245,7 +252,7 @@ export default function VendorDetailsDialog({
           borderTop: "1px solid rgba(0,0,0,0.04)",
         }}
       >
-        {vendor?.status === "Pending" && !rejectMode && (
+        {isReviewable && !rejectMode && (
           <>
             <Button
               variant="contained"

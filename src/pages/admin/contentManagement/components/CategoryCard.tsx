@@ -9,14 +9,6 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import HotelIcon from "@mui/icons-material/Hotel";
-import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import LocalActivityIcon from "@mui/icons-material/LocalActivity";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
-import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
-import FlightIcon from "@mui/icons-material/Flight";
-import BeachAccessIcon from "@mui/icons-material/BeachAccess";
-import CategoryIcon from "@mui/icons-material/Category";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
 import type { Category } from "../types/contentType";
@@ -30,38 +22,45 @@ interface IconConfig {
 
 const CATEGORY_ICON_MAP: Record<string, IconConfig> = {
   hotels: {
-    icon: <HotelIcon sx={{ fontSize: 26 }} />,
-    color: "#1565C0", bg: "#E3F2FD",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏨</span>,
+    color: "#1565C0",
+    bg: "#E3F2FD",
     gradient: "linear-gradient(135deg,#1565C0,#1976D2)",
   },
   "car rentals": {
-    icon: <DirectionsCarIcon sx={{ fontSize: 26 }} />,
-    color: "#6A1B9A", bg: "#F3E5F5",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🚗</span>,
+    color: "#6A1B9A",
+    bg: "#F3E5F5",
     gradient: "linear-gradient(135deg,#6A1B9A,#8E24AA)",
   },
   activities: {
-    icon: <LocalActivityIcon sx={{ fontSize: 26 }} />,
-    color: "#2E7D32", bg: "#E8F5E9",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🎫</span>,
+    color: "#2E7D32",
+    bg: "#E8F5E9",
     gradient: "linear-gradient(135deg,#2E7D32,#388E3C)",
   },
   restaurants: {
-    icon: <RestaurantIcon sx={{ fontSize: 26 }} />,
-    color: "#E65100", bg: "#FFF3E0",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🍽️</span>,
+    color: "#E65100",
+    bg: "#FFF3E0",
     gradient: "linear-gradient(135deg,#E65100,#F57C00)",
   },
   "event tickets": {
-    icon: <ConfirmationNumberIcon sx={{ fontSize: 26 }} />,
-    color: "#C62828", bg: "#FFEBEE",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🎟️</span>,
+    color: "#C62828",
+    bg: "#FFEBEE",
     gradient: "linear-gradient(135deg,#C62828,#E53935)",
   },
   flights: {
-    icon: <FlightIcon sx={{ fontSize: 26 }} />,
-    color: "#00838F", bg: "#E0F7FA",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>✈️</span>,
+    color: "#00838F",
+    bg: "#E0F7FA",
     gradient: "linear-gradient(135deg,#00838F,#00ACC1)",
   },
   tours: {
-    icon: <BeachAccessIcon sx={{ fontSize: 26 }} />,
-    color: "#F9A825", bg: "#FFFDE7",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏖️</span>,
+    color: "#F9A825",
+    bg: "#FFFDE7",
     gradient: "linear-gradient(135deg,#F9A825,#FBC02D)",
   },
 };
@@ -69,7 +68,7 @@ const CATEGORY_ICON_MAP: Record<string, IconConfig> = {
 function getCategoryIcon(name: string): IconConfig {
   return (
     CATEGORY_ICON_MAP[name.toLowerCase()] ?? {
-      icon: <CategoryIcon sx={{ fontSize: 26 }} />,
+      icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏷️</span>,
       color: "#546E7A",
       bg: "#ECEFF1",
       gradient: "linear-gradient(135deg,#546E7A,#607D8B)",
@@ -85,24 +84,6 @@ interface Props {
   onEdit: (id: string) => void;
 }
 
-function isImageUrl(value: string) {
-  return /^https?:\/\//i.test(value) || value.startsWith("data:");
-}
-
-function renderCategoryIcon(category: Category, fallback: IconConfig) {
-  const value = category.icon?.trim();
-
-  if (value) {
-    if (isImageUrl(value)) {
-      return <img src={value} alt={category.name} style={{ width: 28, height: 28, objectFit: "contain" }} />;
-    }
-
-    return <Typography fontSize={26} lineHeight={1}>{value}</Typography>;
-  }
-
-  return fallback.icon;
-}
-
 export default function CategoryCard({
   category,
   viewMode = "grid",
@@ -112,7 +93,7 @@ export default function CategoryCard({
 }: Props) {
   const fallbackIcon = getCategoryIcon(category.name);
   const { color, gradient } = fallbackIcon;
-  const icon = renderCategoryIcon(category, fallbackIcon);
+  const icon = category.icon?.trim() ? <Typography fontSize={26} lineHeight={1}>{category.icon}</Typography> : fallbackIcon.icon;
   const iconTileSx = {
     position: "relative",
     overflow: "hidden",

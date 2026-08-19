@@ -1,18 +1,10 @@
-// src/pages/admin/contentManagement/components/AddCategory.tsx
-import { useMemo, useState } from "react";
+﻿// src/pages/admin/contentManagement/components/AddCategory.tsx
+import { useState } from "react";
 import {
   Box, Typography, TextField, Button, Paper, Switch,
-  FormControlLabel, MenuItem, IconButton, Chip, InputAdornment,
+  FormControlLabel, MenuItem, IconButton, Chip, InputAdornment, ListSubheader,
 } from "@mui/material";
-import CategoryIcon from "@mui/icons-material/Category";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
-import SettingsIcon from "@mui/icons-material/Settings";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import ImageIcon from "@mui/icons-material/Image";
-import LockIcon from "@mui/icons-material/Lock";
-import ExtensionIcon from "@mui/icons-material/Extension";
 import SaveIcon from "@mui/icons-material/Save";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -20,9 +12,9 @@ import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
 import type { ListingType } from "../../../../services/Vendor/listingService";
 import { createCategory } from "../services/contentService";
-import { filterEmojiOptions } from "../utils/emojiOptions";
+import { EMOJI_GROUPS } from "../utils/emojiOptions";
 
-// ─── Types ───────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Types Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 interface CustomField {
   id: number;
   type: string;
@@ -34,7 +26,7 @@ const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental
 const BOOKING_TYPES = ["Instant Confirmation", "Request to Confirm"];
 const SERVICE_MODELS = ["Per Night", "Per Hour", "Per Person", "Per Day", "Fixed Price"];
 const FIELD_TYPES    = ["Text", "Number", "Date", "Dropdown", "Checkbox", "File Upload"];
-// Backend only accepts "Active"/"Inactive" (CreateCategoryDtoValidator) — no "Draft".
+// Backend only accepts "Active"/"Inactive" (CreateCategoryDtoValidator) Ã¢â‚¬â€ no "Draft".
 const STATUS_OPTIONS = ["Active", "Inactive"];
 
 const cardStyle = {
@@ -44,11 +36,11 @@ const cardStyle = {
 
 let fieldIdCounter = 1;
 
-// ─── Main Component ───────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Main Component Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export default function AddCategory() {
   const navigate = useNavigate();
 
-  // ── Form state ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Form state Ã¢â€â‚¬Ã¢â€â‚¬
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -62,6 +54,7 @@ export default function AddCategory() {
     platformFee: "",
     taxApplicable: false,
     icon: "",
+    bannerImageUrl: "",
     displayOrder: "1",
     featuredCategory: false,
     requiresApproval: false,
@@ -74,10 +67,7 @@ export default function AddCategory() {
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [emojiSearch, setEmojiSearch] = useState("");
-  const filteredEmojiOptions = useMemo(() => filterEmojiOptions(emojiSearch), [emojiSearch]);
-
-  // ── Handlers ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Handlers Ã¢â€â‚¬Ã¢â€â‚¬
   const set = (field: string, value: string | boolean) => {
     setForm((p) => ({ ...p, [field]: value }));
     setErrors((p) => ({ ...p, [field]: "" }));
@@ -86,9 +76,24 @@ export default function AddCategory() {
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setBannerPreview(null);
+      setBannerName(null);
+      setForm((prev) => ({ ...prev, bannerImageUrl: "" }));
+      setErrors((prev) => ({
+        ...prev,
+        bannerImageUrl: "Banner image must be 10 MB or smaller",
+      }));
+      return;
+    }
     setBannerName(file.name);
     const reader = new FileReader();
-    reader.onload = (ev) => setBannerPreview(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setBannerPreview(result);
+      setForm((prev) => ({ ...prev, bannerImageUrl: result }));
+      setErrors((prev) => ({ ...prev, bannerImageUrl: "" }));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -112,10 +117,17 @@ export default function AddCategory() {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Category name is required";
     if (!form.type) e.type = "Select a listing type";
-    if (!form.bookingType)  e.bookingType = "Select a booking type";
+    if (!form.bookingType) e.bookingType = "Select a booking type";
     if (!form.serviceModel) e.serviceModel = "Select a service model";
-    if (Number(form.commission) < 0 || Number(form.commission) > 100)
-      e.commission = "Must be 0–100%";
+    const commission = Number(form.commission);
+    if (!Number.isFinite(commission) || commission < 0 || commission > 100)
+      e.commission = "Must be 0-100%";
+    const displayOrder = Number(form.displayOrder);
+    if (!Number.isInteger(displayOrder) || displayOrder < 1)
+      e.displayOrder = "Display order must be a positive whole number";
+    const platformFee = Number(form.platformFee);
+    if (form.platformFee && (!Number.isFinite(platformFee) || platformFee < 0))
+      e.platformFee = "Platform service fee must be 0 or greater";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -137,6 +149,7 @@ export default function AddCategory() {
         platformServiceFee: form.platformFee ? Number(form.platformFee) : undefined,
         taxApplicable: form.taxApplicable,
         icon: form.icon || undefined,
+        bannerImageUrl: form.bannerImageUrl || undefined,
         displayOrder: Number(form.displayOrder) || 1,
         isFeatured: form.featuredCategory,
         requiresAdminApproval: form.requiresApproval,
@@ -160,7 +173,7 @@ export default function AddCategory() {
   return (
     <Box sx={{ p: 3, bgcolor: "#f4f6f8", minHeight: "100vh" }}>
 
-      {/* ── HEADER ── */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ HEADER Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleCancel} size="small">
@@ -187,17 +200,17 @@ export default function AddCategory() {
         </Box>
       </Box>
 
-      {/* ── TWO-COLUMN GRID ── */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ TWO-COLUMN GRID Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <Box sx={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 2, alignItems: "start" }}>
 
-        {/* ════ LEFT COLUMN ════ */}
+        {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â LEFT COLUMN Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
         <Box display="flex" flexDirection="column" gap={2}>
 
           {/* 1. Basic Information */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+                <Typography fontSize={18}>🖼️</Typography>
               </Box>
               <Typography fontWeight={600}>1. Basic Information</Typography>
             </Box>
@@ -218,7 +231,7 @@ export default function AddCategory() {
               value={form.type}
               onChange={(e) => set("type", e.target.value)}
               error={!!errors.type}
-              helperText={errors.type || "Which kind of listing can be created under this category"}
+              helperText={errors.type}
               sx={{ mb: 2 }}
             >
               {LISTING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
@@ -236,7 +249,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <SettingsIcon sx={{ fontSize: 18, color: "#2E7D32" }} />
+                <Typography fontSize={18}>📍</Typography>
               </Box>
               <Typography fontWeight={600}>2. Category Configuration</Typography>
             </Box>
@@ -298,7 +311,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <AttachMoneyIcon sx={{ fontSize: 18, color: "#EF6C00" }} />
+                <Typography fontSize={18}>🖼️</Typography>
               </Box>
               <Typography fontWeight={600}>3. Pricing & Commission Settings</Typography>
             </Box>
@@ -333,7 +346,7 @@ export default function AddCategory() {
                   onChange={(e) => set("taxApplicable", e.target.checked)}
                 />
               }
-              label="Tax Applicable? — Enable tax calculation for this category"
+              label="Tax Applicable?"
             />
           </Paper>
 
@@ -341,77 +354,115 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <ImageIcon sx={{ fontSize: 18, color: "#C2185B" }} />
+                <Typography fontSize={18}>🔗</Typography>
               </Box>
               <Typography fontWeight={600}>4. Media & Display Settings</Typography>
             </Box>
 
-            <Box display="flex" alignItems="center" gap={1} mb={1}>
-              <TextField
-                size="small"
-                fullWidth
-                value={emojiSearch}
-                onChange={(e) => setEmojiSearch(e.target.value)}
-                placeholder="Search emoji or keyword"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ fontSize: 18, color: "#94A3B8" }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: emojiSearch ? (
-                    <InputAdornment position="end">
-                      <IconButton size="small" onClick={() => setEmojiSearch("")}>
-                        <ClearIcon fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : undefined,
-                }}
-                sx={{ maxWidth: 320 }}
-              />
-              <Typography fontSize={13} color="text.secondary">
-                Choose a category emoji
-              </Typography>
-            </Box>
+            <TextField
+              select
+              fullWidth
+              label="Category Emoji"
+              value={form.icon}
+              onChange={(e) => set("icon", e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              SelectProps={{
+                displayEmpty: true,
+                MenuProps: {
+                  MenuListProps: {
+                    sx: {
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                      gap: 0.5,
+                      px: 0.75,
+                      py: 0.75,
+                      alignItems: "stretch",
+                    },
+                  },
+                },
+                renderValue: (selected) => {
+                  if (!selected) {
+                    return <Typography color="text.secondary">Choose an emoji</Typography>;
+                  }
 
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(8, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
-              {filteredEmojiOptions.map((option) => {
-                const selected = form.icon === option.emoji;
-                return (
-                  <Box
+                  const emoji = String(selected);
+                  return (
+                    <Box display="flex" alignItems="center" gap={0.75}>
+                      <Typography fontSize={18} lineHeight={1}>
+                        {emoji}
+                      </Typography>
+                      <Typography fontSize={12} fontWeight={600}>
+                        Selected emoji
+                      </Typography>
+                    </Box>
+                  );
+                },
+              }}
+              sx={{ mb: 2 }}
+            >
+              <MenuItem
+                value=""
+                sx={{
+                  gridColumn: "1 / span 1",
+                  width: "100%",
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  py: 0.5,
+                  px: 0.5,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Typography fontSize={10} fontWeight={600}>
+                  Clear
+                </Typography>
+              </MenuItem>
+              {EMOJI_GROUPS.map((group) => [
+                <ListSubheader
+                  key={group.key}
+                  sx={{
+                    lineHeight: "28px",
+                    bgcolor: "#f8fafc",
+                    gridColumn: "1 / -1",
+                  }}
+                >
+                  {group.title}
+                </ListSubheader>,
+                ...group.options.map((option) => (
+                  <MenuItem
                     key={option.emoji}
-                    onClick={() => set("icon", option.emoji)}
-                    title={`${option.label} ${option.keywords.join(", ")}`}
+                    value={option.emoji}
                     sx={{
-                      height: 42,
-                      borderRadius: "12px",
-                      border: selected ? "2px solid #6366F1" : "1px solid #E2E8F0",
-                      bgcolor: selected ? "#EEF2FF" : "#fff",
+                      width: "100%",
+                      minWidth: 0,
                       display: "flex",
+                      flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      cursor: "pointer",
-                      transition: "transform .15s ease, border-color .15s ease, background .15s ease",
-                      "&:hover": {
-                        borderColor: "#6366F1",
-                        bgcolor: "#EEF2FF",
-                        transform: "translateY(-1px)",
-                      },
+                      gap: 0.15,
+                      py: 0.75,
+                      px: 0.5,
+                      textAlign: "center",
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      bgcolor: "background.paper",
                     }}
                   >
-                    <Typography fontSize={22} lineHeight={1}>
+                    <Typography fontSize={16} lineHeight={1}>
                       {option.emoji}
                     </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-
-            {filteredEmojiOptions.length === 0 ? (
-              <Typography fontSize={13} color="text.secondary" sx={{ mt: -0.5, mb: 2 }}>
-                No emoji found for "{emojiSearch}".
-              </Typography>
-            ) : null}
+                    <Typography fontSize={10} fontWeight={600} lineHeight={1}>
+                      {option.label}
+                    </Typography>
+                  </MenuItem>
+                )),
+              ])}
+            </TextField>
 
             {form.icon && (
               <Box
@@ -434,7 +485,6 @@ export default function AddCategory() {
                     width: 44,
                     height: 44,
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg,#6366F1,#4F46E5)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -487,9 +537,19 @@ export default function AddCategory() {
               <Box mb={2}>
                 <Chip
                   label={bannerName} size="small"
-                  onDelete={() => { setBannerPreview(null); setBannerName(null); }}
+                  onDelete={() => {
+                    setBannerPreview(null);
+                    setBannerName(null);
+                    setForm((prev) => ({ ...prev, bannerImageUrl: "" }));
+                    setErrors((prev) => ({ ...prev, bannerImageUrl: "" }));
+                  }}
                 />
               </Box>
+            )}
+            {errors.bannerImageUrl && (
+              <Typography fontSize={12} color="error" sx={{ mb: 1 }}>
+                {errors.bannerImageUrl}
+              </Typography>
             )}
 
             <Box display="flex" gap={2} alignItems="center">
@@ -499,6 +559,8 @@ export default function AddCategory() {
                 sx={{ width: 180 }}
                 value={form.displayOrder}
                 onChange={(e) => set("displayOrder", e.target.value)}
+                error={!!errors.displayOrder}
+                helperText={errors.displayOrder}
                 inputProps={{ min: 1 }}
               />
               <FormControlLabel
@@ -517,7 +579,7 @@ export default function AddCategory() {
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={1}>
               <Box sx={{ bgcolor: "#fdecea", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <LockIcon sx={{ fontSize: 18, color: "#B91C1C" }} />
+                <Typography fontSize={18}>💡</Typography>
               </Box>
               <Typography fontWeight={600}>5. Listing Control</Typography>
             </Box>
@@ -541,7 +603,7 @@ export default function AddCategory() {
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Box display="flex" alignItems="center" gap={1}>
                 <Box sx={{ bgcolor: "#ede7f6", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                  <ExtensionIcon sx={{ fontSize: 18, color: "#673AB7" }} />
+                  <Typography fontSize={18}>🖼️</Typography>
                 </Box>
                 <Typography fontWeight={600}>7. Custom Fields Builder</Typography>
               </Box>
@@ -564,7 +626,7 @@ export default function AddCategory() {
                 }}
               >
                 <Typography fontSize={13}>
-                  No custom fields yet — click "Add Field" to create one
+                  No custom fields yet click "Add Field" to create one
                 </Typography>
               </Box>
             ) : (
@@ -619,14 +681,14 @@ export default function AddCategory() {
           </Paper>
         </Box>
 
-        {/* ════ RIGHT COLUMN ════ */}
+        {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â RIGHT COLUMN Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
         <Box display="flex" flexDirection="column" gap={2}>
 
           {/* 6. Status & Controls */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <SettingsIcon sx={{ fontSize: 18, color: "#2E7D32" }} />
+                <Typography fontSize={18}>📍</Typography>
               </Box>
               <Typography fontWeight={600}>6. Status & Controls</Typography>
             </Box>
@@ -683,7 +745,9 @@ export default function AddCategory() {
                   fontSize: 28, mb: 1.5,
                 }}
               >
-                {form.icon}
+                <Typography fontSize={24} lineHeight={1}>
+                  {form.icon}
+                </Typography>
               </Box>
             )}
 
@@ -728,17 +792,33 @@ export default function AddCategory() {
 
           {/* Tips */}
           <Paper sx={{ ...cardStyle, bgcolor: "#fff8e1", border: "1px solid #ffe082" }}>
-            <Typography fontWeight={600} mb={1} fontSize={14}>Tips</Typography>
-            <Typography fontSize={12} color="text.secondary" lineHeight={1.8}>
-              • Use clear, recognizable emoji<br />
-              • "Instant Confirmation" is best for fixed-availability services<br />
-              • Enable Availability Calendar for accommodation and rentals<br />
-              • Custom fields help vendors provide category-specific info<br />
-              • Re-adding a deleted category automatically restores its previous listings
-            </Typography>
+            <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <Box sx={{ bgcolor: "#fff1b8", borderRadius: "50%", p: 0.75, display: "flex" }}>
+                <Typography fontSize={18}>💡</Typography>
+              </Box>
+              <Typography fontWeight={600} fontSize={14}>Tips</Typography>
+            </Box>
+            <Box
+              component="ul"
+              sx={{
+                m: 0,
+                pl: 2.25,
+                color: "text.secondary",
+                fontSize: 12,
+                lineHeight: 1.8,
+              }}
+            >
+              <Box component="li">Use clear, recognizable emoji</Box>
+              <Box component="li">Instant Confirmation works best for fixed-availability services</Box>
+              <Box component="li">Enable Availability Calendar for accommodation and rentals</Box>
+              <Box component="li">Custom fields help vendors provide category-specific info</Box>
+              <Box component="li">Re-adding a deleted category restores its previous listings</Box>
+            </Box>
           </Paper>
         </Box>
       </Box>
     </Box>
   );
 }
+
+

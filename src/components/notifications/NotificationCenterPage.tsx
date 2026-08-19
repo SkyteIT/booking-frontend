@@ -345,10 +345,15 @@ export default function NotificationCenterPage({
                 <NotificationsNoneOutlinedIcon />
               </Avatar>
               <Box>
-                <Typography variant={compactHero ? "h5" : "h4"} fontWeight={800} lineHeight={1.1}>
+                <Typography
+                  variant={compactHero ? "h5" : "h4"}
+                  fontWeight={800}
+                  lineHeight={1.1}
+                  sx={{ letterSpacing: "-0.5px" }}
+                >
                   {config.title}
                 </Typography>
-                <Typography sx={{ opacity: 0.86, mt: 0.5, maxWidth: 760 }}>
+                <Typography sx={{ opacity: 0.86, mt: 0.5, maxWidth: 760, fontSize: 14, lineHeight: 1.6 }}>
                   {subtitle}
                 </Typography>
               </Box>

@@ -38,6 +38,21 @@ export function useVendorManagement() {
   const selectedStatusLabel =
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
 
+  const normalizeVendorStatus = (value: unknown) => {
+    const status = String(value ?? "").trim().toLowerCase();
+
+    if (status.includes("approve")) return "approved";
+    if (status.includes("reject")) return "rejected";
+    if (status.includes("pending") || status.includes("submit") || status.includes("review")) return "pending";
+
+    return status;
+  };
+
+  const normalizeVendorApplication = (vendor: VendorApplication): VendorApplication => ({
+    ...vendor,
+    status: normalizeVendorStatus(vendor.status),
+  });
+
   const getVendorId = (vendor: VendorApplication | null) =>
     vendor?.id ?? vendor?.applicationId ?? vendor?.vendorApplicationId ?? "";
 
@@ -62,12 +77,14 @@ export function useVendorManagement() {
         if (cancelled) return;
 
         if (Array.isArray(data)) {
-          setVendors(data);
-          setTotalCount(data.length);
+          const normalizedItems = data.map(normalizeVendorApplication);
+          setVendors(normalizedItems);
+          setTotalCount(normalizedItems.length);
         } else {
           const items = (data.items ?? data.data ?? data.results ?? []) as VendorApplication[];
-          setVendors(items);
-          setTotalCount(Number(data.totalCount ?? data.count ?? items.length ?? 0));
+          const normalizedItems = items.map(normalizeVendorApplication);
+          setVendors(normalizedItems);
+          setTotalCount(Number(data.totalCount ?? data.count ?? normalizedItems.length ?? 0));
         }
       } catch (error) {
         console.error("Error fetching vendor applications:", error);
@@ -100,7 +117,7 @@ export function useVendorManagement() {
     try {
       setLoadingDetails(true);
       const data = await getVendorApplicationById(id);
-      setSelectedVendor(data);
+      setSelectedVendor(normalizeVendorApplication(data));
     } catch (err) {
       console.error("Failed to fetch vendor details", err);
     } finally {
@@ -130,7 +147,7 @@ export function useVendorManagement() {
 
       setVendors((prev) =>
         prev.map((v) =>
-          getVendorId(v) === selectedId ? { ...v, status: "Approved" } : v
+          getVendorId(v) === selectedId ? { ...v, status: "approved" } : v
         )
       );
       refreshDashboard();
@@ -162,7 +179,7 @@ export function useVendorManagement() {
 
       setVendors((prev) =>
         prev.map((v) =>
-          getVendorId(v) === selectedId ? { ...v, status: "Rejected" } : v
+          getVendorId(v) === selectedId ? { ...v, status: "rejected" } : v
         )
       );
       refreshDashboard();

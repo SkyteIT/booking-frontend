@@ -1,21 +1,17 @@
 // src/pages/admin/contentManagement/components/EditCategory.tsx
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Box, Typography, TextField, Button, Paper,
-  FormControlLabel, Switch, IconButton, Chip, MenuItem, InputAdornment,
+  FormControlLabel, Switch, IconButton, Chip, MenuItem, ListSubheader,
   Dialog, DialogTitle, DialogContent, DialogActions,
   CircularProgress,
 } from "@mui/material";
-import CategoryIcon from "@mui/icons-material/Category";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
-import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import SaveIcon from "@mui/icons-material/Save";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ListingType } from "../../../../services/Vendor/listingService";
 import { getCategoryById, updateCategoryFull } from "../services/contentService";
-import { filterEmojiOptions } from "../utils/emojiOptions";
+import { EMOJI_GROUPS } from "../utils/emojiOptions";
 
 const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental", "Activity"];
 
@@ -48,8 +44,6 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [emojiSearch, setEmojiSearch] = useState("");
-  const filteredEmojiOptions = useMemo(() => filterEmojiOptions(emojiSearch), [emojiSearch]);
 
   useEffect(() => {
     if (!id) return;
@@ -118,7 +112,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
       <Paper sx={cardStyle}>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
-            <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+            <Typography fontSize={18}>🖼️</Typography>
           </Box>
           <Typography fontWeight={600}>1. Basic Information</Typography>
         </Box>
@@ -141,7 +135,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
           value={form.type}
           onChange={(e) => set("type", e.target.value)}
           error={!!errors.type}
-          helperText={errors.type || "Which kind of listing can be created under this category"}
+          helperText={errors.type}
         >
           {LISTING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
         </TextField>
@@ -159,77 +153,115 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
       <Paper sx={cardStyle}>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-            <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+            <Typography fontSize={18}>📍</Typography>
           </Box>
           <Typography fontWeight={600}>2. Category Emoji</Typography>
         </Box>
 
-        <Box display="flex" alignItems="center" gap={1} mb={1}>
-          <TextField
-            size="small"
-            fullWidth
-            value={emojiSearch}
-            onChange={(e) => setEmojiSearch(e.target.value)}
-            placeholder="Search emoji or keyword"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ fontSize: 18, color: "#94A3B8" }} />
-                </InputAdornment>
-              ),
-              endAdornment: emojiSearch ? (
-                <InputAdornment position="end">
-                  <IconButton size="small" onClick={() => setEmojiSearch("")}>
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : undefined,
-            }}
-            sx={{ maxWidth: 320 }}
-          />
-          <Typography fontSize={13} color="text.secondary">
-            Choose a category emoji
-          </Typography>
-        </Box>
+        <TextField
+          select
+          fullWidth
+          label="Category Emoji"
+          value={form.icon}
+          onChange={(e) => set("icon", e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          SelectProps={{
+            displayEmpty: true,
+            MenuProps: {
+              MenuListProps: {
+                sx: {
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                  gap: 0.5,
+                  px: 0.75,
+                  py: 0.75,
+                  alignItems: "stretch",
+                },
+              },
+            },
+            renderValue: (selected) => {
+              if (!selected) {
+                return <Typography color="text.secondary">Choose an emoji</Typography>;
+              }
 
-        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(8, minmax(0, 1fr))", gap: 0.8 }}>
-          {filteredEmojiOptions.map((option) => {
-            const selected = form.icon === option.emoji;
-            return (
-              <Box
+              const emoji = String(selected);
+              return (
+                <Box display="flex" alignItems="center" gap={0.75}>
+                  <Typography fontSize={18} lineHeight={1}>
+                    {emoji}
+                  </Typography>
+                  <Typography fontSize={12} fontWeight={600}>
+                    Selected emoji
+                  </Typography>
+                </Box>
+              );
+            },
+          }}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem
+            value=""
+            sx={{
+              gridColumn: "1 / span 1",
+              width: "100%",
+              minWidth: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              py: 0.5,
+              px: 0.5,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              bgcolor: "background.paper",
+            }}
+          >
+            <Typography fontSize={10} fontWeight={600}>
+              Clear
+            </Typography>
+          </MenuItem>
+          {EMOJI_GROUPS.map((group) => [
+            <ListSubheader
+              key={group.key}
+              sx={{
+                lineHeight: "28px",
+                bgcolor: "#f8fafc",
+                gridColumn: "1 / -1",
+              }}
+            >
+              {group.title}
+            </ListSubheader>,
+            ...group.options.map((option) => (
+              <MenuItem
                 key={option.emoji}
-                onClick={() => set("icon", option.emoji)}
-                title={`${option.label} ${option.keywords.join(", ")}`}
+                value={option.emoji}
                 sx={{
-                  height: 42,
-                  borderRadius: "12px",
-                  border: selected ? "2px solid #6366F1" : "1px solid #E2E8F0",
-                  bgcolor: selected ? "#EEF2FF" : "#fff",
+                  width: "100%",
+                  minWidth: 0,
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  cursor: "pointer",
-                  transition: "transform .15s ease, border-color .15s ease, background .15s ease",
-                  "&:hover": {
-                    borderColor: "#6366F1",
-                    bgcolor: "#EEF2FF",
-                    transform: "translateY(-1px)",
-                  },
+                  gap: 0.15,
+                  py: 0.75,
+                  px: 0.5,
+                  textAlign: "center",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  bgcolor: "background.paper",
                 }}
               >
-                <Typography fontSize={22} lineHeight={1}>
+                <Typography fontSize={16} lineHeight={1}>
                   {option.emoji}
                 </Typography>
-              </Box>
-            );
-          })}
-        </Box>
-
-        {filteredEmojiOptions.length === 0 ? (
-          <Typography fontSize={13} color="text.secondary" sx={{ mt: 1 }}>
-            No emoji found for "{emojiSearch}".
-          </Typography>
-        ) : null}
+                <Typography fontSize={10} fontWeight={600} lineHeight={1}>
+                  {option.label}
+                </Typography>
+              </MenuItem>
+            )),
+          ])}
+        </TextField>
 
         {form.icon && (
           <Box
@@ -269,7 +301,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
       <Paper sx={cardStyle}>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
-            <ToggleOnIcon sx={{ fontSize: 18, color: "#EF6C00" }} />
+            <Typography fontSize={18}>🔗</Typography>
           </Box>
           <Typography fontWeight={600}>3. Status & Visibility</Typography>
         </Box>

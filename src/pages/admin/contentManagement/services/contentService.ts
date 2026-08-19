@@ -33,12 +33,31 @@ export const createCategory = async (payload: {
   platformServiceFee?: number;
   taxApplicable?: boolean;
   icon?: string;
+  bannerImageUrl?: string;
   displayOrder?: number;
   isFeatured?: boolean;
   requiresAdminApproval?: boolean;
   status?: string;
 }): Promise<Category> => {
-  const { data } = await api.post("/categories", payload);
+  const { data } = await api.post("/categories", {
+    name: payload.name,
+    description: payload.description,
+    type: payload.type,
+    bookingType: payload.bookingType,
+    serviceModel: payload.serviceModel,
+    dateSelectionEnabled: payload.dateSelectionEnabled,
+    timeSlotEnabled: payload.timeSlotEnabled,
+    availabilityCalendarEnabled: payload.availabilityCalendarEnabled,
+    defaultCommissionPercent: payload.defaultCommissionPercent,
+    platformServiceFee: payload.platformServiceFee,
+    taxApplicable: payload.taxApplicable,
+    icon: payload.icon,
+    bannerImageUrl: payload.bannerImageUrl,
+    displayOrder: payload.displayOrder,
+    isFeatured: payload.isFeatured,
+    requiresAdminApproval: payload.requiresAdminApproval,
+    status: payload.status,
+  });
   return {
     id: String(data.id),
     name: data.name,
@@ -205,10 +224,8 @@ export const deleteBanner = async (id: string): Promise<void> => {
 // Derive promotion status from dates — more reliable than trusting isActive alone.
 //   endDate in the past        → "Expired"
 //   isActive explicitly false  → "Draft"
-//   startDate in the future    → "Draft"
 //   otherwise                  → "Active"
 const derivePromotionStatus = (
-  startDate: string,
   endDate: string,
   isActive: boolean | undefined
 ): "Active" | "Expired" | "Draft" => {
@@ -222,12 +239,6 @@ const derivePromotionStatus = (
   }
 
   if (isActive === false) return "Draft";
-
-  if (startDate) {
-    const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0);
-    if (start > today) return "Draft";
-  }
 
   return "Active";
 };
@@ -250,7 +261,7 @@ const normalizePromotion = (p: any): Promotion => {
     usageLimit: p.usageLimit ?? null,
     startDate,
     endDate,
-    status: derivePromotionStatus(startDate, endDate, p.isActive),
+    status: derivePromotionStatus(endDate, p.isActive),
   };
 };
 
