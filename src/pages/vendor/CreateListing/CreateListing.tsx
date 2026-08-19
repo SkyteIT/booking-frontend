@@ -99,8 +99,8 @@ const CreateListing = () => {
             category: categoryValue,
             status: (listingData.status || (listingData as any).Status) === "Live" || 
                     (listingData.status || (listingData as any).Status) === "Active" ? "Active" : "Inactive",
-            isAvailable: listingData.isActive !== undefined ? listingData.isActive : 
-                         (listingData as any).IsActive !== undefined ? (listingData as any).IsActive : true,
+            isAvailable: listingData.isAvailable !== undefined ? listingData.isAvailable : 
+                         (listingData as any).IsAvailable !== undefined ? (listingData as any).IsAvailable : true,
             imageUrls: (listingData.images || (listingData as any).Images)?.join(", ") || "",
             tags: (listingData.tags || (listingData as any).Tags)?.join(", ") || "",
             cancellationPolicy: listingData.cancellationPolicy || (listingData as any).CancellationPolicy || "",

@@ -177,6 +177,7 @@ export interface ListingResponse {
   tags: string[];
   cancellationPolicy?: string;
   isActive: boolean;
+  isAvailable: boolean;
 
   // Detail fields
   hotelDetails?: HotelDetailsDto;

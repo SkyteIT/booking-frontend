@@ -45,7 +45,11 @@ const VendorSidebar = () => {
 
             <List sx={{ flexGrow: 1, px: 2 }}>
                 {navItems.map((item) => {
-                    const isActive = location.pathname === item.path || (item.text === "Listings" && location.pathname === "/vendor/listings/new");
+                    const isActive = location.pathname === item.path || 
+                        (item.text === "Listings" && (
+                            location.pathname === "/vendor/listings/new" || 
+                            location.pathname.startsWith("/vendor/listings/edit/")
+                        ));
 
                     return (
                         <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>

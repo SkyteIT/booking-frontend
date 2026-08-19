@@ -6,8 +6,6 @@ import RestaurantOutlinedIcon from "@mui/icons-material/RestaurantOutlined";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import HikingOutlinedIcon from "@mui/icons-material/HikingOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
-import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
-import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
 import type { ReactNode } from "react";
 import type { ListingCategory } from "../../utils/types";
 import {

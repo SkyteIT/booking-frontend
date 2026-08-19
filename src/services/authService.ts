@@ -30,11 +30,11 @@ export const registerUser = async (
   password: string
 ): Promise<RegisterResponse> => {
   const response = await axios.post<RegisterResponse>(`${API_URL}/register`, {
-    email: email.trim().toLowerCase(),   // ✅ FIX
+    email: email.trim().toLowerCase(),   
     password,
     firstName: name.trim(),
     lastName: "User"
   });
 
   return response.data;
-};
+};      

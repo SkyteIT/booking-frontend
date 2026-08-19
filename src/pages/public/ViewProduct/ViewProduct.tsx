@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Box, Container, Button, Typography, CircularProgress, Alert } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { getListingById } from "../../../services/Vendor/listingService";
-import type { ListingResponse } from "../../../services/Vendor/listingService";
 import type { Listing } from "../search/utils/types";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
 import ProductDetails from "./components/ProductDetails/ProductDetails";
