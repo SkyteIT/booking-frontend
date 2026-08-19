@@ -46,28 +46,13 @@ interface ProductDetailsProps {
 const ProductDetails = ({ listing }: ProductDetailsProps) => {
   return (
     <Box>
-      {/* Category label */}
-      <Typography
-        variant="caption"
-        sx={{
-          color: "primary.main",
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-          fontSize: "0.72rem",
-        }}
-      >
-        {listing.category}
-      </Typography>
-
-      {/* Title */}
+      {/* Title - category is already shown as a badge on the hero photo */}
       <Typography
         variant="h4"
         sx={{
           fontFamily: "'Syne', sans-serif",
           fontWeight: 700,
           color: "text.primary",
-          mt: 0.5,
           mb: 1,
           letterSpacing: "-0.02em",
         }}
@@ -92,9 +77,22 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
           </Box>
         )}
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        {/* Opens the real address in Google Maps rather than just being static text. */}
+        <Box
+          component="a"
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(listing.venueAddress || listing.location)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            textDecoration: "none",
+            "&:hover .product-location-text": { textDecoration: "underline" },
+          }}
+        >
           <LocationOnIcon sx={{ fontSize: "1rem", color: "text.secondary" }} />
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <Typography variant="body2" className="product-location-text" sx={{ color: "text.secondary" }}>
             {listing.location}
           </Typography>
         </Box>
@@ -123,7 +121,7 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
       <Divider sx={{ mb: 3 }} />
 
       {/* About */}
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5, letterSpacing: "-0.01em" }}>
+      <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 1.5, letterSpacing: "-0.01em" }}>
         About this listing
       </Typography>
       <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.8, mb: 3 }}>
@@ -134,7 +132,7 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
       {listing.type === "Event" && (listing.venueName || listing.venueAddress) && (
         <>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+          <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 2, letterSpacing: "-0.01em" }}>
             Venue
           </Typography>
           <SpecGrid
@@ -150,7 +148,7 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
       {listing.type === "CarRental" && (listing.vehicleBrand || listing.vehicleModel) && (
         <>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+          <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 2, letterSpacing: "-0.01em" }}>
             Vehicle Details
           </Typography>
           <SpecGrid
@@ -169,7 +167,7 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
       {listing.amenities.length > 0 && (
         <>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+          <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 2, letterSpacing: "-0.01em" }}>
             What's included
           </Typography>
           <Box
@@ -208,7 +206,7 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
       {/* Real interactive location pin - prefers the Event venue address
           when set (more precise than the general listing location). */}
       <Divider sx={{ mb: 3 }} />
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
+      <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 2, letterSpacing: "-0.01em" }}>
         Location
       </Typography>
       <LocationMap query={listing.venueAddress || listing.location} label={listing.title} />

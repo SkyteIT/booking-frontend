@@ -60,29 +60,29 @@ export interface PaymentDisputeDto {
 }
 
 export const getLedger = async (): Promise<LedgerEntry[]> => {
-  const res = await api.get<LedgerEntry[]>("/vendor/ledger");
+  const res = await api.get<LedgerEntry[]>("/vendor/finance/ledger");
   return res.data;
 };
 
 export const getPayoutBatches = async (): Promise<PayoutBatchDto[]> => {
-  const res = await api.get<PayoutBatchDto[]>("/vendor/payout-batches");
+  const res = await api.get<PayoutBatchDto[]>("/vendor/finance/payout-batches");
   return res.data;
 };
 
 export const getCommissionAcknowledgements = async (): Promise<CommissionAcknowledgementDto[]> => {
-  const res = await api.get<CommissionAcknowledgementDto[]>("/vendor/commission-acknowledgements");
+  const res = await api.get<CommissionAcknowledgementDto[]>("/vendor/finance/commission-acknowledgements");
   return res.data;
 };
 
 export const acknowledgeCommissionRate = async (categoryId: string): Promise<CommissionAcknowledgementDto> => {
-  const res = await api.post<CommissionAcknowledgementDto>("/vendor/commission-acknowledgement", {
+  const res = await api.post<CommissionAcknowledgementDto>("/vendor/finance/commission-acknowledgement", {
     categoryId,
   });
   return res.data;
 };
 
 export const getDisputes = async (): Promise<PaymentDisputeDto[]> => {
-  const res = await api.get<PaymentDisputeDto[]>("/vendor/disputes");
+  const res = await api.get<PaymentDisputeDto[]>("/vendor/finance/disputes");
   return res.data;
 };
 

@@ -5,7 +5,7 @@ import {
   TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions,
   DialogContentText, Divider, Select, FormControl,
-  InputLabel, MenuItem, Alert,
+  InputLabel, MenuItem, Alert, Menu,
 } from '@mui/material';
 import { Search, FilterList, Visibility, Edit, Close, FileDownload } from '@mui/icons-material';
 import {
@@ -35,6 +35,8 @@ export const BookingOversightPage: React.FC = () => {
   const [editStatus, setEditStatus] = useState<string>('Pending');
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
 
   const loadBookings = useCallback(async () => {
     setLoading(true);
@@ -60,6 +62,8 @@ export const BookingOversightPage: React.FC = () => {
     cancelled: bookings.filter((b) => b.status === 'Cancelled').length,
   };
 
+  const categoryOptions = ['All', ...Array.from(new Set(bookings.map((b) => b.listingCategory)))];
+
   const filteredBookings = bookings.filter((booking) => {
     const tabStatus = TAB_STATUSES[activeTab];
     const matchesTab = tabStatus === 'All' || booking.status === tabStatus;
@@ -67,7 +71,8 @@ export const BookingOversightPage: React.FC = () => {
       booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.listingTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
+    const matchesCategory = categoryFilter === 'All' || booking.listingCategory === categoryFilter;
+    return matchesTab && matchesSearch && matchesCategory;
   });
 
   const showSuccess = (msg: string) => {
@@ -202,9 +207,31 @@ export const BookingOversightPage: React.FC = () => {
               InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#94A3B8' }} /></InputAdornment> }}
             />
           </Box>
-          <Button variant="outlined" startIcon={<FilterList />} sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}>
-            More Filters
+          <Button
+            variant="outlined"
+            startIcon={<FilterList />}
+            onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+            sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}
+          >
+            More Filters{categoryFilter !== 'All' ? ' (1)' : ''}
           </Button>
+          <Menu anchorEl={filterAnchorEl} open={!!filterAnchorEl} onClose={() => setFilterAnchorEl(null)}>
+            <Box sx={{ px: 2, py: 1.5, minWidth: 220 }}>
+              <FormControl fullWidth size="small" sx={{ mb: categoryFilter !== 'All' ? 1.5 : 0 }}>
+                <InputLabel>Category</InputLabel>
+                <Select label="Category" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                  {categoryOptions.map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {categoryFilter !== 'All' && (
+                <Button size="small" onClick={() => setCategoryFilter('All')} sx={{ textTransform: 'none' }}>
+                  Clear filter
+                </Button>
+              )}
+            </Box>
+          </Menu>
         </Box>
       </Paper>
 

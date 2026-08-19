@@ -67,6 +67,15 @@ export default function BaseFields({ register, control, errors, categories }: Ba
         helperText={errors.price?.message}
       />
 
+      <TextField
+        fullWidth
+        label="Currency"
+        placeholder="e.g. LKR, USD"
+        helperText="Defaults to your Settings > Localization currency"
+        {...register("currency", { required: "Currency is required" })}
+        error={!!errors.currency}
+      />
+
       <Box sx={{ gridColumn: "1 / -1" }}>
         <TextField
           fullWidth

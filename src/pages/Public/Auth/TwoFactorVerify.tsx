@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { verifyTwoFactorCode } from "../../../services/authService";
+import { getRoleHomePath } from "../../../utils/roleHomePath";
 
 const getApiErrorMessage = (error: unknown): string | undefined => {
   if (!isAxiosError(error)) return undefined;
@@ -59,8 +60,8 @@ function TwoFactorVerify(): JSX.Element {
     setError("");
     try {
       await verifyTwoFactorCode(challengeToken, code.trim());
-      await refreshUser();
-      navigate("/admin/dashboard", { replace: true });
+      const refreshed = await refreshUser();
+      navigate(getRoleHomePath(refreshed?.role ?? ""), { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err) ?? "Invalid code. Please try again.");
     } finally {

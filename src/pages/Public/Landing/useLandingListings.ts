@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  getCategories,
   getListings,
+  type CategoryDto,
   type ListingResponse,
 } from "../../../services/Vendor/listingService";
 
@@ -10,18 +12,9 @@ export interface CategoryStat {
   tag: string;
 }
 
-// The same fixed 6 categories the old landing page's CategoriesSection used —
-// always shown regardless of what's actually seeded in the backend, with real
-// counts overlaid per category (0 if that category has no active listings yet).
-export const FIXED_CATEGORIES = [
-  "Hotels",
-  "Restaurants",
-  "Events",
-  "Activities",
-  "Car rentals",
-  "Apartments",
-] as const;
-
+// Curated taglines for the categories we expect - any category an admin
+// adds that isn't in here still shows up (real data always wins), just
+// with the generic fallback tag instead of a bespoke one.
 const TAGS: Record<string, string> = {
   hotel: "From boutique to grand",
   hotels: "From boutique to grand",
@@ -37,40 +30,24 @@ const TAGS: Record<string, string> = {
   apartments: "Stay like a local",
 };
 
-// Maps a listing's real (freeform) categoryName to one of the 6 fixed tiles,
-// e.g. "Hotel" / "hotels" / "Boutique Hotels" all count toward "Hotels".
-const CATEGORY_SYNONYMS: Record<string, (typeof FIXED_CATEGORIES)[number]> = {
-  hotel: "Hotels",
-  hotels: "Hotels",
-  restaurant: "Restaurants",
-  restaurants: "Restaurants",
-  event: "Events",
-  events: "Events",
-  activity: "Activities",
-  activities: "Activities",
-  "car rental": "Car rentals",
-  "car rentals": "Car rentals",
-  apartment: "Apartments",
-  apartments: "Apartments",
-};
-
 const tagFor = (name: string) => TAGS[name.trim().toLowerCase()] ?? "Explore now";
-
-const canonicalCategoryFor = (name: string) => CATEGORY_SYNONYMS[name.trim().toLowerCase()];
 
 export const useLandingListings = () => {
   const [listings, setListings] = useState<ListingResponse[]>([]);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
-    getListings()
-      .then((data) => {
-        if (!cancelled) setListings(data);
+    Promise.all([getListings(), getCategories()])
+      .then(([listingData, categoryData]) => {
+        if (cancelled) return;
+        setListings(listingData);
+        setCategories(categoryData);
       })
       .catch((err) => {
-        console.error("Failed to load listings for landing page:", err);
+        console.error("Failed to load listings/categories for landing page:", err);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -83,18 +60,21 @@ export const useLandingListings = () => {
 
   const activeListings = useMemo(() => listings.filter((l) => l.isActive), [listings]);
 
+  // Real categories only - whatever's actually configured in the admin's
+  // content management, not a fixed placeholder list. A category with no
+  // active listings yet still shows, correctly, as 0.
   const categoryStats = useMemo<CategoryStat[]>(() => {
-    const counts = new Map<string, number>(FIXED_CATEGORIES.map((name) => [name, 0]));
+    const counts = new Map<string, number>();
     activeListings.forEach((l) => {
-      const canonical = canonicalCategoryFor(l.categoryName ?? "");
-      if (canonical) counts.set(canonical, (counts.get(canonical) ?? 0) + 1);
+      const key = (l.categoryName ?? "").trim().toLowerCase();
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
     });
-    return FIXED_CATEGORIES.map((name) => ({
-      name,
-      count: counts.get(name) ?? 0,
-      tag: tagFor(name),
+    return categories.map((c) => ({
+      name: c.name,
+      count: counts.get(c.name.trim().toLowerCase()) ?? 0,
+      tag: tagFor(c.name),
     }));
-  }, [activeListings]);
+  }, [activeListings, categories]);
 
   const featuredListings = useMemo(
     () =>

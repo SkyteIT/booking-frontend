@@ -29,6 +29,7 @@ export interface ListingFormData {
     imageUrls?: string;
     description?: string;
     price?: number;
+    currency?: string;
     tagsInput?: string;
     isActive?: boolean;
 

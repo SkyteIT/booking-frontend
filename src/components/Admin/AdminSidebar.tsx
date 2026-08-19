@@ -9,6 +9,8 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import GppMaybeOutlinedIcon from "@mui/icons-material/GppMaybeOutlined";
+import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined";
+import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { Box, Typography, Divider, Stack } from "@mui/material";
@@ -16,24 +18,35 @@ import { alpha } from "@mui/material/styles";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 
+// roles omitted = admin-only (the default for most of the portal).
+// SuperAdmin always sees the full menu regardless of what's listed here -
+// filtered out below before that special case even applies.
 const menu = [
   { label: "Dashboard", icon: DashboardOutlinedIcon, path: "/admin/dashboard" },
   { label: "User Management", icon: GroupOutlinedIcon, path: "/admin/users" },
+  { label: "Role Requests", icon: HowToRegOutlinedIcon, path: "/admin/role-requests", roles: ["superadmin"] },
+  { label: "Email Requests", icon: MarkEmailReadOutlinedIcon, path: "/admin/email-requests", roles: ["superadmin"] },
   { label: "Vendor Management", icon: StorefrontOutlinedIcon, path: "/admin/vendors" },
   { label: "Booking Oversight", icon: EventNoteOutlinedIcon, path: "/admin/bookings" },
-  { label: "Disputes & Refunds", icon: ReceiptLongOutlinedIcon, path: "/admin/disputes" },
-  { label: "Fraud Review", icon: GppMaybeOutlinedIcon, path: "/admin/fraud-review" },
-  { label: "Finance & Payments", icon: AccountBalanceOutlinedIcon, path: "/admin/finance" },
+  { label: "Disputes & Refunds", icon: ReceiptLongOutlinedIcon, path: "/admin/disputes", roles: ["admin", "finance", "superadmin"] },
+  { label: "Fraud Review", icon: GppMaybeOutlinedIcon, path: "/admin/fraud-review", roles: ["admin", "finance", "superadmin"] },
+  { label: "Finance & Payments", icon: AccountBalanceOutlinedIcon, path: "/admin/finance", roles: ["admin", "finance", "superadmin"] },
   { label: "Content Management", icon: ArticleOutlinedIcon, path: "/admin/content" },
   { label: "Reports & Analytics", icon: BarChartOutlinedIcon, path: "/admin/reports" },
   { label: "Notifications", icon: NotificationsNoneOutlinedIcon, path: "/admin/notifications" },
-  { label: "Settings", icon: SettingsOutlinedIcon, path: "/admin/settings" },
+  { label: "Settings", icon: SettingsOutlinedIcon, path: "/admin/settings", roles: ["admin", "finance", "superadmin"] },
 ] as const;
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  const role = String(user?.role ?? "").toLowerCase();
+  const visibleMenu = menu.filter((item) => {
+    const allowedRoles: readonly string[] = "roles" in item ? item.roles : ["admin"];
+    return role === "superadmin" || allowedRoles.includes(role);
+  });
 
   return (
     <Box
@@ -57,7 +70,7 @@ export default function AdminSidebar() {
       </Box>
 
       <Stack spacing={0.75}>
-        {menu.map((item) => {
+        {visibleMenu.map((item) => {
           const Icon = item.icon;
           const isActive =
             location.pathname === item.path ||

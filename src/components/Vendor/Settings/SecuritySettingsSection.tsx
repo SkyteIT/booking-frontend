@@ -1,4 +1,5 @@
 import { Box, Divider, Stack, TextField, Typography } from "@mui/material";
+import TwoFactorSettings from "../../common/TwoFactorSettings";
 import type { SecurityForm } from "./types";
 
 const inputSx = {
@@ -18,8 +19,6 @@ export default function SecuritySettingsSection({ form, onFieldChange, errors = 
   return (
     <Box>
       <Stack spacing={3}>
-        
-
         {/* Change Password */}
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 500, mb: 1.5 }}>
@@ -75,17 +74,7 @@ export default function SecuritySettingsSection({ form, onFieldChange, errors = 
           <Typography variant="body2" sx={{ fontWeight: 500, mb: 1.5 }}>
             Two-factor authentication
           </Typography>
-        </Box>
-
-          <Box
-            sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 1,
-                mt: 2,
-            }}
-            >
-            
+          <TwoFactorSettings />
         </Box>
       </Stack>
     </Box>

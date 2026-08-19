@@ -53,8 +53,35 @@ export const getUserById = async (userId: string): Promise<AdminUserDto> => {
   return res.data;
 };
 
-export const updateUserRole = async (userId: string, role: string): Promise<AdminUserDto> => {
-  const res = await api.put<AdminUserDto>(`/admin/users/${userId}/role`, { role });
+export interface RoleChangeRequestDto {
+  id: string;
+  targetUserId: string;
+  targetUserName: string;
+  targetUserEmail: string;
+  requestedByUserId: string;
+  requestedByUserName: string;
+  currentRole: string;
+  requestedRole: string;
+  reason?: string | null;
+  status: "Pending" | "Approved" | "Rejected";
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+  createdAt: string;
+}
+
+// A SuperAdmin's role change applies immediately (`user` is set). A
+// plain Admin's attempt never mutates anything - it creates a pending
+// RoleChangeRequest instead (`request` is set) for a SuperAdmin to
+// later approve or reject.
+export interface RoleChangeOutcomeDto {
+  appliedImmediately: boolean;
+  user: AdminUserDto | null;
+  request: RoleChangeRequestDto | null;
+}
+
+export const updateUserRole = async (userId: string, role: string, reason?: string): Promise<RoleChangeOutcomeDto> => {
+  const res = await api.put<RoleChangeOutcomeDto>(`/admin/users/${userId}/role`, { role, reason });
   return res.data;
 };
 

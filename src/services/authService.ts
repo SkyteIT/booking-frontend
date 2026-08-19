@@ -64,6 +64,35 @@ export const getCurrentUser = async () => {
   return res.data;
 };
 
+export interface UpdateProfilePayload {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+}
+
+export const updateProfile = async (payload: UpdateProfilePayload) => {
+  const res = await api.put("/auth/profile", payload);
+  return res.data;
+};
+
+export const uploadProfileImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append("File", file);
+  const res = await api.post("/auth/profile/upload-image", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+};
+
+// Self-service — works for any authenticated role. Doesn't take effect
+// until the confirmation link sent to newEmail is clicked; no approval
+// step, unlike the staff-only EmailChangeRequest flow used in the admin
+// portal.
+export const requestEmailChange = async (newEmail: string) => {
+  const res = await api.post<{ message: string }>("/auth/email/change-request", { newEmail });
+  return res.data;
+};
+
 // Always resolves with the same generic backend message, regardless of
 // whether the email is registered — never used to tell the user whether
 // their account exists.
@@ -116,4 +145,20 @@ export const verifyTwoFactorCode = async (challengeToken: string, code: string) 
   const res = await api.post<AuthResponse>("/auth/2fa/verify", { challengeToken, code });
   saveAuthToken(res.data);
   return res.data;
+};
+
+// Self-service opt-in 2FA - for an already-logged-in user on a role where
+// 2FA isn't mandatory, driven by the current session (no challenge token).
+export const startSelfServiceTwoFactorEnrollment = async () => {
+  const res = await api.post<TwoFactorEnrollmentStart>("/auth/2fa/self-enroll/start");
+  return res.data;
+};
+
+export const confirmSelfServiceTwoFactorEnrollment = async (code: string) => {
+  const res = await api.post<string[]>("/auth/2fa/self-enroll/confirm", { code });
+  return res.data;
+};
+
+export const disableTwoFactor = async (currentPassword: string) => {
+  await api.post("/auth/2fa/disable", { currentPassword });
 };

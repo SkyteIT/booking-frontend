@@ -1,7 +1,7 @@
 // ViewProduct page — reads :id from the URL, fetches the matching
 // listing from the backend, then composes the three sub-components.
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Box, Container, Button, Typography, CircularProgress, Alert } from "@mui/material";
+import { Box, Container, Button, IconButton, Typography, CircularProgress, Alert } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getListingById } from "../../../services/Vendor/listingService";
@@ -102,28 +102,11 @@ const ViewProduct = () => {
         minHeight: "100vh",
         backgroundColor: "background.default",
         backgroundImage:
-          "radial-gradient(ellipse 90% 45% at 50% -10%, rgba(0,119,182,0.1), transparent 70%)",
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
         backgroundRepeat: "no-repeat",
       }}
     >
       <Container maxWidth="lg" sx={{ pt: 16, pb: 4 }}>
-
-        {/* Back button */}
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)}
-          sx={{
-            mb: 3,
-            borderRadius: "10px",
-            color: "text.secondary",
-            border: "1px solid",
-            borderColor: "divider",
-            px: 2,
-            "&:hover": { backgroundColor: "action.hover" },
-          }}
-        >
-          Back to results
-        </Button>
 
         {/* Two-column layout */}
         <Box
@@ -136,7 +119,30 @@ const ViewProduct = () => {
         >
           {/* Left column: gallery + details + booking options */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <ImageGallery listing={listing} />
+            <Box sx={{ position: "relative" }}>
+              <ImageGallery listing={listing} category={listing.category as string} />
+
+              {/* Back button - compact circular icon button floating over
+                  the hero photo's gradient, translucent-blur treatment. */}
+              <IconButton
+                aria-label="Back to results"
+                onClick={() => navigate(-1)}
+                sx={{
+                  position: "absolute",
+                  top: 20,
+                  left: 20,
+                  width: 44,
+                  height: 44,
+                  color: "#fff",
+                  backgroundColor: "rgba(15,27,45,0.4)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  "&:hover": { backgroundColor: "rgba(15,27,45,0.6)" },
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+            </Box>
             <ProductDetails listing={listing} />
             <BookingOptions
               listing={listing}

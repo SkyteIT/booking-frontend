@@ -21,8 +21,8 @@ export const useNotifications = (userId: string | null) => {
     setLoading(true);
     try {
       const [notifs, prefs] = await Promise.all([
-        getNotifications(userId),
-        getPreferences(userId),
+        getNotifications(),
+        getPreferences(),
       ]);
       setNotifications(notifs);
       setPreferences(prefs);
@@ -44,14 +44,14 @@ export const useNotifications = (userId: string | null) => {
 
   const handleMarkAllAsRead = useCallback(async () => {
     if (!userId) return;
-    await markAllAsRead(userId);
+    await markAllAsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }, [userId]);
 
   const handleSavePreference = useCallback(
     async (payload: UpdatePreferencePayload) => {
       if (!userId) return;
-      const updated = await savePreference(userId, payload);
+      const updated = await savePreference(payload);
       setPreferences((prev) => {
         const exists = prev.find((p) => p.id === updated.id);
         if (exists) return prev.map((p) => (p.id === updated.id ? updated : p));

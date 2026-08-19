@@ -18,11 +18,21 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import icon2 from "../../assets/icons/icon2.png";
 import { useAuth } from "../../context/useAuth";
 
+// "SuperAdmin" -> "Super Admin" for display; every other role is already
+// a single word.
+function formatRoleLabel(role: string): string {
+  return role.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
 export default function AdminNavbar() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "Admin";
+  const roleLabel = user?.role ? formatRoleLabel(user.role) : "";
+  const avatarInitial = displayName.charAt(0).toUpperCase();
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -144,18 +154,18 @@ export default function AdminNavbar() {
                   bgcolor: "primary.main",
                 }}
               >
-                A
+                {avatarInitial}
               </Avatar>
-            
+
               <Box sx={{ display: { xs: "none", sm: "block" } }}>
                 <Typography
                   variant="body2"
                   sx={{ fontWeight: 600, lineHeight: 1 }}
                 >
-                  Admin
+                  {displayName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Super Admin
+                  {roleLabel}
                 </Typography>
               </Box>
 

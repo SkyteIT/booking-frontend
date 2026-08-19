@@ -97,13 +97,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Decode JWT to get role
     const decoded = parseJwt(token);
 
-    const role = String(
+    // A SuperAdmin's token carries multiple role claims (SuperAdmin,
+    // Admin, Finance - see TokenService.RoleClaimsFor) so the backend can
+    // reach every Admin/Finance-gated endpoint with one token. When a JWT
+    // claim type repeats, the decoded payload gives an array instead of a
+    // string - String(array) would silently produce "SuperAdmin,Admin,
+    // Finance", which matches no role check anywhere. The user's own real
+    // role is always first, so take that.
+    const rawRole =
       decoded?.[
         "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
       ] ??
-        decoded?.role ??
-        ""
-    );
+      decoded?.role ??
+      "";
+    const role = String(Array.isArray(rawRole) ? rawRole[0] : rawRole);
 
     // Merge role into user
     setUser({

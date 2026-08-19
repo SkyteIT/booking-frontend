@@ -3,6 +3,11 @@
 // sidebar - a real seat grid or fleet list needs room to breathe.
 // PriceCard just reads the selection made here and shows a summary +
 // Add to cart.
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import EventSeatOutlinedIcon from "@mui/icons-material/EventSeatOutlined";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
+import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import {
   Box,
   Typography,
@@ -11,12 +16,24 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  InputAdornment,
   Chip,
   CircularProgress,
 } from "@mui/material";
 import type { ListingUnitDto } from "../../../../../services/Vendor/listingUnitsService";
 import type { Listing } from "../../../Search/utils/types";
 import { getQuantityConfig } from "../../utils/quantityConfig";
+
+// Shared field treatment for this section - a soft tinted fill instead of
+// a plain white outline, consistent with the rest of the redesigned page
+// (PriceCard's tinted selection box, the gradient hero).
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "12px",
+    backgroundColor: "rgba(0,119,182,0.04)",
+    "&.Mui-focused": { backgroundColor: "transparent" },
+  },
+};
 
 interface BookingOptionsProps {
   listing: Listing;
@@ -64,10 +81,36 @@ const BookingOptions = ({
   const maxColumn = seatUnits.reduce((m, u) => Math.max(m, u.columnIndex ?? 0), 0);
 
   return (
-    <Box sx={{ pt: 4, borderTop: "1px solid", borderColor: "divider" }}>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, letterSpacing: "-0.01em" }}>
-        Select your options
-      </Typography>
+    <Box
+      sx={{
+        p: { xs: 2.5, sm: 3.5 },
+        borderRadius: "24px",
+        border: "1px solid",
+        borderColor: "divider",
+        backgroundColor: "background.paper",
+        boxShadow: "0 12px 32px rgba(15,27,45,0.06)",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 3 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: "10px",
+            display: "grid",
+            placeItems: "center",
+            background: "linear-gradient(160deg, #005a8d, #0077b6)",
+          }}
+        >
+          <TuneOutlinedIcon sx={{ fontSize: "1.1rem", color: "#fff" }} />
+        </Box>
+        <Typography
+          variant="h6"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
+          Select your options
+        </Typography>
+      </Box>
 
       {/* Date Pickers - hidden for time-slot listings, which pick a single day below instead */}
       {timeSlotUnits.length === 0 && (
@@ -82,8 +125,17 @@ const BookingOptions = ({
               size="small"
               value={checkIn}
               onChange={(e) => onCheckInChange(e.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+              slotProps={{
+                inputLabel: { shrink: true },
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarMonthOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={fieldSx}
             />
             <TextField
               label="Check-out"
@@ -91,8 +143,17 @@ const BookingOptions = ({
               size="small"
               value={checkOut}
               onChange={(e) => onCheckOutChange(e.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+              slotProps={{
+                inputLabel: { shrink: true },
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarMonthOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={fieldSx}
             />
           </Box>
         </>
@@ -106,7 +167,7 @@ const BookingOptions = ({
             value={selectedUnitId}
             label="Choose an option"
             onChange={(e) => onSelectUnit(e.target.value)}
-            sx={{ borderRadius: "10px" }}
+            sx={{ borderRadius: "12px", backgroundColor: "rgba(0,119,182,0.04)" }}
           >
             {genericUnits.map((u) => (
               <MenuItem key={u.id} value={u.id}>
@@ -123,18 +184,21 @@ const BookingOptions = ({
           large venue instead of being squeezed into a 360px sidebar. */}
       {seatUnits.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>
-            Choose a seat
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}>
+            <EventSeatOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Choose a seat
+            </Typography>
+          </Box>
 
           <Box
             sx={{
               textAlign: "center",
               py: 1,
               mb: 2.5,
-              borderRadius: "6px",
-              bgcolor: "action.hover",
-              color: "text.secondary",
+              borderRadius: "999px",
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              color: "#fff",
               fontSize: "0.75rem",
               fontWeight: 700,
               letterSpacing: "0.15em",
@@ -168,15 +232,17 @@ const BookingOptions = ({
                     gridRow: (u.rowIndex ?? 0) + 1,
                     width: 38,
                     height: 38,
-                    borderRadius: "6px",
+                    borderRadius: "8px",
                     border: "1px solid",
                     borderColor: isSelected ? "primary.main" : "divider",
-                    bgcolor: isSelected ? "primary.main" : "background.paper",
+                    bgcolor: isSelected ? "primary.main" : "rgba(0,119,182,0.04)",
                     color: isSelected ? "primary.contrastText" : "text.secondary",
                     fontSize: "0.7rem",
                     fontWeight: 600,
                     cursor: "pointer",
-                    "&:hover": { borderColor: "primary.main" },
+                    boxShadow: isSelected ? "0 6px 14px rgba(0,119,182,0.35)" : "none",
+                    transition: "all 0.15s ease",
+                    "&:hover": { borderColor: "primary.main", transform: "translateY(-1px)" },
                   }}
                 >
                   {u.code ?? u.name}
@@ -199,22 +265,43 @@ const BookingOptions = ({
               onCheckInChange(e.target.value);
               onCheckOutChange(e.target.value);
             }}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ mb: 1.5, maxWidth: 240, "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+            slotProps={{
+              inputLabel: { shrink: true },
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ mb: 2, maxWidth: 240, ...fieldSx }}
           />
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-            Choose a time
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+            <ScheduleOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Choose a time
+            </Typography>
+          </Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {timeSlotUnits.map((u) => (
-              <Chip
-                key={u.id}
-                label={u.name}
-                color={selectedUnitId === u.id ? "primary" : "default"}
-                onClick={() => onSelectUnit(u.id)}
-                sx={{ cursor: "pointer" }}
-              />
-            ))}
+            {timeSlotUnits.map((u) => {
+              const isSelected = selectedUnitId === u.id;
+              return (
+                <Chip
+                  key={u.id}
+                  label={u.name}
+                  onClick={() => onSelectUnit(u.id)}
+                  sx={{
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    color: isSelected ? "#fff" : "text.primary",
+                    background: isSelected ? "linear-gradient(160deg, #005a8d, #0077b6)" : "rgba(0,119,182,0.06)",
+                    boxShadow: isSelected ? "0 6px 14px rgba(0,119,182,0.3)" : "none",
+                    "&:hover": { background: isSelected ? undefined : "rgba(0,119,182,0.12)" },
+                  }}
+                />
+              );
+            })}
           </Box>
         </Box>
       )}
@@ -228,7 +315,12 @@ const BookingOptions = ({
             value={guests}
             label={quantityConfig.label}
             onChange={(e) => onGuestsChange(Number(e.target.value))}
-            sx={{ borderRadius: "10px" }}
+            startAdornment={
+              <InputAdornment position="start" sx={{ ml: 1 }}>
+                <GroupsOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+              </InputAdornment>
+            }
+            sx={{ borderRadius: "12px", backgroundColor: "rgba(0,119,182,0.04)" }}
           >
             {Array.from(
               { length: quantityConfig.max - quantityConfig.min + 1 },

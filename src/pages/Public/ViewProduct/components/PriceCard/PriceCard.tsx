@@ -4,6 +4,7 @@
 // -> Payment flow actually reads from). All interactive selection
 // (dates, seats/units, quantity) lives in BookingOptions now - this
 // card only reads that state via props and submits it.
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { Box, Typography, Button, Divider, Alert } from "@mui/material";
@@ -164,50 +165,67 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   return (
     <Box
       sx={{
-        border: "1px solid",
-        borderColor: "divider",
-        borderRadius: "20px",
-        p: 3,
-        boxShadow: "0 4px 24px rgba(17,24,39,0.06)",
+        borderRadius: "24px",
+        overflow: "hidden",
+        boxShadow: "0 20px 48px rgba(15,27,45,0.12)",
         position: { md: "sticky" },
         top: { md: "88px" },
         backgroundColor: "background.paper",
       }}
     >
-      {/* Price */}
-      <Box sx={{ mb: 2.5 }}>
+      {/* Gradient header - price lives here, matching the landing page's
+          card-accent treatment rather than a flat white block. */}
+      <Box
+        sx={{
+          background: "linear-gradient(160deg, #005a8d, #0077b6)",
+          px: 3,
+          py: 2.75,
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
           <Typography
             variant="h4"
-            sx={{ fontWeight: 700, color: "primary.main", letterSpacing: "-0.02em" }}
+            sx={{ fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}
           >
             ${displayPrice}
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.85)" }}>
             /{listing.priceUnit}
           </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+        <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.75)" }}>
           Plus taxes and fees
         </Typography>
       </Box>
 
-      <Divider sx={{ mb: 2.5 }} />
-
-      {/* Summary of what's been picked below in the main section */}
-      <Box sx={{ mb: 2.5 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: "text.primary" }}>
-          Your selection
-        </Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {selectionSummary || "Choose your options below"}
-        </Typography>
-        {displayedTotal !== null && (
-          <Typography variant="body2" sx={{ fontWeight: 600, mt: 1 }}>
-            Estimated total: ${displayedTotal.toFixed(2)}
-          </Typography>
-        )}
-      </Box>
+      <Box sx={{ p: 3 }}>
+        {/* Summary of what's been picked below in the main section */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1.5,
+            alignItems: "flex-start",
+            mb: 2.5,
+            p: 1.75,
+            borderRadius: "14px",
+            backgroundColor: "rgba(0,119,182,0.06)",
+          }}
+        >
+          <CalendarMonthOutlinedIcon sx={{ fontSize: "1.2rem", color: "primary.main", mt: 0.2 }} />
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.25, color: "text.primary" }}>
+              Your selection
+            </Typography>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {selectionSummary || "Choose your options below"}
+            </Typography>
+            {displayedTotal !== null && (
+              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}>
+                Estimated total: ${displayedTotal.toFixed(2)}
+              </Typography>
+            )}
+          </Box>
+        </Box>
 
       {/* Active vendor offer, if one is running right now */}
       {activeOffer && (
@@ -255,29 +273,38 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
         </Alert>
       )}
 
-      <Button
-        fullWidth
-        variant="contained"
-        size="large"
-        disabled={!listing.isAvailable}
-        onClick={handleAddToCart}
-        sx={{
-          borderRadius: "12px",
-          py: 1.5,
-          fontWeight: 600,
-          fontSize: "1rem",
-          textTransform: "none",
-        }}
-      >
-        {!listing.isAvailable ? "Currently unavailable" : "Add to cart"}
-      </Button>
+        <Button
+          fullWidth
+          size="large"
+          disabled={!listing.isAvailable}
+          onClick={handleAddToCart}
+          sx={{
+            borderRadius: "999px",
+            py: 1.5,
+            fontWeight: 700,
+            fontSize: "1rem",
+            textTransform: "none",
+            color: "#fff",
+            background: listing.isAvailable
+              ? "linear-gradient(160deg, #005a8d, #0077b6)"
+              : undefined,
+            "&:hover": {
+              background: listing.isAvailable ? "linear-gradient(160deg, #004a75, #005a8d)" : undefined,
+              boxShadow: listing.isAvailable ? "0 12px 28px rgba(0,119,182,0.32)" : "none",
+            },
+            "&.Mui-disabled": { color: "rgba(15,27,45,0.4)" },
+          }}
+        >
+          {!listing.isAvailable ? "Currently unavailable" : "Add to cart"}
+        </Button>
 
-      <Typography
-        variant="caption"
-        sx={{ display: "block", textAlign: "center", color: "text.secondary", mt: 1 }}
-      >
-        You won't be charged yet
-      </Typography>
+        <Typography
+          variant="caption"
+          sx={{ display: "block", textAlign: "center", color: "text.secondary", mt: 1.25 }}
+        >
+          You won't be charged yet
+        </Typography>
+      </Box>
     </Box>
   );
 };

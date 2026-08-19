@@ -188,10 +188,34 @@ const ListingCard = ({
           {title}
         </Typography>
 
-        {/* Location */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}>
+        {/* Location - opens the real address in Google Maps, not just
+            static text. Stops propagation so it doesn't also trigger the
+            card's own click-through to the listing. */}
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(
+              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`,
+              "_blank",
+              "noopener,noreferrer"
+            );
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            mb: 1,
+            width: "fit-content",
+            cursor: "pointer",
+            "&:hover .listing-card-location-text": { textDecoration: "underline" },
+          }}
+        >
           <LocationOnIcon sx={{ fontSize: "0.9rem", color: "text.secondary" }} />
-          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
+          <Typography
+            variant="body2"
+            className="listing-card-location-text"
+            sx={{ color: "text.secondary", fontSize: "0.8rem" }}
+          >
             {location}
           </Typography>
         </Box>

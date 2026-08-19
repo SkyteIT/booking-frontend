@@ -5,6 +5,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
 import StarIcon from "@mui/icons-material/Star";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -26,6 +27,7 @@ const menuItems = [
   { path: "/vendor/reviews", label: "Reviews", icon: StarIcon },
   { path: "/vendor/payouts", label: "Earnings", icon: AccountBalanceWalletIcon },
   { path: "/vendor/pricing", label: "Pricing & Promotions", icon: LocalOfferIcon },
+  { path: "/vendor/notifications", label: "Notifications", icon: NotificationsIcon },
   { path: "/vendor/settings", label: "Settings", icon: SettingsIcon },
   { path: "/vendor/support", label: "Support", icon: SupportAgentIcon },
 ];

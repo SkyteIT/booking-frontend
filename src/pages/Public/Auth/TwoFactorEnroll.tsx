@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { getRoleHomePath } from "../../../utils/roleHomePath";
 import {
   startTwoFactorEnrollment,
   confirmTwoFactorEnrollment,
@@ -71,11 +72,8 @@ function TwoFactorEnroll(): JSX.Element {
   };
 
   const finishAndRedirect = async () => {
-    await refreshUser();
-    // Finance doesn't have its own frontend route/RoleGate support yet
-    // (separate, pre-existing roadmap gap) - admin dashboard is the only
-    // real destination available today for either privileged role.
-    navigate("/admin/dashboard", { replace: true });
+    const refreshed = await refreshUser();
+    navigate(getRoleHomePath(refreshed?.role ?? ""), { replace: true });
   };
 
   if (!challengeToken) {

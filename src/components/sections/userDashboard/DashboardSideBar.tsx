@@ -1,5 +1,4 @@
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PersonIcon from "@mui/icons-material/Person";
@@ -23,9 +22,8 @@ const DashboardSidebar = () => {
     { label: "Dashboard", icon: <DashboardIcon fontSize="small" />, path: "/customer/dashboard" },
     { label: "My Bookings", icon: <CalendarMonthIcon fontSize="small" />, path: "/customer/bookings" },
     { label: "My Reviews", icon: <StarIcon fontSize="small" />, path: "/customer/reviews" },
-    { label: "Payment Methods", icon: <CreditCardIcon fontSize="small" />, path: "/customer/payments" },
     { label: "Notifications", icon: <NotificationsIcon fontSize="small" />, path: "/customer/notifications" },
-    { label: "Settings", icon: <SettingsIcon fontSize="small" />, path: "/settings" },
+    { label: "Settings", icon: <SettingsIcon fontSize="small" />, path: "/customer/settings" },
   ];
 
   // ✅ ADD VENDOR ONLY IF ROLE = VENDOR

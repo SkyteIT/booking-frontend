@@ -25,6 +25,7 @@ import type {
   Notification,
   NotificationPreference,
 } from "../../../services/notificationService";
+import { belongsToPortal } from "../../../utils/notificationPortals";
 
 // ─── Types ────────────────────────────────────────────────
 type NotifStatus = "booking" | "payment" | "review" | "account" | "warning";
@@ -77,37 +78,38 @@ const FILTERS: { label: string; value: FilterType }[] = [
   { label: "Account",  value: "account" },
 ];
 
-// Notification type groups — matches API enum: 0=Booking,1=Payment,2=Review,3=Account
+// notificationType values must match the backend's NotificationType enum
+// exactly (Ube.Domain.Enums.Notifications.NotificationType) - a mismatch
+// here means a real event's preference lookup finds no row and silently
+// never fires. Only lists types that are actually customer-facing and
+// actually exist in the backend enum - no "Booking reminders" or
+// "Promotions & offers" placeholders for events nothing creates.
 const PREF_GROUPS = [
   {
     label: "Bookings",
     items: [
-      { key: "booking_conf",   label: "Booking confirmations", notificationType: 0 },
-      { key: "cancellations",  label: "Cancellations",         notificationType: 0 },
-      { key: "booking_remind", label: "Booking reminders",     notificationType: 0 },
+      { key: "booking_conf", label: "Booking confirmations", notificationType: 2 }, // BookingConfirmation
+      { key: "cancellations", label: "Cancellations", notificationType: 3 }, // Cancellation
     ],
   },
   {
     label: "Payments",
     items: [
-      { key: "pay_confirmed", label: "Payment confirmed",  notificationType: 1 },
-      { key: "pay_failed",    label: "Payment failed",     notificationType: 1 },
-      { key: "refund",        label: "Refund processed",   notificationType: 1 },
+      { key: "pay_failed", label: "Payment failed", notificationType: 6 }, // PaymentFailed
+      { key: "refund", label: "Refund updates", notificationType: 12 }, // RefundPending
     ],
   },
   {
     label: "Reviews",
     items: [
-      { key: "review_req",   label: "Review requests",    notificationType: 2 },
-      { key: "review_resp",  label: "Review responses",   notificationType: 2 },
+      { key: "review_resp", label: "Review responses", notificationType: 8 }, // ReviewResponse
     ],
   },
   {
     label: "Account",
     items: [
-      { key: "security",    label: "Security alerts",   notificationType: 3 },
-      { key: "acc_updates", label: "Account updates",   notificationType: 3 },
-      { key: "promotions",  label: "Promotions & offers", notificationType: 3 },
+      { key: "security", label: "Security alerts", notificationType: 9 }, // SecurityAlert
+      { key: "acc_updates", label: "Account updates", notificationType: 10 }, // AccountUpdate
     ],
   },
 ];
@@ -120,14 +122,25 @@ interface UserNotificationsProps {
 // ─── Component ─────────────────────────────────────────────
 const UserNotifications = ({ userId }: UserNotificationsProps) => {
   const {
-    notifications,
+    notifications: allNotifications,
     preferences,
     loading,
-    unreadCount,
     markAsRead,
-    markAllAsRead,
     savePreference,
   } = useNotifications(userId);
+
+  // This account's feed may also contain vendor-context events (e.g. a
+  // vendor account that visits their own customer pages) - the customer
+  // portal only ever shows customer-context notifications, never those.
+  const notifications = allNotifications.filter((n: Notification) => belongsToPortal(n.type, "customer"));
+  const unreadCount = notifications.filter((n: Notification) => !n.isRead).length;
+
+  // The backend's bulk mark-all-read has no type filter and would also
+  // mark this account's vendor-context notifications read - go through
+  // the filtered (customer-only) list one at a time instead.
+  const markAllAsRead = () => {
+    notifications.filter((n) => !n.isRead).forEach((n) => markAsRead(n.id));
+  };
 
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [prefsSaved,   setPrefsSaved]   = useState(false);

@@ -49,6 +49,7 @@ import BookableUnitsSection, {
 } from "./components/BookableUnitsSection";
 import { defaultListRows, defaultGridConfig, defaultTimeSlotConfig } from "./components/bookableUnitsDefaults";
 import { addUnit, addUnitsGrid, addUnitsTimeSlots } from "../../../services/Vendor/listingUnitsService";
+import { getLocalizationSettings } from "../../../services/Vendor/settings";
 
 // ListingType and ListingCategory are the same set of string literals
 // (Hotel/Restaurant/Event/CarRental/Activity) — kept as an explicit map
@@ -78,7 +79,7 @@ const WIZARD_STEPS: StepperStep[] = [
 // all, so those categories' listings always failed backend validation on
 // submit regardless of what the vendor filled in — fixed alongside adding
 // the wizard's step-gated validation.
-const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = ["title", "location", "categoryId", "price"];
+const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = ["title", "location", "categoryId", "price", "currency"];
 const CATEGORY_REQUIRED_FIELDS: Record<ListingCategory, (keyof ListingFormData)[]> = {
   Hotel: ["roomTypes", "amenities"],
   Restaurant: ["cuisineType", "seatingCapacity", "openingTime", "closingTime", "averageCost"],
@@ -96,6 +97,7 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     category: typeToCategory[listing.type] ?? "Hotel",
     categoryId: listing.categoryId,
     isActive: listing.isActive,
+    currency: listing.currency ?? "LKR",
     imageUrls: listing.images?.join(", ") ?? "",
     tagsInput: listing.tags?.join(", ") ?? "",
     cancellationPolicy: listing.cancellationPolicy ?? "",
@@ -170,7 +172,7 @@ function buildCreateListingRequest(
     title: data.title,
     description: data.description ?? "",
     price: Number(data.price) || 0,
-    currency: "LKR",
+    currency: data.currency || "LKR",
     location: data.location,
     isActive: data.isActive ?? true,
     images: data.imageUrls
@@ -281,6 +283,7 @@ const CreateListing = () => {
   } = useForm<ListingFormData>({
     defaultValues: {
       category: "Hotel",
+      currency: "LKR",
       ticketTypes: [
         { type: "General Admission", quantity: 100, price: 50 },
         { type: "VIP", quantity: 100, price: 150 },
@@ -298,6 +301,18 @@ const CreateListing = () => {
         if (isEditMode && id) {
           const listing = await getListingById(id);
           reset(buildEditFormData(listing) as ListingFormData);
+        } else {
+          // New listings default to the vendor's own currency preference
+          // (Settings > Localization) rather than always publishing in LKR —
+          // still overridable per listing below.
+          try {
+            const localization = await getLocalizationSettings();
+            if (localization.currency) {
+              setValue("currency", localization.currency);
+            }
+          } catch {
+            // Keep the LKR default if localization settings aren't available.
+          }
         }
       } catch (error) {
         console.error("Error fetching initial data:", error);

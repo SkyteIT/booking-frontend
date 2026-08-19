@@ -16,12 +16,16 @@ import {
   updateUserStatus,
   type AdminUserDto,
 } from '../../services/Admin/adminService';
+import { getApiErrorMessage } from '../../utils/getApiErrorMessage';
 
 export const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUserDto | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -74,12 +78,18 @@ export const UserManagementPage: React.FC = () => {
     if (!selectedUser) return;
     setSaving(true);
     try {
-      const updated = await updateUserRole(selectedUser.id, editRole);
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      const outcome = await updateUserRole(selectedUser.id, editRole);
+      if (outcome.appliedImmediately && outcome.user) {
+        const updated = outcome.user;
+        setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+        showSuccess('User role updated successfully');
+      } else {
+        // Plain Admin actor - nothing changed yet, a SuperAdmin has to approve it.
+        showSuccess('Request submitted for SuperAdmin approval');
+      }
       setEditOpen(false);
-      showSuccess('User role updated successfully');
-    } catch {
-      setErrorMsg('Failed to update user role.');
+    } catch (err) {
+      setErrorMsg(getApiErrorMessage(err, 'Failed to update user role.'));
     } finally {
       setSaving(false);
     }
@@ -112,11 +122,17 @@ export const UserManagementPage: React.FC = () => {
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const roleOptions = ['All', ...Array.from(new Set(users.map((u) => u.role)))];
+  const activeFilterCount = (roleFilter !== 'All' ? 1 : 0) + (statusFilter !== 'All' ? 1 : 0);
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === 'All' || user.role === roleFilter;
+    const matchesStatus = statusFilter === 'All' || user.status === statusFilter;
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -159,9 +175,43 @@ export const UserManagementPage: React.FC = () => {
               InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#94A3B8' }} /></InputAdornment> }}
               sx={{ maxWidth: 400 }}
             />
-            <Button variant="outlined" startIcon={<FilterList />} sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}>
-              Filters
+            <Button
+              variant="outlined"
+              startIcon={<FilterList />}
+              onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+              sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}
+            >
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
             </Button>
+            <Menu anchorEl={filterAnchorEl} open={!!filterAnchorEl} onClose={() => setFilterAnchorEl(null)}>
+              <Box sx={{ px: 2, py: 1.5, minWidth: 220 }}>
+                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                  <InputLabel>Role</InputLabel>
+                  <Select label="Role" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                    {roleOptions.map((role) => (
+                      <MenuItem key={role} value={role}>{role}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth size="small" sx={{ mb: activeFilterCount > 0 ? 1.5 : 0 }}>
+                  <InputLabel>Status</InputLabel>
+                  <Select label="Status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <MenuItem value="All">All</MenuItem>
+                    <MenuItem value="Active">Active</MenuItem>
+                    <MenuItem value="Suspended">Suspended</MenuItem>
+                  </Select>
+                </FormControl>
+                {activeFilterCount > 0 && (
+                  <Button
+                    size="small"
+                    onClick={() => { setRoleFilter('All'); setStatusFilter('All'); }}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </Box>
+            </Menu>
           </Box>
         </Paper>
 
@@ -317,8 +367,14 @@ export const UserManagementPage: React.FC = () => {
                   <MenuItem value="User">User</MenuItem>
                   <MenuItem value="Vendor">Vendor</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
+                  <MenuItem value="Finance">Finance</MenuItem>
+                  <MenuItem value="SuperAdmin">SuperAdmin</MenuItem>
                 </Select>
               </FormControl>
+              <Typography variant="caption" color="text.secondary">
+                If you're not a SuperAdmin, this submits a request for SuperAdmin approval instead
+                of changing the role immediately.
+              </Typography>
             </Box>
           </DialogContent>
           <DialogActions>

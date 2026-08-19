@@ -11,7 +11,6 @@ import type {
 export const settingTabs = [
   { key: "profile", label: "Profile" },
   { key: "payout", label: "Payout" },
-  { key: "team", label: "Team" },
   { key: "security", label: "Security" },
   { key: "localization", label: "Localization" },
   { key: "notifications", label: "Notifications" },
@@ -32,10 +31,6 @@ export const sectionMetaMap: Record<
   payout: {
     title: "Payout",
     subtitle: "How you receive payments",
-  },
-  team: {
-    title: "Team",
-    subtitle: "Manage members and roles",
   },
   security: {
     title: "Security",

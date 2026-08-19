@@ -73,7 +73,7 @@ const Review = () => {
       setOpenSnackbar(true);
 
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/vendor/application-status");
       }, 2000);
     } catch (err) {
       if (isAxiosError(err)) {

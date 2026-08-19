@@ -18,6 +18,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import { useNotifications } from "../../../hooks/useNotifications";
 import type { Notification } from "../../../services/notificationService";
+import { useAuth } from "../../../context/useAuth";
 
 // ─── Types ───────────────────────────────────────────────
 type NotifStatus = "success" | "warning" | "error" | "info";
@@ -60,7 +61,8 @@ const FILTERS: { label: string; value: FilterType }[] = [
 
 // ─── Main Component ───────────────────────────────────────
 export default function AdminNotifications() {
-  const ADMIN_USER_ID = "YOUR-ADMIN-USER-GUID-HERE"; // Replace with real auth admin id
+  const { user } = useAuth();
+  const adminUserId = user?.userId ?? user?.id ?? null;
 
   const {
     notifications,
@@ -68,7 +70,7 @@ export default function AdminNotifications() {
     unreadCount,
     markAsRead,
     markAllAsRead,
-  } = useNotifications(ADMIN_USER_ID);
+  } = useNotifications(adminUserId);
 
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
 

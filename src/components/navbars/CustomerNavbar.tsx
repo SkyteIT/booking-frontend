@@ -1,3 +1,4 @@
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -76,7 +77,12 @@ export default function CustomerNavbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isVendor = String(user?.role ?? "").toLowerCase() === "vendor";
+  const role = String(user?.role ?? "").toLowerCase();
+  const isVendor = role === "vendor";
+  // Admin/Finance/SuperAdmin are just customers on this side of the app -
+  // the badge below always reads "Customer" for them - but same as a
+  // vendor gets a way back to their portal, they need one too.
+  const isStaff = role === "admin" || role === "finance" || role === "superadmin";
   const displayName = [user?.firstName, user?.lastName?.[0] ? `${user.lastName[0]}.` : ""]
     .filter(Boolean)
     .join(" ");
@@ -346,7 +352,7 @@ export default function CustomerNavbar() {
                     label="Settings"
                     accent={theme.palette.primary.main}
                     component={Link}
-                    to="/settings"
+                    to="/customer/settings"
                     onClick={() => setAnchorEl(null)}
                   />
                   {isVendor && !isVendorRoute && (
@@ -356,6 +362,16 @@ export default function CustomerNavbar() {
                       accent={theme.palette.primary.main}
                       component={Link}
                       to="/vendor/dashboard"
+                      onClick={() => setAnchorEl(null)}
+                    />
+                  )}
+                  {isStaff && !location.pathname.startsWith("/admin") && (
+                    <ProfileMenuItem
+                      icon={<AdminPanelSettingsOutlinedIcon sx={{ fontSize: 16 }} />}
+                      label="Admin portal"
+                      accent={theme.palette.primary.main}
+                      component={Link}
+                      to="/admin/dashboard"
                       onClick={() => setAnchorEl(null)}
                     />
                   )}

@@ -19,7 +19,6 @@ import {
   sectionMetaMap,
 } from "../../../components/Vendor/Settings/settingsConfig";
 import SettingsSideNav from "../../../components/Vendor/Settings/SettingsSideNav";
-import TeamRolesSection from "../../../components/Vendor/Settings/TeamRolesSection";
 import { useVendorSettings } from "./useVendorSettings";
 
 export default function Settings() {
@@ -124,7 +123,6 @@ export default function Settings() {
                 />
               )}
 
-              {activeSection === "team" && <TeamRolesSection />}
               {activeSection === "notifications" && <NotificationsSection />}
 
               <Divider />
