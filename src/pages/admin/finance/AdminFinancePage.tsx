@@ -9,17 +9,16 @@ import {
   CircularProgress,
   Divider,
   Stack,
-  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import { useAuth } from "../../../context/useAuth";
 import {
   approvePayoutExport,
@@ -143,11 +142,14 @@ export default function AdminFinancePage() {
         </Alert>
       )}
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3, borderBottom: "1px solid", borderColor: "divider" }}>
-        <Tab label="Payout Batches" value="payouts" />
-        <Tab label="Vendor Invoices" value="invoices" />
-        <Tab label="Commission Policy" value="commission" />
-      </Tabs>
+      <Box sx={{ mb: 3 }}>
+        <SegmentedTabs
+          options={["payouts", "invoices", "commission"] as const}
+          value={tab}
+          labels={{ payouts: "Payout Batches", invoices: "Vendor Invoices", commission: "Commission Policy" }}
+          onChange={setTab}
+        />
+      </Box>
 
       {!canManageFinance && (
         <Alert severity="info" sx={{ mb: 3 }}>

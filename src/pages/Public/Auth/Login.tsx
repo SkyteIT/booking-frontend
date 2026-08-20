@@ -83,6 +83,16 @@ function Login(): JSX.Element {
     try {
       const authResponse = await loginRequest(data.email, data.password);
 
+      // Admin/Finance accounts get a 2FA challenge instead of real tokens -
+      // route to enrollment (first time) or verification, not the normal
+      // post-login redirect.
+      if (authResponse.requiresTwoFactor) {
+        navigate(authResponse.requiresEnrollment ? "/2fa-enroll" : "/2fa-verify", {
+          state: { challengeToken: authResponse.challengeToken },
+        });
+        return;
+      }
+
       const currentUser = await refreshUser();
 
       setSuccessSnackbar(true);
@@ -112,6 +122,14 @@ function Login(): JSX.Element {
 
     try {
       const authResponse = await loginWithGoogle(credential);
+
+      if (authResponse.requiresTwoFactor) {
+        navigate(authResponse.requiresEnrollment ? "/2fa-enroll" : "/2fa-verify", {
+          state: { challengeToken: authResponse.challengeToken },
+        });
+        return;
+      }
+
       const currentUser = await refreshUser();
 
       setSuccessSnackbar(true);
