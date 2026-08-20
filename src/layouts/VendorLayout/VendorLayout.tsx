@@ -24,7 +24,7 @@ export default function VendorLayout() {
       <VendorNavbar />
 
       {/* 🔹 Content Area */}
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 4, px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
         <Box
           sx={{
             display: "grid",
