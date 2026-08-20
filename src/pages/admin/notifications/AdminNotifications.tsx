@@ -226,37 +226,36 @@ export default function AdminNotifications() {
         <Stack direction="row" spacing={1.5}>
           <Button
             variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => reload()}
-            disabled={loading}
-            sx={{
-              borderColor: "rgba(0,119,182,0.25)",
-              color: "#0077b6",
-              textTransform: "none",
-              fontWeight: 700,
-              borderRadius: 999,
-              px: 2.5,
-              "&:hover": { borderColor: "#0077b6", background: "rgba(0,119,182,0.06)" },
-            }}
-          >
-            Refresh
-          </Button>
-          <Button
-            variant="contained"
             startIcon={<DoneAllOutlinedIcon />}
             onClick={() => userId && markAllAsRead()}
             disabled={!userId || loading || unreadCount === 0}
             sx={{
-              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              borderColor: "divider",
+              color: "text.primary",
               textTransform: "none",
-              fontWeight: 700,
+              fontWeight: 600,
               borderRadius: 999,
               px: 2.5,
-              boxShadow: "0 4px 14px rgba(0,119,182,0.32)",
-              "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+              "&:hover": { borderColor: "primary.main", bgcolor: "rgba(0,119,182,0.06)", color: "primary.main" },
             }}
           >
             Mark all read
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<RefreshOutlinedIcon />}
+            onClick={() => reload()}
+            disabled={loading}
+            disableElevation
+            sx={{
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 2.5,
+            }}
+          >
+            Refresh
           </Button>
         </Stack>
       </Box>
@@ -408,8 +407,8 @@ export default function AdminNotifications() {
                     sx={{
                       width: 40,
                       height: 40,
-                      bgcolor: `${eventMeta.accent}18`,
-                      color: eventMeta.accent,
+                      bgcolor: "rgba(0,119,182,0.08)",
+                      color: "primary.main",
                       borderRadius: "12px",
                     }}
                   >
@@ -425,8 +424,8 @@ export default function AdminNotifications() {
                         label={group.title}
                         size="small"
                         sx={{
-                          bgcolor: `${group.accent}18`,
-                          color: group.accent,
+                          bgcolor: "rgba(0,119,182,0.08)",
+                          color: "primary.main",
                           fontWeight: 700,
                           height: 22,
                         }}
@@ -457,7 +456,7 @@ export default function AdminNotifications() {
                   <Stack alignItems="flex-end" spacing={0.75}>
                     <ArrowForwardIosRoundedIcon sx={{ fontSize: 11, color: "#CBD5E1", mt: 0.7 }} />
                     {!item.isRead ? (
-                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: group.accent }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "primary.main" }} />
                     ) : (
                       <CircleIcon sx={{ fontSize: 8, color: "transparent" }} />
                     )}
@@ -542,8 +541,8 @@ export default function AdminNotifications() {
                   sx={{
                     width: 44,
                     height: 44,
-                    bgcolor: `${selectedEventMeta?.accent ?? "#0077b6"}18`,
-                    color: selectedEventMeta?.accent ?? "#0077b6",
+                    bgcolor: "rgba(0,119,182,0.08)",
+                    color: "primary.main",
                     borderRadius: "12px",
                   }}
                 >
