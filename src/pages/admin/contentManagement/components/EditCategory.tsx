@@ -2,16 +2,16 @@
 import { useState, useEffect } from "react";
 import {
   Box, Typography, TextField, Button, Paper,
-  FormControlLabel, Switch, IconButton, Chip, MenuItem,
+  FormControlLabel, Switch, IconButton, Chip, MenuItem, ListSubheader,
   Dialog, DialogTitle, DialogContent, DialogActions,
   CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
-import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ListingType } from "../../../../services/Vendor/listingService";
 import { getCategoryById, updateCategoryFull } from "../services/contentService";
+import { EMOJI_GROUPS } from "../utils/emojiOptions";
 
 const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental", "Activity"];
 
@@ -21,12 +21,6 @@ const cardStyle = {
   boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
   mb: 0,
 };
-
-const EMOJI_OPTIONS = [
-  "🏨","🏠","🚗","✈️","🍽️","🎭","🏖️","⛺","🎿","🚢",
-  "🏋️","🎪","🏕️","🎡","🚀","🌴","🗺️","🧳","🎯","🏄",
-  "🎸","📸","🎨","🛒","💼","🎓","🏥","🌿","🐾","🎮",
-];
 
 interface EditCategoryProps {
   categoryId?: string;
@@ -118,7 +112,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
       <Paper sx={cardStyle}>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
-            <CategoryIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+            <Typography fontSize={18}>🖼️</Typography>
           </Box>
           <Typography fontWeight={600}>1. Basic Information</Typography>
         </Box>
@@ -141,7 +135,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
           value={form.type}
           onChange={(e) => set("type", e.target.value)}
           error={!!errors.type}
-          helperText={errors.type || "Which kind of listing can be created under this category"}
+          helperText={errors.type}
         >
           {LISTING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
         </TextField>
@@ -155,85 +149,159 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
         />
       </Paper>
 
-      {/* 2. Category Icon */}
+      {/* 2. Category Emoji */}
       <Paper sx={cardStyle}>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
-            <Typography fontSize={18}>🎨</Typography>
+            <Typography fontSize={18}>📍</Typography>
           </Box>
-          <Typography fontWeight={600}>2. Category Icon</Typography>
+          <Typography fontWeight={600}>2. Category Emoji</Typography>
         </Box>
 
-        {/* Native input so emoji input works on all keyboards/OS */}
         <TextField
-          label="Type or paste an emoji"
+          select
           fullWidth
+          label="Category Emoji"
           value={form.icon}
           onChange={(e) => set("icon", e.target.value)}
-          placeholder="e.g. 🏨"
-          helperText="Type an emoji from your keyboard, or click one below"
-          inputProps={{ style: { fontSize: 22, letterSpacing: 4 } }}
-          sx={{ mb: 2 }}
-        />
+          InputLabelProps={{ shrink: true }}
+          SelectProps={{
+            displayEmpty: true,
+            MenuProps: {
+              MenuListProps: {
+                sx: {
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                  gap: 0.5,
+                  px: 0.75,
+                  py: 0.75,
+                  alignItems: "stretch",
+                },
+              },
+            },
+            renderValue: (selected) => {
+              if (!selected) {
+                return <Typography color="text.secondary">Choose an emoji</Typography>;
+              }
 
-        {/* Quick-pick grid */}
-        <Typography fontSize={12} color="text.secondary" mb={1}>Quick pick:</Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.6 }}>
-          {EMOJI_OPTIONS.map((emoji) => (
-            <Box
-              key={emoji}
-              onClick={() => set("icon", emoji)}
+              const emoji = String(selected);
+              return (
+                <Box display="flex" alignItems="center" gap={0.75}>
+                  <Typography fontSize={18} lineHeight={1}>
+                    {emoji}
+                  </Typography>
+                  <Typography fontSize={12} fontWeight={600}>
+                    Selected emoji
+                  </Typography>
+                </Box>
+              );
+            },
+          }}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem
+            value=""
+            sx={{
+              gridColumn: "1 / span 1",
+              width: "100%",
+              minWidth: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              py: 0.5,
+              px: 0.5,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              bgcolor: "background.paper",
+            }}
+          >
+            <Typography fontSize={10} fontWeight={600}>
+              Clear
+            </Typography>
+          </MenuItem>
+          {EMOJI_GROUPS.map((group) => [
+            <ListSubheader
+              key={group.key}
               sx={{
-                width: 40, height: 40,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, borderRadius: "8px", cursor: "pointer",
-                border: form.icon === emoji ? "2px solid #6366F1" : "1px solid #E2E8F0",
-                bgcolor: form.icon === emoji ? "#EEF2FF" : "#fafafa",
-                transition: "all .15s",
-                "&:hover": { borderColor: "#6366F1", bgcolor: "#EEF2FF", transform: "scale(1.15)" },
+                lineHeight: "28px",
+                bgcolor: "#f8fafc",
+                gridColumn: "1 / -1",
               }}
             >
-              {emoji}
-            </Box>
-          ))}
-        </Box>
+              {group.title}
+            </ListSubheader>,
+            ...group.options.map((option) => (
+              <MenuItem
+                key={option.emoji}
+                value={option.emoji}
+                sx={{
+                  width: "100%",
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 0.15,
+                  py: 0.75,
+                  px: 0.5,
+                  textAlign: "center",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Typography fontSize={16} lineHeight={1}>
+                  {option.emoji}
+                </Typography>
+                <Typography fontSize={10} fontWeight={600} lineHeight={1}>
+                  {option.label}
+                </Typography>
+              </MenuItem>
+            )),
+          ])}
+        </TextField>
 
-        {/* Live preview */}
         {form.icon && (
           <Box
-            display="flex"
-            alignItems="center"
-            gap={1.5}
-            mt={2}
-            p={1.5}
-            sx={{ bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #E2E8F0" }}
+            sx={{
+              mt: 2,
+              p: 1.5,
+              borderRadius: 2,
+              border: "1px solid #E2E8F0",
+              background: "#F8FAFC",
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+            }}
           >
-            <Typography fontSize={13} color="text.secondary">Preview:</Typography>
+            <Typography fontSize={13} color="text.secondary">
+              Selected:
+            </Typography>
             <Box
               sx={{
-                width: 44, height: 44, borderRadius: "12px",
-                background: "linear-gradient(135deg,#6366F1,#4F46E5)",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 44,
+                height: 44,
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {form.icon.startsWith("http") ? (
-                <img src={form.icon} alt="icon" style={{ width: 28, height: 28, objectFit: "contain" }} />
-              ) : (
-                <Typography fontSize={22}>{form.icon}</Typography>
-              )}
+              <Typography fontSize={24} lineHeight={1}>
+                {form.icon}
+              </Typography>
             </Box>
-            <Typography fontSize={14} fontWeight={600} color="#0F172A">
-              {form.name || "Category Name"}
-            </Typography>
           </Box>
         )}
+
       </Paper>
 
-      {/* 3. Status & Visibility */}
       <Paper sx={cardStyle}>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
-            <Typography fontSize={18}>⚙️</Typography>
+            <Typography fontSize={18}>🔗</Typography>
           </Box>
           <Typography fontWeight={600}>3. Status & Visibility</Typography>
         </Box>

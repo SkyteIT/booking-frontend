@@ -11,8 +11,12 @@ export default function VendorNotifications() {
       <NotificationCenterPage
         role="vendor"
         userId={user?.userId ?? user?.id ?? null}
-        showTopCategories
+        showTopCategories={false}
         showPreferences={false}
+        compactHero
+        showHeaderStats={false}
+        showHeaderEmail={false}
+        modernFilterBar
       />
     </Stack>
   );

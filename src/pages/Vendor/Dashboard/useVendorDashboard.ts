@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ActivityItem, BookingStats, DashboardSummary } from "../../../components/Vendor/Dashboard/types";
+import { useRealtimeHub } from "../../../hooks/useRealtimeHub";
 import { useVendorBookings } from "../../../hooks/useVendorBookings";
 import { getDashboard } from "../../../services/Bookings/booking";
 import { getBookingStats } from "../../../services/Vendor/dashboard";
@@ -20,40 +21,50 @@ export function useVendorDashboard() {
 
   const { currentRevenue, growth } = calculateRevenuemetrics(bookings);
 
-  useEffect(() => {
-    async function loadDashboard() {
-      try {
-        setLoadingDashboard(true);
-        setDashboardError(null);
-        const res = await getDashboard();
-        setDashboard(res);
-      } catch (err) {
-        console.error("Dashboard fetch failed", err);
-        setDashboardError("Unable to load dashboard activity.");
-      } finally {
-        setLoadingDashboard(false);
-      }
+  const loadDashboard = useCallback(async () => {
+    try {
+      setLoadingDashboard(true);
+      setDashboardError(null);
+      const res = await getDashboard();
+      setDashboard(res);
+    } catch (err) {
+      console.error("Dashboard fetch failed", err);
+      setDashboardError("Unable to load dashboard activity.");
+    } finally {
+      setLoadingDashboard(false);
     }
+  }, []);
 
-    loadDashboard();
+  const loadBookingStats = useCallback(async () => {
+    try {
+      setLoadingBookingStats(true);
+      const res = await getBookingStats();
+      setBookingStats(res);
+    } catch (err) {
+      console.error("Booking stats fetch failed", err);
+      setBookingStats(null);
+    } finally {
+      setLoadingBookingStats(false);
+    }
   }, []);
 
   useEffect(() => {
-    async function loadBookingStats() {
-      try {
-        setLoadingBookingStats(true);
-        const res = await getBookingStats();
-        setBookingStats(res);
-      } catch (err) {
-        console.error("Booking stats fetch failed", err);
-        setBookingStats(null);
-      } finally {
-        setLoadingBookingStats(false);
-      }
-    }
+    void loadDashboard();
+  }, [loadDashboard]);
 
-    loadBookingStats();
-  }, []);
+  useEffect(() => {
+    void loadBookingStats();
+  }, [loadBookingStats]);
+
+  useRealtimeHub(
+    {
+      "dashboard.refresh": () => {
+        void loadDashboard();
+        void loadBookingStats();
+      },
+    },
+    { enabled: true }
+  );
 
   const backendActivitySource =
     dashboard?.recentActivity ?? dashboard?.recentActivities ?? dashboard?.activities;

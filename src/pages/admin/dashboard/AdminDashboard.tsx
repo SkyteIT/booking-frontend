@@ -36,6 +36,7 @@ import {
 } from "../../../services/Admin/adminService";
 import { getVendorApplications, type VendorApplication } from "../../../services/Admin/vendor";
 import { getListings, type ListingResponse } from "../../../services/Vendor/listingService";
+import { useRealtimeHub } from "../../../hooks/useRealtimeHub";
 
 interface StatCard {
   label: string;
@@ -243,6 +244,11 @@ function calculateChange(current: number, previous: number | null) {
   return Number((((current - previous) / previous) * 100).toFixed(1));
 }
 
+function isReviewQueueStatus(value: unknown) {
+  const status = String(value ?? "").toLowerCase();
+  return status.includes("pending") || status.includes("submitted") || status.includes("review");
+}
+
 export default function AdminDashboard() {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot>({
     dashboardStats: null,
@@ -261,6 +267,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     snapshotRef.current = snapshot;
   }, [snapshot]);
+
+  useRealtimeHub(
+    {
+      "dashboard.refresh": () => {
+        void loadDashboard(true);
+      },
+    },
+    { enabled: true }
+  );
 
   const loadDashboard = useCallback(async (isRefresh = false) => {
     try {
@@ -363,7 +378,7 @@ export default function AdminDashboard() {
     (vendor) => String(vendor.status).toLowerCase() === "approved"
   ).length;
   const pendingVendorApplications = snapshot.vendorApplications
-    .filter((vendor) => String(vendor.status).toLowerCase() === "pending")
+    .filter((vendor) => isReviewQueueStatus(vendor.status))
     .sort((a, b) => toTimestamp(b.submittedAt) - toTimestamp(a.submittedAt));
   const totalVendors = snapshot.dashboardStats?.totalVendors ?? approvedVendorApplications;
   const currency = snapshot.dashboardStats?.currency ?? snapshot.bookings.find((booking) => booking.currency)?.currency ?? "LKR";
@@ -674,3 +689,6 @@ export default function AdminDashboard() {
     </Box>
   );
 }
+
+
+

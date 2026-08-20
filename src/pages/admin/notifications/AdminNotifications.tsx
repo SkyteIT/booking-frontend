@@ -164,15 +164,6 @@ export default function AdminNotifications() {
     });
   }, [notificationsWithMeta]);
 
-  const topCategories = useMemo(() => {
-    return roleConfig.groups
-      .map((group) => ({
-        ...group,
-        count: notificationsWithMeta.filter((item) => item.match.groupKey === group.key).length,
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [notificationsWithMeta, roleConfig.groups]);
-
   useEffect(() => {
     setPage(1);
   }, [activeFilter, searchQuery]);
@@ -202,7 +193,7 @@ export default function AdminNotifications() {
   const SelectedIcon = selectedEventMeta?.icon ?? NotificationsActiveOutlinedIcon;
 
   return (
-    <Box sx={{ display: "grid", gap: 3 }}>
+    <Box sx={{ display: "grid", gap: 3, width: "100%", maxWidth: "100%", overflowX: "hidden" }}>
       <Paper
         elevation={0}
         sx={{
@@ -210,10 +201,10 @@ export default function AdminNotifications() {
           overflow: "hidden",
           borderRadius: 6,
           p: { xs: 3, md: 4.25 },
-          color: "#fff",
-          background: "linear-gradient(135deg, #0f172a 0%, #111827 35%, #123b66 100%)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          boxShadow: "0 24px 60px rgba(15,23,42,0.22)",
+          color: "#0f172a",
+          background: "linear-gradient(135deg, #f8fbff 0%, #eef4ff 46%, #e0eaff 100%)",
+          border: "1px solid rgba(37,99,235,0.12)",
+          boxShadow: "0 18px 44px rgba(37,99,235,0.08)",
         }}
       >
         <Box
@@ -221,7 +212,7 @@ export default function AdminNotifications() {
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(circle at top right, rgba(59,130,246,0.22), transparent 30%), radial-gradient(circle at bottom left, rgba(16,185,129,0.12), transparent 28%)",
+              "radial-gradient(circle at top right, rgba(37,99,235,0.10), transparent 30%), radial-gradient(circle at bottom left, rgba(59,130,246,0.08), transparent 28%)",
             pointerEvents: "none",
           }}
         />
@@ -232,32 +223,29 @@ export default function AdminNotifications() {
                 sx={{
                   width: 60,
                   height: 60,
-                  bgcolor: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.18)",
+                  bgcolor: "#2563eb",
+                  color: "#fff",
+                  border: "1px solid rgba(37,99,235,0.18)",
                 }}
               >
                 <NotificationsActiveOutlinedIcon />
               </Avatar>
               <Box>
-                <Typography variant="h4" fontWeight={900} lineHeight={1.05}>
+                <Typography
+                  variant="h4"
+                  fontWeight={800}
+                  lineHeight={1.05}
+                  sx={{ letterSpacing: "-0.5px", color: "#0F172A" }}
+                >
                   Admin command inbox
                 </Typography>
-                <Typography sx={{ mt: 0.75, maxWidth: 780, opacity: 0.9 }}>
-                  Monitor onboarding, moderation, operations, and platform safety from a single, high-signal console.
+                <Typography sx={{ mt: 0.75, maxWidth: 780, color: "#64748B", fontSize: 14 }}>
+                  Monitor onboarding, moderation, operations, and safety events from a single queue.
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
-                  <Chip label="Escalation-first" sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 700 }} />
-                  <Chip label="Moderation queue" sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 700 }} />
-                  <Chip label="Platform health" sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 700 }} />
-                </Stack>
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
-              <Chip label="Live feed" sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 700 }} />
-              <Chip label={`${stats.unread} unread`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 700 }} />
-              <Chip label={`${stats.critical} priority`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 700 }} />
-            </Stack>
+            <Box sx={{ height: 8 }} />
           </Stack>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
@@ -273,7 +261,8 @@ export default function AdminNotifications() {
                 fontWeight: 800,
                 borderRadius: 999,
                 px: 2.5,
-                "&:hover": { bgcolor: "#f8fafc" },
+                border: "1px solid rgba(15,23,42,0.08)",
+                "&:hover": { bgcolor: "#f8fafc", borderColor: "rgba(37,99,235,0.18)" },
               }}
             >
               Mark all read
@@ -284,13 +273,14 @@ export default function AdminNotifications() {
               onClick={() => reload()}
               disabled={loading}
               sx={{
-                borderColor: "rgba(255,255,255,0.24)",
-                color: "#fff",
+                borderColor: "rgba(37,99,235,0.18)",
+                color: "#1d4ed8",
                 textTransform: "none",
                 fontWeight: 700,
                 borderRadius: 999,
                 px: 2.5,
-                "&:hover": { borderColor: "rgba(255,255,255,0.45)", bgcolor: "rgba(255,255,255,0.06)" },
+                bgcolor: "#fff",
+                "&:hover": { borderColor: "rgba(37,99,235,0.35)", bgcolor: "#eff6ff" },
               }}
             >
               Refresh
@@ -309,7 +299,7 @@ export default function AdminNotifications() {
         sx={{
           display: "grid",
           gap: 3,
-          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1.55fr) 360px" },
+          gridTemplateColumns: "1fr",
           alignItems: "start",
         }}
       >
@@ -326,27 +316,35 @@ export default function AdminNotifications() {
                 label: "Total events",
                 value: stats.total,
                 accent: "#1d4ed8",
+                tint: "#eff6ff",
+                border: "rgba(29,78,216,0.16)",
                 icon: <FilterListRoundedIcon />,
                 hint: "All inbound events",
               },
               {
                 label: "Unread",
                 value: stats.unread,
-                accent: "#0f766e",
+                accent: "#0284c7",
+                tint: "#ecfeff",
+                border: "rgba(2,132,199,0.16)",
                 icon: <NotificationsActiveOutlinedIcon />,
                 hint: "Needs review",
               },
               {
                 label: "Critical",
                 value: stats.critical,
-                accent: "#dc2626",
+                accent: "#e11d48",
+                tint: "#fff1f2",
+                border: "rgba(225,29,72,0.16)",
                 icon: <PriorityHighRoundedIcon />,
                 hint: "Escalations",
               },
               {
                 label: "Processed",
                 value: stats.resolved,
-                accent: "#7c3aed",
+                accent: "#16a34a",
+                tint: "#f0fdf4",
+                border: "rgba(22,163,74,0.16)",
                 icon: <DoneAllOutlinedIcon />,
                 hint: "Already reviewed",
               },
@@ -355,26 +353,37 @@ export default function AdminNotifications() {
                 key={card.label}
                 elevation={0}
                 sx={{
-                  borderRadius: 4.5,
-                  p: 2.5,
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  bgcolor: "#fff",
-                  boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+                  borderRadius: 4,
+                  p: 1.8,
+                  border: `1px solid ${card.border}`,
+                  bgcolor: card.tint,
+                  boxShadow: "0 10px 24px rgba(15,23,42,0.03)",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    inset: "0 auto auto 0",
+                    width: 4,
+                    height: "100%",
+                    background: card.accent,
+                    opacity: 0.9,
+                  },
                 }}
               >
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5} sx={{ pl: 0.5 }}>
                   <Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="caption" sx={{ letterSpacing: 0.45, textTransform: "uppercase", color: "text.secondary" }}>
                       {card.label}
                     </Typography>
-                    <Typography variant="h4" fontWeight={900} sx={{ mt: 0.5 }}>
+                    <Typography variant="h5" fontWeight={900} sx={{ mt: 0.35, lineHeight: 1, color: "#0f172a" }}>
                       {card.value}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ display: "block", mt: 0.35, color: "text.secondary" }}>
                       {card.hint}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: `${card.accent}14`, color: card.accent, width: 40, height: 40 }}>
+                  <Avatar sx={{ bgcolor: "#fff", color: card.accent, width: 38, height: 38, boxShadow: "0 6px 16px rgba(15,23,42,0.08)" }}>
                     {card.icon}
                   </Avatar>
                 </Stack>
@@ -392,14 +401,14 @@ export default function AdminNotifications() {
               boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
             }}
           >
-            <Box sx={{ p: 3.25 }}>
+            <Box sx={{ p: { xs: 2.25, md: 2.75 } }}>
               <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" gap={2}>
                 <Box>
                   <Typography variant="h6" fontWeight={800}>
                     Notification stream
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Search, filter, and review events with a focused admin workflow.
+                    Search and switch between inbox views with a compact admin workflow.
                   </Typography>
                 </Box>
                 <TextField
@@ -407,37 +416,119 @@ export default function AdminNotifications() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search notifications"
                   size="small"
-                  sx={{ width: { xs: "100%", md: 320 } }}
+                  sx={{
+                    width: { xs: "100%", md: 300 },
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#E8F1FF",
+                      borderRadius: 999,
+                      transition: "all 0.18s ease",
+                      "& fieldset": {
+                        borderColor: "rgba(37,99,235,0.22)",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "rgba(37,99,235,0.36)",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#2563EB",
+                        borderWidth: 1,
+                      },
+                    },
+                    "& .MuiInputBase-input": {
+                      fontWeight: 600,
+                      color: "#1E3A8A",
+                    },
+                  }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchOutlinedIcon fontSize="small" />
+                        <SearchOutlinedIcon fontSize="small" sx={{ color: "#3B82F6" }} />
                       </InputAdornment>
                     ),
                   }}
                 />
               </Stack>
 
-              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 2.5 }}>
-                {FILTERS.map((filter) => (
-                  <Chip
-                    key={filter.value}
-                    label={`${filter.label}${filterCounts[filter.value] ? ` (${filterCounts[filter.value]})` : ""}`}
-                    clickable
-                    onClick={() => setActiveFilter(filter.value)}
-                    variant={activeFilter === filter.value ? "filled" : "outlined"}
-                    sx={{
-                      fontWeight: 700,
-                      bgcolor: activeFilter === filter.value ? "#0f172a" : "#f1f5f9",
-                      color: activeFilter === filter.value ? "#fff" : "#334155",
-                      borderColor: activeFilter === filter.value ? "#0f172a" : "divider",
-                    }}
-                  />
-                ))}
-              </Stack>
+              <Box
+                sx={{
+                  mt: 2.5,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                  gap: 0.9,
+                  overflowX: "hidden",
+                  pb: 0.5,
+                }}
+              >
+                {FILTERS.map((filter) => {
+                  const isActive = activeFilter === filter.value;
+                  const count = filterCounts[filter.value];
+
+                  return (
+                    <Button
+                      key={filter.value}
+                      onClick={() => setActiveFilter(filter.value)}
+                      variant={isActive ? "contained" : "outlined"}
+                      sx={{
+                        width: "100%",
+                        minWidth: 0,
+                        whiteSpace: "nowrap",
+                        borderRadius: 999,
+                        textTransform: "none",
+                        px: 1.1,
+                        py: 0.8,
+                        borderColor: isActive ? "#2563eb" : "rgba(15,23,42,0.10)",
+                        bgcolor: isActive ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "#fff",
+                        color: isActive ? "#fff" : "#334155",
+                        boxShadow: isActive
+                          ? "0 12px 28px rgba(37,99,235,0.22)"
+                          : "0 1px 2px rgba(15,23,42,0.04)",
+                        minHeight: 38,
+                        borderWidth: 1,
+                        position: "relative",
+                        "&:hover": {
+                          bgcolor: isActive ? "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)" : "#eff6ff",
+                          borderColor: isActive ? "#1d4ed8" : "#93c5fd",
+                          color: isActive ? "#fff" : "#1d4ed8",
+                          transform: "translateY(-1px)",
+                        },
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ width: "100%" }}>
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            bgcolor: isActive ? "#fff" : "rgba(37,99,235,0.75)",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography
+                          fontWeight={800}
+                          fontSize="0.78rem"
+                          sx={{ lineHeight: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
+                        >
+                          {filter.label}
+                        </Typography>
+                        <Chip
+                          label={count}
+                          size="small"
+                          sx={{
+                            height: 18,
+                            fontWeight: 800,
+                            bgcolor: isActive ? "rgba(255,255,255,0.16)" : "rgba(37,99,235,0.08)",
+                            color: isActive ? "#fff" : "#1d4ed8",
+                            flexShrink: 0,
+                            "& .MuiChip-label": { px: 0.65, fontSize: "0.66rem" },
+                          }}
+                        />
+                      </Stack>
+                    </Button>
+                  );
+                })}
+              </Box>
             </Box>
 
-              <Divider />
+            <Divider />
 
             {loading ? (
               <Box sx={{ p: 4 }}>
@@ -454,7 +545,7 @@ export default function AdminNotifications() {
                 </Typography>
               </Box>
             ) : (
-              <Stack divider={<Divider flexItem />} sx={{ maxHeight: { xl: 820 }, overflow: "auto" }}>
+              <Stack divider={<Divider flexItem />} sx={{ maxHeight: { xl: 700 }, overflow: "auto" }}>
                 {visible.map((item) => {
                   const group = roleConfig.groups.find((entry) => entry.key === item.match.groupKey) ?? roleConfig.groups[0];
                   const eventMeta = resolveNotificationEventMeta("admin", item.type, item.title, item.message);
@@ -467,12 +558,13 @@ export default function AdminNotifications() {
                       sx={{
                         display: "grid",
                         gridTemplateColumns: "auto minmax(0, 1fr) auto",
-                        gap: 2.25,
-                        px: 3,
-                        py: 2.5,
+                        gap: 1.5,
+                        px: 2,
+                        py: 1.6,
                         cursor: "pointer",
                         transition: "background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease",
                         backgroundColor: item.isRead ? "#fff" : "#f8fbff",
+                        borderLeft: item.isRead ? "3px solid transparent" : `3px solid ${group.accent}`,
                         "&:hover": {
                           backgroundColor: item.isRead ? "#fafcff" : "#eef5ff",
                           boxShadow: "inset 0 0 0 1px rgba(37,99,235,0.08)",
@@ -481,8 +573,8 @@ export default function AdminNotifications() {
                     >
                       <Avatar
                         sx={{
-                          width: 46,
-                          height: 46,
+                          width: 40,
+                          height: 40,
                           bgcolor: `${eventMeta.accent}14`,
                           color: eventMeta.accent,
                           borderRadius: 3,
@@ -492,8 +584,8 @@ export default function AdminNotifications() {
                       </Avatar>
 
                       <Box sx={{ minWidth: 0 }}>
-                        <Stack direction="row" justifyContent="space-between" spacing={2} alignItems="center">
-                          <Typography fontWeight={800} sx={{ lineHeight: 1.3 }}>
+                        <Stack direction="row" justifyContent="space-between" spacing={1.5} alignItems="center">
+                          <Typography fontWeight={800} sx={{ lineHeight: 1.15, fontSize: "0.95rem" }}>
                             {item.title}
                           </Typography>
                           <Chip
@@ -503,15 +595,16 @@ export default function AdminNotifications() {
                               bgcolor: `${group.accent}14`,
                               color: group.accent,
                               fontWeight: 700,
+                              height: 22,
                             }}
                           />
                         </Stack>
 
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35, fontSize: "0.875rem" }}>
                           {item.message}
                         </Typography>
 
-                        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mt: 1.25 }}>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.85 }}>
                           <Chip
                             size="small"
                             label={tone.label}
@@ -519,6 +612,7 @@ export default function AdminNotifications() {
                               bgcolor: tone.bg,
                               color: tone.color,
                               fontWeight: 700,
+                              height: 22,
                             }}
                           />
                           <Typography variant="caption" color="text.disabled">
@@ -527,8 +621,8 @@ export default function AdminNotifications() {
                         </Stack>
                       </Box>
 
-                      <Stack alignItems="flex-end" spacing={1}>
-                        <ArrowForwardIosRoundedIcon sx={{ fontSize: 12, color: "text.disabled", mt: 1 }} />
+                      <Stack alignItems="flex-end" spacing={0.75}>
+                        <ArrowForwardIosRoundedIcon sx={{ fontSize: 11, color: "text.disabled", mt: 0.7 }} />
                         {!item.isRead ? (
                           <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: group.accent }} />
                         ) : (
@@ -565,113 +659,6 @@ export default function AdminNotifications() {
                 />
               </Box>
             )}
-          </Paper>
-        </Stack>
-
-        <Stack spacing={3}>
-          <Paper
-            elevation={0}
-            sx={{
-              borderRadius: 5,
-              border: "1px solid rgba(15,23,42,0.08)",
-              bgcolor: "#fff",
-              p: 3.25,
-              boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-            }}
-          >
-            <Typography variant="h6" fontWeight={800}>
-              Top categories
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
-              Your busiest event streams over the current inbox window.
-            </Typography>
-
-            <Stack spacing={1.5}>
-              {topCategories.map((group) => (
-                <Box
-                  key={group.key}
-                  sx={{
-                    p: 1.75,
-                    borderRadius: 3.5,
-                    bgcolor: `${group.accent}08`,
-                    border: "1px solid",
-                    borderColor: `${group.accent}18`,
-                  }}
-                >
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                    <Stack direction="row" spacing={1.25} alignItems="center">
-                      <Avatar sx={{ width: 34, height: 34, bgcolor: `${group.accent}18`, color: group.accent }}>
-                        <group.icon fontSize="small" />
-                      </Avatar>
-                      <Box>
-                        <Typography fontWeight={700}>{group.title}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {group.description}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                    <Chip label={group.count} sx={{ fontWeight: 800 }} />
-                  </Stack>
-                  <Box
-                    sx={{
-                      mt: 1.25,
-                      height: 6,
-                      borderRadius: 999,
-                      bgcolor: "rgba(15,23,42,0.06)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: `${Math.max(8, Math.min(100, group.count * 12))}%`,
-                        height: "100%",
-                        borderRadius: 999,
-                        background: `linear-gradient(90deg, ${group.accent}, ${group.accent}aa)`,
-                      }}
-                    />
-                  </Box>
-                </Box>
-              ))}
-            </Stack>
-          </Paper>
-
-          <Paper
-            elevation={0}
-            sx={{
-              borderRadius: 5,
-              border: "1px solid rgba(15,23,42,0.08)",
-              bgcolor: "#fff",
-              p: 3.25,
-              boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-            }}
-          >
-            <Typography variant="h6" fontWeight={800}>
-              Response lanes
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Use the critical filter for escalations, moderation for approval queues, and unread for the day’s active work.
-            </Typography>
-            <Stack spacing={1.2} sx={{ mt: 2 }}>
-              {[
-                "Escalations: review safety and account alerts first.",
-                "Moderation: clear approvals before batch processing.",
-                "Operations: resolve booking and payment issues in the order received.",
-              ].map((line) => (
-                <Box
-                  key={line}
-                  sx={{
-                    p: 1.25,
-                    borderRadius: 2.5,
-                    bgcolor: "#f8fafc",
-                    border: "1px solid rgba(15,23,42,0.06)",
-                    color: "#334155",
-                    fontSize: "0.92rem",
-                  }}
-                >
-                  {line}
-                </Box>
-              ))}
-            </Stack>
           </Paper>
         </Stack>
       </Box>

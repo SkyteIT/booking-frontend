@@ -20,6 +20,12 @@ export type VendorApplication = {
   status: string;
 };
 
+export type ReviewVendorApplicationPayload = {
+  status: "Approved" | "Rejected";
+  action: "approve" | "reject";
+  rejectionReason?: string;
+};
+
 type GetVendorApplicationsParams = {
   status?: string;
   sortOptions?: string;
@@ -51,9 +57,12 @@ export const getVendorApplications = async ({
   return res.data;
 };
 
-export const reviewVendorApplication = async (id: string, status: string, reason?: string) => {
+export const reviewVendorApplication = async (id: string, status: "Approved" | "Rejected", reason?: string) => {
+  const action = status === "Approved" ? "approve" : "reject";
+
   await api.patch(`/admin/vendor-applications/${id}/review`, {
     status,
+    action,
     rejectionReason: reason,
   });
 };

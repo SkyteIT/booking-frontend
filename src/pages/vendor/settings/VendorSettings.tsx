@@ -1,5 +1,6 @@
 // src/pages/vendor/settings/VendorSettings.tsx
 import { useState } from "react";
+import { useAuth } from "../../../context/useAuth";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box, Typography, Paper, List, ListItemButton, ListItemIcon,
@@ -129,7 +130,8 @@ function PlaceholderPanel({ label }: { label: string }) {
 
 // ─── Notifications Panel (inbox + preferences in tabs) ───
 function NotificationsPanel() {
-  const VENDOR_USER_ID = "YOUR-VENDOR-USER-GUID-HERE"; // Replace with real auth user id
+  const { user } = useAuth();
+  const VENDOR_USER_ID = user?.userId ?? user?.id ?? null;
 
   const {
     notifications, preferences, loading, unreadCount,
@@ -447,3 +449,5 @@ export default function VendorSettings() {
     </Box>
   );
 }
+
+
