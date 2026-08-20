@@ -234,3 +234,20 @@ export const updateListing = async (id: string, data: CreateListingRequest) => {
 
   return response.ok;
 };
+
+export const deleteListing = async (id: string): Promise<boolean> => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_BASE_URL}/Listings/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to delete listing");
+  }
+
+  return response.ok;
+};

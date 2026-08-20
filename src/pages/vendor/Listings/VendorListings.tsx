@@ -18,6 +18,12 @@ import {
   Stack,
   CircularProgress,
   Alert,
+  Menu,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -26,7 +32,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import StarIcon from "@mui/icons-material/Star";
 import { Link } from "react-router-dom";
-import { getVendorListings } from "../../../services/Vendor/listingService";
+import { getVendorListings, deleteListing } from "../../../services/Vendor/listingService";
 import type { ListingResponse } from "../../../services/Vendor/listingService";
 
 const VendorListings = () => {
@@ -35,6 +41,43 @@ const VendorListings = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [activeListingId, setActiveListingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [listingToDelete, setListingToDelete] = useState<string | null>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, id: string) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+    setActiveListingId(id);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setActiveListingId(null);
+  };
+
+  const handleDeleteClick = () => {
+    setListingToDelete(activeListingId);
+    setDeleteDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!listingToDelete) return;
+    try {
+      await deleteListing(listingToDelete);
+      setListings((prev) => prev.filter((l) => l.id !== listingToDelete));
+      setDeleteDialogOpen(false);
+      setListingToDelete(null);
+    } catch (err: any) {
+      console.error("Error deleting listing:", err);
+      setError(err.message || "Failed to delete the listing. Please try again.");
+      setDeleteDialogOpen(false);
+      setListingToDelete(null);
+    }
+  };
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -273,6 +316,10 @@ const VendorListings = () => {
                       Edit
                     </Button>
                     <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMenuOpen(e, listing.id);
+                      }}
                       sx={{
                         border: "1px solid #E2E8F0",
                         borderRadius: "10px",
@@ -288,6 +335,75 @@ const VendorListings = () => {
           ))}
         </Grid>
       )}
+
+      {/* Popover Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: "10px",
+            boxShadow: "0px 4px 20px rgba(0,0,0,0.05)",
+            border: "1px solid #E2E8F0",
+          }
+        }}
+      >
+        <MenuItem onClick={handleDeleteClick} sx={{ color: "#DC2626", fontWeight: 500 }}>
+          Delete
+        </MenuItem>
+      </Menu>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            p: 1.5,
+            maxWidth: "400px",
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: "#1E293B", pb: 1 }}>
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          <DialogContentText sx={{ color: "#64748B" }}>
+            Are you sure you want to delete this listing? This action cannot be undone and will delete all associated bookings and reviews permanently.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            variant="outlined"
+            sx={{
+              borderRadius: "10px",
+              textTransform: "none",
+              borderColor: "#E2E8F0",
+              color: "#64748B",
+              "&:hover": { borderColor: "#CBD5E1", backgroundColor: "#F8FAFC" },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            color="error"
+            sx={{
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 600,
+              backgroundColor: "#DC2626",
+              "&:hover": { backgroundColor: "#B91C1C" },
+            }}
+          >
+            Delete this listing permanently
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
