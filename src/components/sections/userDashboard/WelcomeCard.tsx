@@ -4,15 +4,17 @@ import { useAuth } from "../../../context/AuthContext";
 const WelcomeCard = () => {
   const { user } = useAuth();
 
-  // Extract first name from full name or default to 'User'
-  const firstName = user?.name ? user.name.split(" ")[0] : "User";
+const firstName =
+  user?.firstName?.trim() ||
+  user?.name?.trim().split(/\s+/)[0] ||
+  "User";
 
   return (
     <Card sx={{ mb: 3, borderRadius: "14px", width: "100%" }}>
       <CardContent>
 
         <Typography variant="h5" fontWeight={600}>
-          Welcome back, {firstName}
+        Welcome back, {firstName}
         </Typography>
 
         <Typography color="text.secondary">

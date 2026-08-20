@@ -91,12 +91,21 @@ function Register(): JSX.Element {
         email: data.email,
         password: data.password,
       });
-
+      
+      // Load the newly registered user's complete profile into AuthContext
+      const currentUser = await refreshUser();
+      
+      if (!currentUser) {
+        throw new Error("Registration succeeded, but the user profile could not be loaded.");
+      }
+      
       setSuccessSnackbar(true);
-
+      
       setTimeout(() => {
+        const role = currentUser.role ?? response.role;
+      
         navigate(
-          String(response?.role ?? "").toLowerCase() === "vendor"
+          String(role ?? "").toLowerCase() === "vendor"
             ? "/vendor/dashboard"
             : "/customer/dashboard",
           { replace: true }
