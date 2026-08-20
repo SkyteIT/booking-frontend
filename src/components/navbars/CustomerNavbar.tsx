@@ -14,6 +14,7 @@ import { useAuth } from "../../context/useAuth";
 import CartButton from "../buttons/CartButton";
 import UbeLogo from "../common/UbeLogo";
 import { useNotifications } from "../../hooks/useNotifications";
+import { belongsToPortal } from "../../utils/notificationPortals";
 
 const NAV_LINKS = [
   { label: "Explore", to: "/search", dot: "primary.main" },
@@ -68,7 +69,12 @@ export default function CustomerNavbar() {
   const location = useLocation();
 
   const { isAuthenticated, user, logout } = useAuth();
-  const { unreadCount } = useNotifications(user?.userId ?? user?.id ?? null);
+  const { notifications } = useNotifications(user?.userId ?? user?.id ?? null);
+  // This account's feed may also contain vendor-context events (e.g. a
+  // customer account that's also a vendor) - the customer navbar's badge
+  // should only ever count customer-context unread, matching what
+  // /customer/notifications actually shows.
+  const unreadCount = notifications.filter((n) => !n.isRead && belongsToPortal(n.type, "customer")).length;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
