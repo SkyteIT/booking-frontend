@@ -145,9 +145,17 @@ const VendorListings = () => {
         <Box>
           <Typography
             variant="h5"
-            sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+            sx={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              display: "flex",
+              alignItems: "baseline",
+              gap: "2px",
+            }}
           >
             Listings
+            <Box component="span" sx={{ width: 8, height: 8, borderRadius: "3px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
             Manage your inventory and offerings

@@ -47,9 +47,17 @@ export default function Bookings() {
       <Box>
         <Typography
           variant="h5"
-          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          sx={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "2px",
+          }}
         >
           Bookings
+          <Box component="span" sx={{ width: 8, height: 8, borderRadius: "3px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Manage and track your bookings
