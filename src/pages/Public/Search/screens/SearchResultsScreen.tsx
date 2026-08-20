@@ -26,17 +26,17 @@ const SearchResultsScreen = () => {
   } = useSearchResults();
 
   return (
-        <Box
-          sx={{
-            backgroundColor: "background.default",
-            backgroundImage:
-              "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
-            backgroundRepeat: "no-repeat",
-            minHeight: "70vh",
-            pt: { xs: 4, md: 8 },
-            pb: { xs: 4, md: 6 },
-          }}
-        >
+    <Box
+      sx={{
+        backgroundColor: "background.default",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
+        backgroundRepeat: "no-repeat",
+        minHeight: "70vh",
+        pt: { xs: 16, md: 18 },
+        pb: { xs: 4, md: 6 },
+      }}
+    >
       <Container maxWidth="xl" sx={{ px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
         <SearchToolbar query={filters.q} total={listings.length} onQueryChange={setQuery} />
 
