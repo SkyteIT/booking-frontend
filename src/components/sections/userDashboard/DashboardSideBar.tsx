@@ -20,7 +20,7 @@ const DashboardSidebar = () => {
   const isVendor = role === "vendor";
   const isAdmin = role === "admin" || role === "superadmin";
 
-  // ✅ BASE MENU
+  // BASE MENU
   const menuItems = [
     { label: "Dashboard", icon: <DashboardIcon fontSize="small" />, path: "/customer/dashboard" },
     { label: "My Bookings", icon: <CalendarMonthIcon fontSize="small" />, path: "/customer/bookings" },
@@ -29,7 +29,7 @@ const DashboardSidebar = () => {
     { label: "Settings", icon: <SettingsIcon fontSize="small" />, path: "/customer/settings" },
   ];
 
-  // ✅ ADD VENDOR ONLY IF ROLE = VENDOR
+  //ADD VENDOR DASHBOARD ONLY IF ROLE = VENDOR
   if (isVendor) {
     menuItems.push({
       label: "Vendor Dashboard",
@@ -38,7 +38,7 @@ const DashboardSidebar = () => {
     });
   }
 
-  // ✅ ADD ADMIN PORTAL ONLY IF ROLE = ADMIN / SUPERADMIN
+  // ADD ADMIN PORTAL ONLY IF ROLE = ADMIN / SUPERADMIN
   if (isAdmin) {
     menuItems.push({
       label: "Admin Portal",
