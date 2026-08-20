@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -25,6 +26,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import StarIcon from "@mui/icons-material/Star";
 import {
   getAllBookings,
@@ -233,6 +235,7 @@ function isReviewQueueStatus(value: unknown) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [snapshot, setSnapshot] = useState<DashboardSnapshot>({
     dashboardStats: null,
     users: [],
@@ -528,11 +531,12 @@ export default function Dashboard() {
               height: "100%",
             }}
           >
-            <SectionHeader title="Pending Approvals" />
+            <SectionHeader title="Pending Approvals" onViewAll={() => navigate("/admin/vendors")} />
             <Box display="flex" flexDirection="column" gap={1.5}>
               {pendingItems.map((item) => (
                 <Box
                   key={item.id}
+                  onClick={() => navigate(`/admin/vendors?applicationId=${item.id}`)}
                   display="flex"
                   alignItems="center"
                   justifyContent="space-between"
@@ -541,7 +545,9 @@ export default function Dashboard() {
                     borderRadius: 2,
                     border: "1px solid rgba(15,27,45,0.06)",
                     background: "rgba(255,255,255,0.6)",
-                    "&:hover": { background: "rgba(0,119,182,0.05)" },
+                    cursor: "pointer",
+                    transition: "background-color 0.15s ease",
+                    "&:hover": { background: "rgba(0,119,182,0.08)" },
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1.5}>
@@ -563,8 +569,15 @@ export default function Dashboard() {
                       </Typography>
                     </Box>
                   </Box>
-                  <IconButton size="small" sx={{ color: "#94A3B8" }}>
-                    <AccessTimeIcon fontSize="small" />
+                  <IconButton
+                    size="small"
+                    sx={{ color: "#0077b6" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/vendors?applicationId=${item.id}`);
+                    }}
+                  >
+                    <ChevronRightIcon fontSize="small" />
                   </IconButton>
                 </Box>
               ))}

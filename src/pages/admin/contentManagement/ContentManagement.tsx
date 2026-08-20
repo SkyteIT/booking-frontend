@@ -123,8 +123,11 @@ export default function ContentManagement() {
         minHeight: "100vh",
         px: { xs: 2, md: 3.5 },
         py: { xs: 2, md: 3.5 },
+        borderRadius: "28px",
+        border: "1px solid rgba(15,27,45,0.06)",
+        boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
         background:
-          "radial-gradient(circle at top left, rgba(99,102,241,0.12) 0%, transparent 28%), radial-gradient(circle at top right, rgba(14,165,233,0.10) 0%, transparent 24%), linear-gradient(180deg, #F7F9FC 0%, #EEF2F7 100%)",
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%), linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
         overflow: "hidden",
         "&::before": {
           content: '""',

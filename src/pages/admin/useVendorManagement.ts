@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { VendorManagementTab } from "../../components/Admin/VendorManagement/VendorManagementTabs";
 import type { VendorApplicationDetail, VendorApplicationListItem } from "../../services/Admin/vendor";
 import {getVendorApplications, getVendorApplicationById, reviewVendorApplication } from "../../services/Admin/vendor";
@@ -10,6 +11,7 @@ type SnackbarState = {
 };
 
 export function useVendorManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<VendorManagementTab>("pending");
   const [vendors, setVendors] = useState<VendorApplicationListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -106,6 +108,21 @@ export function useVendorManagement() {
       setLoadingDetails(false);
     }
   };
+
+  // Deep-link support - e.g. from the dashboard's "Pending Approvals" list
+  // (/admin/vendors?applicationId=...) opens straight into that
+  // application's review dialog instead of just landing on the table.
+  useEffect(() => {
+    const applicationId = searchParams.get("applicationId");
+    if (!applicationId) return;
+
+    void handleRowClick(applicationId);
+
+    const next = new URLSearchParams(searchParams);
+    next.delete("applicationId");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAction = async (type: "Approved" | "Rejected") => {
     if (!selectedVendor) return;
