@@ -16,6 +16,8 @@
      under the same navbar (ViewProduct, Search) already use. */
   padding:128px 60px 40px;
   width:100%;
+  max-width:1600px;
+  margin:0 auto;
 }
 
 /* SIDEBAR WIDTH (1/4) */
