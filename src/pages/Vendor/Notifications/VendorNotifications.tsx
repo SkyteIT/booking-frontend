@@ -13,10 +13,8 @@ export default function VendorNotifications() {
         userId={user?.userId ?? user?.id ?? null}
         showTopCategories={false}
         showPreferences={false}
-        compactHero
         showHeaderStats={false}
         showHeaderEmail={false}
-        modernFilterBar
       />
     </Stack>
   );

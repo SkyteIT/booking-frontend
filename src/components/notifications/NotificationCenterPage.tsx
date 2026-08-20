@@ -42,6 +42,7 @@ import {
   resolveNotificationMatch,
 } from "./notificationCatalog";
 import { belongsToPortal } from "../../utils/notificationPortals";
+import SegmentedTabs from "../common/SegmentedTabs";
 
 type NotificationFilter = "all" | "unread" | string;
 
@@ -51,10 +52,8 @@ type NotificationCenterPageProps = {
   showTopCategories?: boolean;
   showPreferences?: boolean;
   allowReadActions?: boolean;
-  compactHero?: boolean;
   showHeaderStats?: boolean;
   showHeaderEmail?: boolean;
-  modernFilterBar?: boolean;
 };
 
 const PAGE_SIZE = 8;
@@ -111,10 +110,8 @@ export default function NotificationCenterPage({
   showTopCategories = true,
   showPreferences = true,
   allowReadActions = true,
-  compactHero = false,
   showHeaderStats = true,
   showHeaderEmail = true,
-  modernFilterBar = false,
 }: NotificationCenterPageProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -313,144 +310,97 @@ export default function NotificationCenterPage({
 
   return (
     <Box sx={{ display: "grid", gap: 3 }}>
-      <Paper
-        elevation={0}
-        sx={{
-          overflow: "hidden",
-          borderRadius: 4,
-          border: "1px solid rgba(255,255,255,0.08)",
-          background: config.heroGradient,
-          color: "#fff",
-          position: "relative",
-          p: { xs: 2.5, md: 3.5 },
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            background: config.heroGlow,
-            pointerEvents: "none",
-          }}
-        />
-
-        <Stack spacing={2} sx={{ position: "relative", zIndex: 1 }}>
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            alignItems={{ xs: "flex-start", md: "center" }}
-            justifyContent="space-between"
-            gap={2}
+      <Stack spacing={2}>
+        <Box>
+          <Typography
+            variant="h5"
+            sx={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              display: "flex",
+              alignItems: "baseline",
+              gap: "2px",
+            }}
           >
-            <Stack direction="row" spacing={compactHero ? 1.25 : 1.5} alignItems="center">
-              <Avatar
-                sx={{
-                  width: compactHero ? 44 : 48,
-                  height: compactHero ? 44 : 48,
-                  bgcolor: "rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-              >
-                <NotificationsNoneOutlinedIcon />
-              </Avatar>
-              <Box>
-                <Typography
-                  variant={compactHero ? "h5" : "h4"}
-                  fontWeight={800}
-                  lineHeight={1.1}
-                  sx={{ letterSpacing: "-0.5px" }}
-                >
-                  {config.title}
-                </Typography>
-                <Typography sx={{ opacity: 0.86, mt: 0.5, maxWidth: 760, fontSize: 14, lineHeight: 1.6 }}>
-                  {subtitle}
-                </Typography>
-              </Box>
-            </Stack>
-
-            <Chip
-              label={config.badge}
+            {config.title}
+            <Box
+              component="span"
               sx={{
-                alignSelf: { xs: "flex-start", md: "center" },
-                fontWeight: 700,
-                color: "#fff",
-                bgcolor: "rgba(255,255,255,0.14)",
-                border: "1px solid rgba(255,255,255,0.14)",
+                width: 8,
+                height: 8,
+                borderRadius: "3px",
+                backgroundColor: "primary.main",
+                display: "inline-block",
+                ml: 0.5,
               }}
             />
-          </Stack>
-
+          </Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+            {subtitle}
+          </Typography>
           {showHeaderStats && (
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip label={`${summary.unread} unread`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-              <Chip label={`${summary.total} total`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-              <Chip label={`${summary.critical} priority`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
-              <Chip label={`${summary.activeGroups} groups active`} sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "#fff" }} />
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
+              <Chip label={`${summary.unread} unread`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+              <Chip label={`${summary.total} total`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+              <Chip label={`${summary.critical} priority`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+              <Chip label={`${summary.activeGroups} groups active`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
             </Stack>
           )}
+          {showHeaderEmail && email && (
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 0.5 }}>
+              {email}
+            </Typography>
+          )}
+        </Box>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-            <Button
-              variant="contained"
-              startIcon={<DoneAllOutlinedIcon />}
-              onClick={() => {
-                if (!userId) return;
-                // The backend's bulk mark-all-read has no portal filter and
-                // would also mark this account's other-portal notifications
-                // read - go through the scoped (inbox) list one at a time
-                // instead of calling the unscoped bulk endpoint.
-                if (role === "vendor" || role === "customer") {
-                  inboxNotifications.filter((item) => !item.isRead).forEach((item) => void markAsRead(item.id));
-                } else {
-                  markAllAsRead();
-                }
-              }}
-              disabled={!userId || loading || summary.unread === 0}
-              sx={{
-                bgcolor: "#fff",
-                color: "#0f172a",
-                textTransform: "none",
-                fontWeight: 700,
-                borderRadius: 999,
-                px: 2.5,
-                "&:hover": { bgcolor: "#f8fafc" },
-              }}
-            >
-              Mark all read
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshOutlinedIcon />}
-              onClick={() => reload()}
-              disabled={loading}
-              sx={{
-                borderColor: "rgba(255,255,255,0.26)",
-                color: "#fff",
-                textTransform: "none",
-                fontWeight: 700,
-                borderRadius: 999,
-                px: 2.5,
-                "&:hover": {
-                  borderColor: "rgba(255,255,255,0.5)",
-                  bgcolor: "rgba(255,255,255,0.08)",
-                },
-              }}
-            >
-              Refresh
-            </Button>
-            {showHeaderEmail && email && (
-              <Chip
-                label={email}
-                sx={{
-                  maxWidth: "100%",
-                  bgcolor: "rgba(255,255,255,0.12)",
-                  color: "#fff",
-                  border: "1px solid rgba(255,255,255,0.14)",
-                }}
-              />
-            )}
-          </Stack>
+        <Stack direction="row" spacing={1.5} flexShrink={0}>
+          <Button
+            variant="outlined"
+            startIcon={<DoneAllOutlinedIcon />}
+            onClick={() => {
+              if (!userId) return;
+              // The backend's bulk mark-all-read has no portal filter and
+              // would also mark this account's other-portal notifications
+              // read - go through the scoped (inbox) list one at a time
+              // instead of calling the unscoped bulk endpoint.
+              if (role === "vendor" || role === "customer") {
+                inboxNotifications.filter((item) => !item.isRead).forEach((item) => void markAsRead(item.id));
+              } else {
+                markAllAsRead();
+              }
+            }}
+            disabled={!userId || loading || summary.unread === 0}
+            sx={{
+              borderColor: "divider",
+              color: "text.primary",
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 2.5,
+              "&:hover": { borderColor: "primary.main", bgcolor: "rgba(0,119,182,0.06)", color: "primary.main" },
+            }}
+          >
+            Mark all read
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<RefreshOutlinedIcon />}
+            onClick={() => reload()}
+            disabled={loading}
+            disableElevation
+            sx={{
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 2.5,
+            }}
+          >
+            Refresh
+          </Button>
         </Stack>
-      </Paper>
+      </Stack>
 
       {showEmptyState ? (
         <Alert severity="info" sx={{ borderRadius: 3 }}>
@@ -471,8 +421,9 @@ export default function NotificationCenterPage({
           >
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
               <Box>
-                <Typography variant="h6" fontWeight={800}>
+                <Typography variant="h6" fontWeight={700} sx={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.01em", display: "flex", alignItems: "baseline", gap: "2px" }}>
                   Top categories
+                  <Box component="span" sx={{ width: 6, height: 6, borderRadius: "2px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                   Your busiest backend event streams over the current inbox window.
@@ -502,7 +453,7 @@ export default function NotificationCenterPage({
                       overflow: "hidden",
                       p: 1.25,
                       borderRadius: 3,
-                      borderColor: `${group.accent}20`,
+                      borderColor: "rgba(0,119,182,0.12)",
                       bgcolor: "#fff",
                       boxShadow: "0 8px 22px rgba(15, 23, 42, 0.04)",
                       minHeight: 144,
@@ -516,7 +467,7 @@ export default function NotificationCenterPage({
                         width: 72,
                         height: 72,
                         borderRadius: "50%",
-                        background: `radial-gradient(circle, ${group.accent}22 0%, ${group.accent}00 70%)`,
+                        background: "radial-gradient(circle, rgba(0,119,182,0.14) 0%, rgba(0,119,182,0) 70%)",
                         pointerEvents: "none",
                       }}
                     />
@@ -527,8 +478,8 @@ export default function NotificationCenterPage({
                           sx={{
                             width: 32,
                             height: 32,
-                            bgcolor: `${group.accent}16`,
-                            color: group.accent,
+                            bgcolor: "rgba(0,119,182,0.1)",
+                            color: "primary.main",
                           }}
                         >
                           <Icon fontSize="small" />
@@ -539,8 +490,8 @@ export default function NotificationCenterPage({
                           sx={{
                             height: 20,
                             fontWeight: 700,
-                            bgcolor: `${group.accent}14`,
-                            color: group.accent,
+                            bgcolor: "rgba(0,119,182,0.08)",
+                            color: "primary.main",
                             textTransform: "capitalize",
                           }}
                         />
@@ -578,7 +529,7 @@ export default function NotificationCenterPage({
                               width,
                               height: "100%",
                               borderRadius: 999,
-                              background: `linear-gradient(90deg, ${group.accent}, ${group.accent}aa)`,
+                              background: "linear-gradient(90deg, #005a8d, #0077b6)",
                             }}
                           />
                         </Box>
@@ -606,8 +557,9 @@ export default function NotificationCenterPage({
           <Box sx={{ px: 3, pt: 3, pb: 2 }}>
             <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={2}>
               <Box>
-                <Typography variant="h6" fontWeight={800}>
+                <Typography variant="h6" fontWeight={700} sx={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.01em", display: "flex", alignItems: "baseline", gap: "2px" }}>
                   Notification feed
+                  <Box component="span" sx={{ width: 6, height: 6, borderRadius: "2px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Filter the inbox by category and keep unread items visible.
@@ -615,85 +567,16 @@ export default function NotificationCenterPage({
               </Box>
             </Stack>
 
-            {modernFilterBar ? (
-              <Box
-                sx={{
-                  mt: 2,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
-                  gap: 0.6,
-                  width: "100%",
-                  maxWidth: "100%",
-                  justifyItems: "stretch",
-                }}
-              >
-                {filterButtons.map((filter) => {
-                  const isActive = activeFilter === filter.key;
-                  const accent = filter.key === "all" ? "#2563eb" : filter.key === "unread" ? "#0f766e" : visibleGroups.find((group) => group.key === filter.key)?.accent ?? "#2563eb";
-
-                  return (
-                    <Button
-                      key={filter.key}
-                      onClick={() => setActiveFilter(filter.key)}
-                      variant={isActive ? "contained" : "outlined"}
-                      sx={{
-                        width: "100%",
-                        minWidth: 0,
-                        borderRadius: 999,
-                        textTransform: "none",
-                        px: 1,
-                        py: 0.7,
-                        minHeight: 38,
-                        borderColor: isActive ? accent : "rgba(15,23,42,0.12)",
-                        bgcolor: isActive ? accent : "#fff",
-                        color: isActive ? "#fff" : "#334155",
-                        boxShadow: isActive ? `0 10px 22px ${accent}2a` : "0 1px 2px rgba(15,23,42,0.04)",
-                        "&:hover": {
-                          bgcolor: isActive ? accent : "#eff6ff",
-                          borderColor: accent,
-                          color: isActive ? "#fff" : accent,
-                        },
-                      }}
-                      >
-                      <Stack direction="row" alignItems="center" spacing={0.55} sx={{ width: "100%" }}>
-                        <Typography
-                          fontWeight={800}
-                          fontSize="0.72rem"
-                          sx={{ lineHeight: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
-                        >
-                          {filter.label}
-                        </Typography>
-                        <Chip
-                          label={filter.count}
-                          size="small"
-                          sx={{
-                            height: 18,
-                            fontWeight: 800,
-                            bgcolor: isActive ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.06)",
-                            color: isActive ? "#fff" : accent,
-                            flexShrink: 0,
-                            "& .MuiChip-label": { px: 0.6, fontSize: "0.62rem" },
-                          }}
-                        />
-                      </Stack>
-                    </Button>
-                  );
-                })}
-              </Box>
-            ) : (
-              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 2 }}>
-                {["all", "unread"].map((filter) => (
-                  <Chip
-                    key={filter}
-                    label={filter === "all" ? "All" : "Unread"}
-                    onClick={() => setActiveFilter(filter)}
-                    clickable
-                    color={activeFilter === filter ? "primary" : "default"}
-                    variant={activeFilter === filter ? "filled" : "outlined"}
-                  />
-                ))}
-              </Stack>
-            )}
+            <Box sx={{ mt: 2 }}>
+              <SegmentedTabs
+                options={filterButtons.map((filter) => filter.key)}
+                value={activeFilter}
+                onChange={(next) => setActiveFilter(next)}
+                labels={Object.fromEntries(
+                  filterButtons.map((filter) => [filter.key, `${filter.label} ${filter.count}`])
+                )}
+              />
+            </Box>
 
             <TextField
               fullWidth
@@ -741,16 +624,17 @@ export default function NotificationCenterPage({
               {sectionedNotifications.map((section) => (
                 <Box key={section.label}>
                   <Box sx={{ px: 3, pt: 2.5, pb: 1.25 }}>
-                    <Chip
-                      label={section.label}
-                      size="small"
+                    <Typography
+                      variant="caption"
                       sx={{
-                        fontWeight: 800,
-                        bgcolor: "#0f172a",
-                        color: "#fff",
-                        letterSpacing: "0.02em",
+                        fontWeight: 700,
+                        color: "text.secondary",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
                       }}
-                    />
+                    >
+                      {section.label}
+                    </Typography>
                   </Box>
                   <Stack divider={<Divider flexItem />}>
                     {section.items.map((item) => {
@@ -787,9 +671,9 @@ export default function NotificationCenterPage({
                         >
                           <Box
                             sx={{
-                              width: 6,
+                              width: 4,
                               borderRadius: 999,
-                              background: `linear-gradient(180deg, ${tone}, ${group.accent})`,
+                              background: item.isRead ? "rgba(15,27,45,0.08)" : "linear-gradient(180deg, #005a8d, #0077b6)",
                             }}
                           />
 
@@ -798,8 +682,8 @@ export default function NotificationCenterPage({
                               width: 44,
                               height: 44,
                               borderRadius: "14px",
-                              bgcolor: `${eventMeta.accent}14`,
-                              color: eventMeta.accent,
+                              bgcolor: "rgba(0,119,182,0.08)",
+                              color: "primary.main",
                               display: "grid",
                               placeItems: "center",
                               flexShrink: 0,
@@ -819,23 +703,27 @@ export default function NotificationCenterPage({
                                     size="small"
                                     label={group.title}
                                     sx={{
-                                      height: 24,
-                                      fontWeight: 700,
-                                      bgcolor: `${group.accent}14`,
-                                      color: group.accent,
+                                      height: 22,
+                                      fontWeight: 600,
+                                      fontSize: "0.72rem",
+                                      bgcolor: "rgba(0,119,182,0.08)",
+                                      color: "primary.main",
                                     }}
                                   />
-                                  <Chip
-                                    size="small"
-                                    label={item.match.severity}
-                                    sx={{
-                                      height: 24,
-                                      fontWeight: 700,
-                                      bgcolor: `${tone}14`,
-                                      color: tone,
-                                      textTransform: "capitalize",
-                                    }}
-                                  />
+                                  {item.match.severity !== "info" && (
+                                    <Chip
+                                      size="small"
+                                      label={item.match.severity}
+                                      sx={{
+                                        height: 22,
+                                        fontWeight: 600,
+                                        fontSize: "0.72rem",
+                                        bgcolor: `${tone}14`,
+                                        color: tone,
+                                        textTransform: "capitalize",
+                                      }}
+                                    />
+                                  )}
                                 </Stack>
                               </Box>
                             </Stack>
@@ -906,7 +794,7 @@ export default function NotificationCenterPage({
                                   width: 10,
                                   height: 10,
                                   borderRadius: "50%",
-                                  bgcolor: group.accent,
+                                  bgcolor: "primary.main",
                                   mt: 0.25,
                                 }}
                               />
@@ -955,8 +843,9 @@ export default function NotificationCenterPage({
           >
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
               <Box>
-                <Typography variant="h6" fontWeight={800}>
+                <Typography variant="h6" fontWeight={700} sx={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.01em", display: "flex", alignItems: "baseline", gap: "2px" }}>
                   Delivery preferences
+                  <Box component="span" sx={{ width: 6, height: 6, borderRadius: "2px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                   Fine-tune which channels notify you for each backend event family.
@@ -1121,6 +1010,8 @@ export default function NotificationCenterPage({
           sx: {
             width: { xs: "100%", sm: 420 },
             bgcolor: "#f8fafc",
+            borderTopLeftRadius: "20px",
+            borderBottomLeftRadius: "20px",
           },
         }}
       >
@@ -1128,8 +1019,9 @@ export default function NotificationCenterPage({
           <Box sx={{ p: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
               <Box>
-                <Typography variant="h6" fontWeight={800}>
+                <Typography variant="h6" fontWeight={700} sx={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.01em", display: "flex", alignItems: "baseline", gap: "2px" }}>
                   Notification details
+                  <Box component="span" sx={{ width: 6, height: 6, borderRadius: "2px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Full event context and delivery state.

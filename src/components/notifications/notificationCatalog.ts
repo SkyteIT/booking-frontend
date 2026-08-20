@@ -106,8 +106,8 @@ export const NOTIFICATION_ROLE_CONFIGS: Record<NotificationRole, NotificationRol
     title: "Platform notifications",
     subtitle: "Monitor onboarding, moderation, disputes, finance, and safety events from one control room.",
     badge: "Admin",
-    heroGradient: "linear-gradient(135deg, #0f172a 0%, #143e66 45%, #0b6b88 100%)",
-    heroGlow: "radial-gradient(circle at top right, rgba(74, 222, 128, 0.24), transparent 34%), radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.16), transparent 32%)",
+    heroGradient: "linear-gradient(160deg, #005a8d, #0077b6)",
+    heroGlow: "radial-gradient(circle at top right, rgba(224, 242, 254, 0.24), transparent 34%), radial-gradient(circle at bottom left, rgba(224, 242, 254, 0.14), transparent 32%)",
     groups: [
       makeGroup(
         "onboarding",
@@ -162,8 +162,8 @@ export const NOTIFICATION_ROLE_CONFIGS: Record<NotificationRole, NotificationRol
     title: "Vendor notifications",
     subtitle: "Track listings, bookings, payouts, reviews, and account status in one focused inbox.",
     badge: "Vendor",
-    heroGradient: "linear-gradient(135deg, #0f172a 0%, #163b66 45%, #2563eb 100%)",
-    heroGlow: "radial-gradient(circle at top right, rgba(96, 165, 250, 0.24), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.16), transparent 32%)",
+    heroGradient: "linear-gradient(160deg, #005a8d, #0077b6)",
+    heroGlow: "radial-gradient(circle at top right, rgba(224, 242, 254, 0.24), transparent 34%), radial-gradient(circle at bottom left, rgba(224, 242, 254, 0.14), transparent 32%)",
     groups: [
       makeGroup(
         "listings",
@@ -229,8 +229,8 @@ export const NOTIFICATION_ROLE_CONFIGS: Record<NotificationRole, NotificationRol
     title: "Customer notifications",
     subtitle: "Stay on top of booking changes, payments, reviews, promotions, and account updates.",
     badge: "Customer",
-    heroGradient: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 48%, #7c3aed 100%)",
-    heroGlow: "radial-gradient(circle at top right, rgba(248, 113, 113, 0.22), transparent 30%), radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.18), transparent 32%)",
+    heroGradient: "linear-gradient(160deg, #005a8d, #0077b6)",
+    heroGlow: "radial-gradient(circle at top right, rgba(224, 242, 254, 0.24), transparent 34%), radial-gradient(circle at bottom left, rgba(224, 242, 254, 0.14), transparent 32%)",
     groups: [
       makeGroup(
         "bookings",
