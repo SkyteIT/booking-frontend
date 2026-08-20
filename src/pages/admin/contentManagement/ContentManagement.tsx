@@ -117,7 +117,33 @@ export default function ContentManagement() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 }, minHeight: "100vh", bgcolor: "#F8F9FC" }}>
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        px: { xs: 2, md: 3.5 },
+        py: { xs: 2, md: 3.5 },
+        background:
+          "radial-gradient(circle at top left, rgba(99,102,241,0.12) 0%, transparent 28%), radial-gradient(circle at top right, rgba(14,165,233,0.10) 0%, transparent 24%), linear-gradient(180deg, #F7F9FC 0%, #EEF2F7 100%)",
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(135deg, rgba(255,255,255,0.45) 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.28) 100%)",
+          pointerEvents: "none",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          maxWidth: 1600,
+          mx: "auto",
+        }}
+      >
 
       {/* ── Header ── */}
       <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={2} mb={3.5}>
@@ -395,6 +421,7 @@ export default function ContentManagement() {
           </Button>
         </DialogActions>
       </Dialog>
+      </Box>
     </Box>
   );
 }

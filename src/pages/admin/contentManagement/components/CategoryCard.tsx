@@ -9,14 +9,6 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import HotelIcon from "@mui/icons-material/Hotel";
-import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import LocalActivityIcon from "@mui/icons-material/LocalActivity";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
-import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
-import FlightIcon from "@mui/icons-material/Flight";
-import BeachAccessIcon from "@mui/icons-material/BeachAccess";
-import CategoryIcon from "@mui/icons-material/Category";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
 import type { Category } from "../types/contentType";
@@ -30,38 +22,45 @@ interface IconConfig {
 
 const CATEGORY_ICON_MAP: Record<string, IconConfig> = {
   hotels: {
-    icon: <HotelIcon sx={{ fontSize: 26 }} />,
-    color: "#1565C0", bg: "#E3F2FD",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏨</span>,
+    color: "#1565C0",
+    bg: "#E3F2FD",
     gradient: "linear-gradient(135deg,#1565C0,#1976D2)",
   },
   "car rentals": {
-    icon: <DirectionsCarIcon sx={{ fontSize: 26 }} />,
-    color: "#6A1B9A", bg: "#F3E5F5",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🚗</span>,
+    color: "#6A1B9A",
+    bg: "#F3E5F5",
     gradient: "linear-gradient(135deg,#6A1B9A,#8E24AA)",
   },
   activities: {
-    icon: <LocalActivityIcon sx={{ fontSize: 26 }} />,
-    color: "#2E7D32", bg: "#E8F5E9",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🎫</span>,
+    color: "#2E7D32",
+    bg: "#E8F5E9",
     gradient: "linear-gradient(135deg,#2E7D32,#388E3C)",
   },
   restaurants: {
-    icon: <RestaurantIcon sx={{ fontSize: 26 }} />,
-    color: "#E65100", bg: "#FFF3E0",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🍽️</span>,
+    color: "#E65100",
+    bg: "#FFF3E0",
     gradient: "linear-gradient(135deg,#E65100,#F57C00)",
   },
   "event tickets": {
-    icon: <ConfirmationNumberIcon sx={{ fontSize: 26 }} />,
-    color: "#C62828", bg: "#FFEBEE",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🎟️</span>,
+    color: "#C62828",
+    bg: "#FFEBEE",
     gradient: "linear-gradient(135deg,#C62828,#E53935)",
   },
   flights: {
-    icon: <FlightIcon sx={{ fontSize: 26 }} />,
-    color: "#00838F", bg: "#E0F7FA",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>✈️</span>,
+    color: "#00838F",
+    bg: "#E0F7FA",
     gradient: "linear-gradient(135deg,#00838F,#00ACC1)",
   },
   tours: {
-    icon: <BeachAccessIcon sx={{ fontSize: 26 }} />,
-    color: "#F9A825", bg: "#FFFDE7",
+    icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏖️</span>,
+    color: "#F9A825",
+    bg: "#FFFDE7",
     gradient: "linear-gradient(135deg,#F9A825,#FBC02D)",
   },
 };
@@ -69,7 +68,7 @@ const CATEGORY_ICON_MAP: Record<string, IconConfig> = {
 function getCategoryIcon(name: string): IconConfig {
   return (
     CATEGORY_ICON_MAP[name.toLowerCase()] ?? {
-      icon: <CategoryIcon sx={{ fontSize: 26 }} />,
+      icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏷️</span>,
       color: "#546E7A",
       bg: "#ECEFF1",
       gradient: "linear-gradient(135deg,#546E7A,#607D8B)",
@@ -82,7 +81,6 @@ interface Props {
   viewMode?: "grid" | "list";
   onToggle: (id: string, isActive: boolean) => void;
   onDelete: (id: string) => void;
-  // ✅ FIX: added onEdit prop (was missing — Edit button was calling navigate() instead)
   onEdit: (id: string) => void;
 }
 
@@ -91,9 +89,36 @@ export default function CategoryCard({
   viewMode = "grid",
   onToggle,
   onDelete,
-  onEdit, // ✅ FIX: destructure the prop
+  onEdit,
 }: Props) {
-  const { icon, color, gradient } = getCategoryIcon(category.name);
+  const fallbackIcon = getCategoryIcon(category.name);
+  const { color, gradient } = fallbackIcon;
+  const icon = category.icon?.trim() ? <Typography fontSize={26} lineHeight={1}>{category.icon}</Typography> : fallbackIcon.icon;
+  const iconTileSx = {
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
+    border: "1px solid rgba(255,255,255,0.6)",
+    boxShadow: `0 16px 30px ${color}22, inset 0 1px 0 rgba(255,255,255,0.7)`,
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background:
+        "linear-gradient(145deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.06) 42%, rgba(0,0,0,0.04) 100%)",
+      pointerEvents: "none",
+    },
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      inset: "8px 10px auto 10px",
+      height: "28%",
+      borderRadius: "999px",
+      background: "rgba(255,255,255,0.55)",
+      filter: "blur(6px)",
+      pointerEvents: "none",
+    },
+  } as const;
 
   if (viewMode === "list") {
     return (
@@ -116,7 +141,6 @@ export default function CategoryCard({
           },
         }}
       >
-        {/* Icon */}
         <Box
           sx={{
             width: 52,
@@ -128,13 +152,12 @@ export default function CategoryCard({
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            boxShadow: `0 12px 28px ${color}20`,
+            ...iconTileSx,
           }}
         >
           {icon}
         </Box>
 
-        {/* Name + listings */}
         <Box flex={1}>
           <Typography fontWeight={700} fontSize={15} color="#0F172A">
             {category.name}
@@ -144,7 +167,6 @@ export default function CategoryCard({
           </Typography>
         </Box>
 
-        {/* Listing type chip */}
         {category.type && (
           <Chip
             label={category.type}
@@ -160,7 +182,6 @@ export default function CategoryCard({
           />
         )}
 
-        {/* Status chip */}
         <Chip
           label={category.status ? "Active" : "Inactive"}
           size="small"
@@ -174,14 +195,12 @@ export default function CategoryCard({
           }}
         />
 
-        {/* Toggle */}
         <Switch
           checked={category.status}
           size="small"
           onChange={(e) => onToggle(String(category.id), e.target.checked)}
         />
 
-        {/* Actions */}
         <Box display="flex" gap={0.5}>
           <Tooltip title="Edit">
             <IconButton
@@ -232,7 +251,6 @@ export default function CategoryCard({
     );
   }
 
-  // ── Grid card ──
   return (
     <Box
       sx={{
@@ -252,7 +270,6 @@ export default function CategoryCard({
         },
       }}
     >
-      {/* Coloured top banner */}
       <Box
         className="card-banner"
         sx={{
@@ -264,9 +281,7 @@ export default function CategoryCard({
       />
 
       <Box sx={{ p: 2.5 }}>
-        {/* Top row: icon + actions */}
         <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} mb={2}>
-          {/* Icon */}
           <Box
             sx={{
               width: 54,
@@ -277,13 +292,12 @@ export default function CategoryCard({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: `0 4px 14px ${color}40`,
-            }}
+            ...iconTileSx,
+          }}
           >
             {icon}
           </Box>
 
-          {/* Action buttons */}
           <Box display="flex" gap={0.75}>
             <Tooltip title="Edit category">
               <IconButton
@@ -334,12 +348,10 @@ export default function CategoryCard({
           </Box>
         </Box>
 
-        {/* Name */}
         <Typography fontWeight={800} fontSize={16} color="#0F172A" mb={0.5}>
           {category.name}
         </Typography>
 
-        {/* Listing type */}
         {category.type && (
           <Chip
             label={category.type}
@@ -356,7 +368,6 @@ export default function CategoryCard({
           />
         )}
 
-        {/* Listings count */}
         <Box display="flex" alignItems="center" gap={0.6} mb={2.5}>
           <FormatListBulletedIcon sx={{ fontSize: 14, color: "#94A3B8" }} />
           <Typography fontSize={13} color="#94A3B8" fontWeight={500}>
@@ -364,10 +375,8 @@ export default function CategoryCard({
           </Typography>
         </Box>
 
-        {/* Divider */}
         <Box sx={{ height: 1, background: "#F1F5F9", mx: -2.5, mb: 2 }} />
 
-        {/* Status + toggle */}
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Chip
             label={category.status ? "Active" : "Inactive"}

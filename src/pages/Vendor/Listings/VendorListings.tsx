@@ -22,7 +22,7 @@ import {
   DialogContentText,
   DialogActions,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { getVendorListings, deleteListing } from "../../../services/Vendor/listingService";
 import type { ListingResponse } from "../../../services/Vendor/listingService";
@@ -92,13 +92,33 @@ const VendorListings = () => {
     }
   };
 
-  const filteredListings = listings.filter((listing) => {
-    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "live" ? listing.isActive : !listing.isActive);
-    return matchesSearch && matchesStatus;
-  });
+  const filteredListings = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return listings.filter((listing) => {
+      const haystack = [
+        listing.title,
+        listing.description,
+        listing.categoryName,
+        listing.vendorName,
+        listing.location,
+        listing.tags?.join(" "),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = !query || haystack.includes(query);
+      const active = typeof listing.isActive === "boolean"
+        ? listing.isActive
+        : String((listing as any).status ?? "").toLowerCase() === "active";
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "live" ? active : !active);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [listings, searchQuery, statusFilter]);
 
   if (loading) {
     return (

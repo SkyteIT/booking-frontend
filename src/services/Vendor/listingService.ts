@@ -153,9 +153,46 @@ export interface ListingResponse {
   eventDetails?: EventDetailsDto;
 }
 
+const normalizeListing = (raw: any): ListingResponse => {
+  const isActive =
+    typeof raw?.isActive === "boolean"
+      ? raw.isActive
+      : typeof raw?.status === "string"
+        ? raw.status.toLowerCase() === "active"
+        : true;
+
+  return {
+    id: String(raw?.id ?? ""),
+    vendorProfileId: String(raw?.vendorProfileId ?? raw?.vendorId ?? ""),
+    categoryId: String(raw?.categoryId ?? ""),
+    title: raw?.title ?? raw?.name ?? "",
+    description: raw?.description ?? "",
+    price: Number(raw?.price ?? 0),
+    currency: raw?.currency ?? "LKR",
+    location: raw?.location ?? "",
+    isActive,
+    categoryName: raw?.categoryName ?? raw?.category?.name ?? "",
+    vendorName: raw?.vendorName ?? raw?.vendor?.name ?? "",
+    type: raw?.type ?? "Hotel",
+    averageRating: Number(raw?.averageRating ?? 0),
+    totalReviews: Number(raw?.totalReviews ?? 0),
+    primaryImage: raw?.primaryImage ?? raw?.imageUrl ?? raw?.coverImage ?? undefined,
+    images: raw?.images ?? [],
+    tags: raw?.tags ?? [],
+    cancellationPolicy: raw?.cancellationPolicy ?? "",
+    hasActiveOffer: Boolean(raw?.hasActiveOffer),
+    offerBadgeText: raw?.offerBadgeText ?? undefined,
+    hotelDetails: raw?.hotelDetails,
+    restaurantDetails: raw?.restaurantDetails,
+    carRentalDetails: raw?.carRentalDetails,
+    activityDetails: raw?.activityDetails,
+    eventDetails: raw?.eventDetails,
+  };
+};
+
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
   const res = await api.get<ListingResponse[]>("/listings");
-  return res.data;
+  return res.data.map((item: any) => normalizeListing(item));
 };
 
 export const getListings = async (): Promise<ListingResponse[]> => {
@@ -163,7 +200,7 @@ export const getListings = async (): Promise<ListingResponse[]> => {
     headers: { "Content-Type": "application/json" },
     skipAuthRedirect: true,
   });
-  return res.data;
+  return res.data.map((item: any) => normalizeListing(item));
 };
 
 export const getListingById = async (id: string): Promise<ListingResponse> => {
@@ -171,7 +208,7 @@ export const getListingById = async (id: string): Promise<ListingResponse> => {
     headers: { "Content-Type": "application/json" },
     skipAuthRedirect: true,
   });
-  return res.data;
+  return normalizeListing(res.data);
 };
 
 export const updateListing = async (id: string, data: CreateListingRequest) => {

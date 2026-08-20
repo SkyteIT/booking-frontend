@@ -8,7 +8,6 @@ import { FraudReviewPage } from "../pages/admin/FraudReviewPage";
 import { RoleChangeRequestsPage } from "../pages/admin/RoleChangeRequestsPage";
 import { EmailChangeRequestsPage } from "../pages/admin/EmailChangeRequestsPage";
 import AdminSectionPlaceholder from "../pages/admin/AdminSectionPlaceholder";
-import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
 import AdminFinancePage from "../pages/admin/finance/AdminFinancePage";
 import DashboardAdmin from "../pages/admin/Dashboard";
 import { UserManagementPage } from "../pages/admin/UserManagementPage";
@@ -16,6 +15,13 @@ import AdminNotifications from "../pages/admin/notifications/AdminNotifications"
 import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddCategory from "../pages/admin/contentManagement/components/AddCategory";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
+import AdminSettings from "../pages/admin/settings/AdminSettings";
+import ProfileSettings from "../pages/admin/settings/sections/ProfileSettings";
+import SystemSettings from "../pages/admin/settings/sections/SystemSettings";
+import BookingSettings from "../pages/admin/settings/sections/BookingSettings";
+import NotificationSettings from "../pages/admin/settings/sections/NotificationSettings";
+import UsersVendorSettings from "../pages/admin/settings/sections/UsersVendorSettings";
+import SecuritySettings from "../pages/admin/settings/sections/SecuritySettings";
 import ContentManagement from "../pages/admin/contentManagement/ContentManagement";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useAuth } from "../context/useAuth";
@@ -253,7 +259,15 @@ function AppRouter() {
           <Route path="categories/add" element={<RoleGate allowedRole="admin"><AddCategory /></RoleGate>} />
           <Route path="banners/add" element={<RoleGate allowedRole="admin"><AddBanner /></RoleGate>} />
           <Route path="promotions/add" element={<RoleGate allowedRole="admin"><AddPromotion /></RoleGate>} />
-          <Route path="settings" element={<RoleGate allowedRole={["admin", "finance"]}><AdminSettingsPage /></RoleGate>} />
+          <Route path="settings" element={<RoleGate allowedRole={["admin", "finance"]}><AdminSettings /></RoleGate>}>
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<ProfileSettings />} />
+            <Route path="system" element={<SystemSettings />} />
+            <Route path="booking" element={<BookingSettings />} />
+            <Route path="notifications" element={<NotificationSettings />} />
+            <Route path="users-vendor" element={<UsersVendorSettings />} />
+            <Route path="security" element={<SecuritySettings />} />
+          </Route>
           <Route path=":section" element={<RoleGate allowedRole="admin"><AdminSectionPlaceholder /></RoleGate>} />
         </Route>
         <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />

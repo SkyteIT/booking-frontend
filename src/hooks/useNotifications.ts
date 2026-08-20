@@ -1,5 +1,6 @@
 // src/hooks/useNotifications.ts
 import { useState, useEffect, useCallback } from "react";
+import { useRealtimeHub } from "./useRealtimeHub";
 import {
   getNotifications,
   markAsRead,
@@ -40,6 +41,18 @@ export const useNotifications = (
   }, [userId]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  useRealtimeHub({
+    "notification.created": () => {
+      void loadAll();
+    },
+    "notification.read": () => {
+      void loadAll();
+    },
+    "notification.read-all": () => {
+      void loadAll();
+    },
+  }, { enabled: Boolean(userId) });
 
   useEffect(() => {
     if (!userId || refreshIntervalMs <= 0) return;
@@ -90,3 +103,5 @@ export const useNotifications = (
     reload: loadAll,
   };
 };
+
+

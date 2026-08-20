@@ -15,9 +15,9 @@ import {
   Divider,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import SaveIcon from "@mui/icons-material/Save";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate } from "react-router-dom";
 import { createPromotion } from "../services/contentService";
 
@@ -59,16 +59,26 @@ export default function AddPromotion() {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.code.trim()) newErrors.code = "Promo code is required";
-    if (!form.value || Number(form.value) <= 0) newErrors.value = "Enter a valid discount value";
-    if (form.type === "Percentage" && Number(form.value) > 100)
+    const code = form.code.trim();
+    const value = Number(form.value);
+    const usageLimit = Number(form.usageLimit);
+    const minOrderAmount = form.minOrderAmount ? Number(form.minOrderAmount) : null;
+
+    if (!code) newErrors.code = "Promo code is required";
+    else if (!/^[A-Z0-9_-]+$/.test(code)) {
+      newErrors.code = "Use only uppercase letters, numbers, underscores, or hyphens";
+    }
+    if (!form.value || !Number.isFinite(value) || value <= 0) newErrors.value = "Enter a valid discount value";
+    if (form.type === "Percentage" && value > 100)
       newErrors.value = "Percentage cannot exceed 100%";
     if (!form.startDate) newErrors.startDate = "Start date is required";
     if (!form.endDate) newErrors.endDate = "End date is required";
     if (form.startDate && form.endDate && form.endDate < form.startDate)
       newErrors.endDate = "End date must be after start date";
-    if (form.usageLimitEnabled && (!form.usageLimit || Number(form.usageLimit) < 1))
+    if (form.usageLimitEnabled && (!Number.isInteger(usageLimit) || usageLimit < 1))
       newErrors.usageLimit = "Enter a valid usage limit";
+    if (minOrderAmount !== null && (!Number.isFinite(minOrderAmount) || minOrderAmount < 0))
+      newErrors.minOrderAmount = "Minimum order amount must be 0 or greater";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -251,7 +261,8 @@ export default function AddPromotion() {
               fullWidth
               value={form.minOrderAmount}
               onChange={(e) => handleChange("minOrderAmount", e.target.value)}
-              helperText="Promo applies only if cart total exceeds this amount"
+              error={!!errors.minOrderAmount}
+              helperText={errors.minOrderAmount || "Promo applies only if cart total exceeds this amount"}
               InputProps={{
                 startAdornment: <InputAdornment position="start">$</InputAdornment>,
               }}

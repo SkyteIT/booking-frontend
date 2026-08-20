@@ -45,6 +45,16 @@ export default function AddBanner() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setImagePreview(null);
+      setImageName(null);
+      setImageUrl("");
+      setErrors((prev) => ({
+        ...prev,
+        imageUrl: "Banner image must be 10 MB or smaller",
+      }));
+      return;
+    }
     setImageName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -52,6 +62,7 @@ export default function AddBanner() {
       setImagePreview(result);
       // For now store base64 as imageUrl; replace with upload endpoint if available
       setImageUrl(result);
+      setErrors((prev) => ({ ...prev, imageUrl: "" }));
     };
     reader.readAsDataURL(file);
   };
@@ -59,6 +70,7 @@ export default function AddBanner() {
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!form.title.trim())       newErrors.title     = "Banner title is required";
+    if (!imageUrl.trim())         newErrors.imageUrl   = "Banner image is required";
     if (form.placement === "")    newErrors.placement = "Placement is required";
     if (!form.startDate)          newErrors.startDate = "Start date is required";
     if (!form.endDate)            newErrors.endDate   = "End date is required";
@@ -186,6 +198,7 @@ export default function AddBanner() {
               value={form.placement}
               onChange={(e) => handleChange("placement", Number(e.target.value))}
               error={!!errors.placement}
+              helperText={errors.placement}
             >
               {PLACEMENT_OPTIONS.map((p) => (
                 <MenuItem key={p.value} value={p.value}>
@@ -267,12 +280,22 @@ export default function AddBanner() {
                 onChange={handleImageChange}
               />
             </Box>
+            {errors.imageUrl && (
+              <Typography fontSize={12} color="error" sx={{ mt: -1, mb: 1 }}>
+                {errors.imageUrl}
+              </Typography>
+            )}
 
             {imageName && (
               <Chip
                 label={imageName}
                 size="small"
-                onDelete={() => { setImagePreview(null); setImageName(null); setImageUrl(""); }}
+                onDelete={() => {
+                  setImagePreview(null);
+                  setImageName(null);
+                  setImageUrl("");
+                  setErrors((prev) => ({ ...prev, imageUrl: "" }));
+                }}
               />
             )}
           </Paper>
