@@ -550,7 +550,7 @@ export default function NotificationCenterPage({
           sx={{
             borderRadius: 4,
             border: "1px solid rgba(15, 23, 42, 0.08)",
-            bgcolor: "#fff",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
             overflow: "hidden",
           }}
         >
