@@ -37,7 +37,7 @@ const SearchResultsScreen = () => {
         pb: { xs: 4, md: 6 },
       }}
     >
-      <Container maxWidth="xl" sx={{ px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
+      <Container maxWidth="lg">
         <SearchToolbar query={filters.q} total={listings.length} onQueryChange={setQuery} />
 
         {error && (
