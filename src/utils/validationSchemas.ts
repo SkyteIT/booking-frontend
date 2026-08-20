@@ -45,18 +45,18 @@ export const forgotPasswordSchema = z.object({
 });
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-
-//  Reset Password Schema
+// Reset Password Schema
 export const resetPasswordSchema = z.object({
   newPassword: passwordSchema,
-  confirmPassword: z.string().min(1, "Please confirm your password"),
+  confirmPassword: z
+    .string()
+    .min(1, "Please confirm your password"),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
 });
 
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-
 // Contact Info Schema (optional for vendor forms)
 export const contactInfoSchema = z.object({
   phone: z

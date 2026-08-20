@@ -9,6 +9,7 @@ import {
   Avatar,
   Box,
   Container,
+  Badge,
   IconButton,
   Menu,
   Stack,
@@ -21,6 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ProfileMenuItem from "../common/ProfileMenuItem";
 import UbeLogo from "../common/UbeLogo";
 import { useAuth } from "../../context/useAuth";
+import { useNotifications } from "../../hooks/useNotifications";
 
 // "SuperAdmin" -> "Super Admin" for display; every other role is already
 // a single word.
@@ -32,7 +34,7 @@ export default function AdminNavbar() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const theme = useTheme();
-
+  const { unreadCount } = useNotifications(user?.userId ?? user?.id ?? null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -80,12 +82,15 @@ export default function AdminNavbar() {
           {/* 🔹 RIGHT (ACTIONS) */}
           <Stack direction="row" alignItems="center" spacing={1}>
             <IconButton
+              onClick={() => navigate("/admin/notifications")}
               sx={{
                 bgcolor: alpha(theme.palette.primary.main, 0.06),
                 "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.12) },
               }}
             >
-              <NotificationsNoneOutlinedIcon fontSize="small" />
+              <Badge badgeContent={unreadCount} color="error">
+                <NotificationsNoneOutlinedIcon fontSize="small" />
+              </Badge>
             </IconButton>
 
             <Box

@@ -31,7 +31,7 @@ const FiltersSidebar = ({
         borderRadius: "18px",
         border: "1px solid",
         borderColor: "divider",
-        p: 2.5,
+        p: 2,
         backgroundColor: "background.paper",
       }}
     >

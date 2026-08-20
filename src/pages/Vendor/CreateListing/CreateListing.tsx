@@ -88,6 +88,10 @@ const CATEGORY_REQUIRED_FIELDS: Record<ListingCategory, (keyof ListingFormData)[
   CarRental: ["brand", "model", "seatCountCar"],
 };
 
+const notifyDashboardRefresh = () => {
+  window.dispatchEvent(new Event("admin-dashboard-refresh"));
+};
+
 function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
   const data: Partial<ListingFormData> = {
     title: listing.title,
@@ -394,6 +398,7 @@ const CreateListing = () => {
         await createUnitsIfConfigured(created.id);
         alert("Listing published successfully!");
       }
+      notifyDashboardRefresh();
       navigate("/vendor/listings");
     } catch (error) {
       console.error(error);

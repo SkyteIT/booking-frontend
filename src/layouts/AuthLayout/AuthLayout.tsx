@@ -20,7 +20,7 @@ function AuthLayout({ children }: AuthLayoutProps) {
           <h1>Your next adventure starts here.</h1>
           <p>
             Discover the world with our seamless booking experience
-            for hotels, restaurents, events, activities, eqiupments and car rentals.
+            for hotels, restaurants, events, activities, equipments and car rentals.
           </p>
         </div>
       </div>

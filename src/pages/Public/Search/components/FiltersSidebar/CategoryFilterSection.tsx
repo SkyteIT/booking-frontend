@@ -205,7 +205,7 @@ const CategoryFilterSection = ({
   return (
     <>
       <Typography sx={filterTitleSx}>Category</Typography>
-      <Stack spacing={0.4} sx={{ mb: 3 }}>
+      <Stack spacing={0.4} sx={{ mb: 2.2 }}>
         <Button
           variant="text"
           onClick={onClearCategories}

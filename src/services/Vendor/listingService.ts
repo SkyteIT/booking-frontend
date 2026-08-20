@@ -154,7 +154,7 @@ export interface ListingResponse {
 }
 
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
-  const res = await api.get<ListingResponse[]>("/listings/me");
+  const res = await api.get<ListingResponse[]>("/listings");
   return res.data;
 };
 

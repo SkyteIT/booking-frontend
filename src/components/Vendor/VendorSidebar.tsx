@@ -32,6 +32,8 @@ const menuItems = [
   { path: "/vendor/support", label: "Support", icon: SupportAgentIcon },
 ];
 
+const mobileMenuItems = [...menuItems.slice(0, 5), menuItems[7]];
+
 export default function VendorSidebar() {
   const location = useLocation();
   const theme = useTheme();
@@ -58,7 +60,7 @@ export default function VendorSidebar() {
           showLabels
           sx={{ background: "transparent" }}
         >
-          {menuItems.slice(0, 5).map((item) => (
+          {mobileMenuItems.map((item) => (
             <BottomNavigationAction
               key={item.path}
               label={item.label.split(" ")[0]}
@@ -93,6 +95,11 @@ export default function VendorSidebar() {
         borderRadius: 3,
         boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
         overflowY: "auto",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
         background: "linear-gradient(to bottom, #0077b6, #005a8d)",
         p: 1.5,
       }}

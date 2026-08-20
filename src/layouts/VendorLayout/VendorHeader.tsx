@@ -72,10 +72,12 @@ export default function VendorHeader() {
           <Avatar
             sx={{ width: 34, height: 34, bgcolor: "#0077B6", fontSize: 13, fontWeight: 700 }}
           >
-            VU
+            {user?.firstName?.[0] ?? "V"}
           </Avatar>
           <Box>
-            <Typography fontSize={13} fontWeight={600}>Vendor User</Typography>
+            <Typography fontSize={13} fontWeight={600}>
+              {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Vendor User"}
+            </Typography>
             <Typography fontSize={11} color="text.secondary">Vendor</Typography>
           </Box>
         </Box>

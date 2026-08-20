@@ -1,20 +1,66 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { Snackbar, Alert } from "@mui/material";
 import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../context/useAuth";
-import ToastAlert from "../../../components/common/ToastAlert";
+import { useAuth } from "../../../context/useAuth"; // ✅ IMPORTANT
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import { login, loginWithGoogle } from "../../../services/authService";
-import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
+import { login as loginRequest, loginWithGoogle } from "../../../services/authService";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
+
+function getAuthErrorMessage(error: unknown, fallback: string) {
+  const response = error as {
+    response?: {
+      data?: {
+        message?: unknown;
+        title?: unknown;
+        errors?: Record<string, unknown>;
+      };
+    };
+  };
+
+  const message = response?.response?.data?.message;
+  if (typeof message === "string" && message.trim()) return message;
+
+  const title = response?.response?.data?.title;
+  if (typeof title === "string" && title.trim()) return title;
+
+  const errors = response?.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    return Object.values(errors)
+      .flat()
+      .map(String)
+      .filter(Boolean)
+      .join(" ") || fallback;
+  }
+
+  return error instanceof Error ? error.message || fallback : fallback;
+}
 
 function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+
   const { refreshUser } = useAuth();
-  const [error, setError] = useState<string>("");
+
+  const nextPath = new URLSearchParams(location.search).get("next") ?? "";
+
+  const isSafeRedirect = (path: string) => path.startsWith("/");
+
+  const getRoleRedirect = (role?: string) => {
+    const normalizedRole = String(role ?? "").toLowerCase();
+
+    if (normalizedRole === "admin") return "/admin/dashboard";
+    if (normalizedRole === "vendor") return "/vendor/dashboard";
+    return "/";
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [successSnackbar, setSuccessSnackbar] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState("");
 
   const {
     register,
@@ -25,157 +71,165 @@ function Login(): JSX.Element {
     mode: "onBlur",
   });
 
+  const redirectAfterLogin = (role?: string) => {
+    const roleRedirect = getRoleRedirect(role);
+    const redirectTarget =
+      isSafeRedirect(nextPath) && nextPath !== "/" ? nextPath : roleRedirect;
+
+    navigate(redirectTarget, { replace: true });
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setError("");
-      const response = (await login(data.email, data.password)) as {
-        role?: string;
-        user?: { role?: string };
-        requiresTwoFactor?: boolean;
-        requiresEnrollment?: boolean;
-        challengeToken?: string;
-      };
+      const authResponse = await loginRequest(data.email, data.password);
 
-      if (response.requiresTwoFactor) {
-        navigate(response.requiresEnrollment ? "/2fa-enroll" : "/2fa-verify", {
-          state: { challengeToken: response.challengeToken },
-        });
-        return;
-      }
+      const currentUser = await refreshUser();
 
-      await refreshUser();
+      setSuccessSnackbar(true);
 
-      const next = new URLSearchParams(location.search).get("next");
-      if (next) {
-        navigate(next, { replace: true });
-        return;
-      }
+      setTimeout(() => {
+        const role =
+          currentUser?.role ??
+          authResponse.role ??
+          (typeof authResponse.user === "object" && authResponse.user
+            ? String((authResponse.user as { role?: string }).role ?? "")
+            : "");
 
-      const role = String(response.role ?? response.user?.role ?? "").toLowerCase();
-
-      if (role === "admin") {
-        navigate("/admin/dashboard", { replace: true });
-        return;
-      }
-
-      if (role === "vendor") {
-        navigate("/vendor/dashboard", { replace: true });
-        return;
-      }
-
-      navigate("/", { replace: true });
+        redirectAfterLogin(role);
+      }, 800);
     } catch (error) {
-      setError(getApiErrorMessage(error, "Invalid email or password."));
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Login failed. Please try again.")
+      );
     }
   };
 
   const handleGoogleLogin = async (credential?: string) => {
     if (!credential) {
-      setError("Google login failed. Please try again.");
+      setErrorSnackbar("Google login failed. Please try again.");
       return;
     }
 
     try {
-      setError("");
-      const response = await loginWithGoogle(credential);
+      const authResponse = await loginWithGoogle(credential);
+      const currentUser = await refreshUser();
 
-      if (response.requiresTwoFactor) {
-        navigate(response.requiresEnrollment ? "/2fa-enroll" : "/2fa-verify", {
-          state: { challengeToken: response.challengeToken },
-        });
-        return;
-      }
+      setSuccessSnackbar(true);
 
-      await refreshUser();
-
-      const next = new URLSearchParams(location.search).get("next");
-      if (next) {
-        navigate(next, { replace: true });
-        return;
-      }
-
-      const role = String(response.role ?? "").toLowerCase();
-      if (role === "admin") {
-        navigate("/admin/dashboard", { replace: true });
-        return;
-      }
-      if (role === "vendor") {
-        navigate("/vendor/dashboard", { replace: true });
-        return;
-      }
-      navigate("/", { replace: true });
+      setTimeout(() => {
+        redirectAfterLogin(currentUser?.role ?? authResponse.role);
+      }, 800);
     } catch (error) {
-      setError(getApiErrorMessage(error, "Google login failed. Please try again."));
+      setErrorSnackbar(
+        getAuthErrorMessage(error, "Google login failed. Please try again.")
+      );
     }
   };
 
   return (
     <AuthLayout>
       <div className="auth-card">
-        <h2 className="title center">Login</h2>
-        <p className="subtitle center">Sign in to continue.</p>
+        <h2 className="title center">Welcome Back</h2>
+        <p className="subtitle center">
+          Sign in to continue
+        </p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          {/* EMAIL */}
           <div className="input-group">
             <label>Email Address</label>
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter email"
               {...register("email")}
               className={errors.email ? "input-error" : ""}
             />
             {errors.email && <p className="error-text">{errors.email.message}</p>}
           </div>
 
+          {/* PASSWORD */}
           <div className="input-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              {...register("password")}
-              className={errors.password ? "input-error" : ""}
-            />
-            {errors.password && <p className="error-text">{errors.password.message}</p>}
+
+            <div className="password-wrapper styled">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                {...register("password")}
+                className={errors.password ? "input-error" : ""}
+              />
+
+              <span className="eye-icon" onClick={() => setShowPassword((p) => !p)}>
+                {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              </span>
+            </div>
+
+            {errors.password && (
+              <p className="error-text">{errors.password.message}</p>
+            )}
+          </div>
+
+          <div className="forgot center">
+            <Link to="/forgot-password">Forgot Password?</Link>
           </div>
 
           <button
             type="submit"
             className="primary-btn"
             disabled={isSubmitting}
-            style={{
-              opacity: isSubmitting ? 0.7 : 1,
-              cursor: isSubmitting ? "not-allowed" : "pointer",
-            }}
           >
-            {isSubmitting ? "Signing in..." : "Login"}
+            {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
-        <div style={{ margin: "16px 0", textAlign: "center", color: "#888" }}>OR</div>
+        <div className="divider">
+          <span>OR CONTINUE WITH</span>
+        </div>
 
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div className="google-login-container">
           <GoogleLogin
-            onSuccess={(credentialResponse) => handleGoogleLogin(credentialResponse.credential)}
-            onError={() => setError("Google login failed. Please try again.")}
+            onSuccess={(credentialResponse: { credential?: string }) =>
+              handleGoogleLogin(credentialResponse.credential)
+            }
+            onError={() => setErrorSnackbar("Google login failed. Please try again.")}
+            width="400"
           />
         </div>
 
-        <div style={{ marginTop: "16px", textAlign: "center" }}>
-          <Link to="/forgot-password" className="back-link">
-            Forgot password?
+        <p className="bottom-text">
+          Don’t have an account?{" "}
+          <Link
+            to={
+              isSafeRedirect(nextPath)
+                ? `/register?next=${encodeURIComponent(nextPath)}`
+                : "/register"
+            }
+            className="bold-link"
+          >
+            Sign Up
           </Link>
-          <p className="subtitle" style={{ marginTop: "12px" }}>
-            Don&apos;t have an account? <Link to="/register">Register</Link>
-          </p>
-        </div>
-      </div>
+        </p>
 
-      <ToastAlert
-        open={!!error}
-        onClose={() => setError("")}
-        severity="error"
-        message={error}
-      />
+        {/* SUCCESS */}
+        <Snackbar
+          open={successSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setSuccessSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="success">Login Successful!</Alert>
+        </Snackbar>
+
+        {/* ERROR */}
+        <Snackbar
+          open={Boolean(errorSnackbar)}
+          autoHideDuration={2500}
+          onClose={() => setErrorSnackbar("")}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="error">{errorSnackbar}</Alert>
+        </Snackbar>
+      </div>
     </AuthLayout>
   );
 }

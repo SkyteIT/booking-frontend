@@ -171,9 +171,6 @@ function AppRouter() {
           <Route path="reviews" element={<VendorReviews />} />
           <Route path="payouts" element={<Payouts />} />
           <Route path="notifications" element={<VendorNotifications />} />
-          {/* Kept as a redirect, not a second page - "Earnings" (payouts)
-              absorbed the old standalone Reports tab; this just saves
-              anyone with the old URL bookmarked from hitting a dead link. */}
           <Route path="reports" element={<Navigate to="/vendor/payouts" replace />} />
           <Route path="settings" element={<Settings />} />
           <Route path="support" element={<VendorSupport />} />

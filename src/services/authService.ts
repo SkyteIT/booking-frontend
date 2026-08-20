@@ -75,7 +75,6 @@ export const getCurrentUser = async () => {
   const res = await api.get("/auth/current-user");
   return res.data;
 };
-
 export interface UpdateProfilePayload {
   firstName: string;
   lastName: string;

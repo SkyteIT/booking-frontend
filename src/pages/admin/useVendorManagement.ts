@@ -40,6 +40,10 @@ export function useVendorManagement() {
 
   const getVendorId = (vendor: { id?: string } | null) => vendor?.id ?? "";
 
+  const refreshDashboard = () => {
+    window.dispatchEvent(new Event("admin-dashboard-refresh"));
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -128,6 +132,7 @@ export function useVendorManagement() {
           getVendorId(v) === selectedId ? { ...v, status: "Approved" } : v
         )
       );
+      refreshDashboard();
     } catch {
       setSnackbar({
         open: true,
@@ -159,6 +164,7 @@ export function useVendorManagement() {
           getVendorId(v) === selectedId ? { ...v, status: "Rejected" } : v
         )
       );
+      refreshDashboard();
     } catch (err) {
       console.error("Reject failed", err);
       setSnackbar({

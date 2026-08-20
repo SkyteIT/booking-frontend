@@ -2,9 +2,10 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import { Box, Button, Typography, Avatar, Menu, MenuItem } from "@mui/material";
+import { Badge, Box, Button, IconButton, Typography, Avatar, Menu, MenuItem } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import type { ComponentProps, ElementType, ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import CartButton from "../buttons/CartButton";
 import UbeLogo from "../common/UbeLogo";
+import { useNotifications } from "../../hooks/useNotifications";
 
 const NAV_LINKS = [
   { label: "Explore", to: "/search", dot: "primary.main" },
@@ -66,6 +68,7 @@ export default function CustomerNavbar() {
   const location = useLocation();
 
   const { isAuthenticated, user, logout } = useAuth();
+  const { unreadCount } = useNotifications(user?.userId ?? user?.id ?? null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -190,6 +193,18 @@ export default function CustomerNavbar() {
 
           {isAuthenticated && (
             <>
+              <IconButton
+                onClick={() => navigate("/customer/notifications")}
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.05),
+                  "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.1) },
+                }}
+              >
+                <Badge badgeContent={unreadCount} color="error">
+                  <NotificationsNoneOutlinedIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+
               <CartButton />
 
               <Box

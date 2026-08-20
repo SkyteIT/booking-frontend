@@ -6,7 +6,6 @@ import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { requestPasswordReset } from "../../../services/authService";
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../utils/validationSchemas";
-
 function ForgotPassword(): JSX.Element {
   const [message, setMessage] = useState<string>("");
   const [isError, setIsError] = useState(false);

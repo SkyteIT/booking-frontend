@@ -7,7 +7,7 @@ interface FiltersHeaderProps {
 
 const FiltersHeader = ({ onClearAll }: FiltersHeaderProps) => {
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5 }}>
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
       <Typography sx={{ fontSize: "1.05rem", fontWeight: 600, letterSpacing: "-0.01em", lineHeight: 1 }}>
         Filters
       </Typography>

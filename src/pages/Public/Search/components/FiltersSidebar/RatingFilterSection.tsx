@@ -2,7 +2,10 @@
 // or resetting back to "All Ratings". Rendered as wrapping pill chips.
 import StarIcon from "@mui/icons-material/Star";
 import { Box, Button, Typography } from "@mui/material";
-import { filterTitleSx } from "./styles";
+import {
+  filterTitleSx,
+  ratingButtonBaseSx,
+} from "./styles";
 
 interface RatingFilterSectionProps {
   minRating?: number;
@@ -23,13 +26,14 @@ const RatingFilterSection = ({
   return (
     <>
       <Typography sx={filterTitleSx}>Minimum rating</Typography>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.2 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, alignItems: "flex-start" }}>
         {options.map((opt) => {
           const isSelected = minRating === opt.value;
 
           return (
             <Button
               key={opt.label}
+              size="small"
               onClick={() => onMinRatingChange(opt.value)}
               startIcon={
                 opt.value !== undefined ? (
@@ -37,13 +41,8 @@ const RatingFilterSection = ({
                 ) : undefined
               }
               sx={{
-                borderRadius: "999px",
-                textTransform: "none",
-                fontSize: "0.82rem",
+                ...ratingButtonBaseSx,
                 fontWeight: isSelected ? 600 : 500,
-                px: 1.6,
-                py: 0.75,
-                minWidth: "auto",
                 border: "1px solid",
                 borderColor: isSelected ? "primary.main" : "divider",
                 backgroundColor: isSelected ? "primary.main" : "background.paper",

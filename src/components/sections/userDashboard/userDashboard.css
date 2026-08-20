@@ -16,6 +16,9 @@
      under the same navbar (ViewProduct, Search) already use. */
   padding:128px 60px 40px;
   width:100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  align-items:start;
 }
 
 /* SIDEBAR WIDTH (1/4) */
@@ -34,10 +37,10 @@
 /* MAIN CONTENT WIDTH (3/4) */
 
 .dashboard-main{
-  width:75%;
   display:flex;
   flex-direction:column;
-  gap:24px;
+  gap:20px;
+  min-width:0;
 }
 
 /* SIDEBAR CARD */
@@ -129,6 +132,28 @@
 .booking-section{
   border-radius:20px !important;
   padding:20px;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-layout{
+    grid-template-columns: 1fr;
+    padding: 28px 24px 36px;
+  }
+
+  .dashboard-sidebar{
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-layout{
+    padding: 24px 16px 32px;
+    gap: 18px;
+  }
+
+  .dashboard-main{
+    gap:16px;
+  }
 }
 
 .booking-card{

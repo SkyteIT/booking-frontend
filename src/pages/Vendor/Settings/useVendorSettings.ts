@@ -50,6 +50,10 @@ export function useVendorSettings() {
     severity: "success",
   });
 
+  const notifyDashboardRefresh = () => {
+    window.dispatchEvent(new Event("admin-dashboard-refresh"));
+  };
+
   // Load initial data
   useEffect(() => {
     const load = async () => {
@@ -122,6 +126,7 @@ export function useVendorSettings() {
         ...prev,
         profileImageUrl: resolveAssetUrl(updatedProfile.profileImageUrl),
       }));
+      notifyDashboardRefresh();
     } catch (error) {
       console.error("Image upload failed:", error);
     }
@@ -153,6 +158,7 @@ export function useVendorSettings() {
             businessName: profileForm.businessName.trim(),
             bio: profileForm.bio.trim(),
           });
+          notifyDashboardRefresh();
           setSnackbar({
             open: true,
             message: "Profile updated",
@@ -177,6 +183,7 @@ export function useVendorSettings() {
           try {
             await updateVendorPayout(payoutForm);
             setPayoutSource("api");
+            notifyDashboardRefresh();
             setSnackbar({
               open: true,
               message: "Payout updated",
@@ -208,6 +215,7 @@ export function useVendorSettings() {
 
           await changePassword(securityForm);
           setSecurityForm(defaultSecurityForm);
+          notifyDashboardRefresh();
           setSnackbar({
             open: true,
             message: "Password updated",
@@ -230,6 +238,7 @@ export function useVendorSettings() {
           }
 
           await updateLocalizationSettings(localizationForm);
+          notifyDashboardRefresh();
           setSnackbar({
             open: true,
             message: "Localization updated",

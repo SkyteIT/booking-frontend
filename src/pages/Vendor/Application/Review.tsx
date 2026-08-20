@@ -16,11 +16,11 @@ import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import api from "../../../services/api";
 import "./application.css";
-
+import { useAuth } from "../../../context/AuthContext";
 const Review = () => {
   const navigate = useNavigate();
   const { data, resetApplication } = useVendorApplication();
-
+  const { markVendorApplicationSubmitted } = useAuth();
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -79,6 +79,7 @@ const Review = () => {
 
       // SUCCESS
       resetApplication();
+      markVendorApplicationSubmitted();
       setOpenSnackbar(true);
 
       setTimeout(() => {
