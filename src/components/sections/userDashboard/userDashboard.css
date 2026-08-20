@@ -15,31 +15,18 @@
      under the same navbar (ViewProduct, Search) already use. */
   padding-top:128px;
   padding-bottom:40px;
-  padding-left:32px;
-  padding-right:32px;
+  /* Matches ViewProduct's Container maxWidth="lg" + default padding. */
+  padding-left:16px;
+  padding-right:16px;
   width:100%;
-  max-width:1600px;
+  max-width:1200px;
   margin:0 auto;
 }
 
 @media (min-width: 600px) {
   .dashboard-layout{
-    padding-left:56px;
-    padding-right:56px;
-  }
-}
-
-@media (min-width: 900px) {
-  .dashboard-layout{
-    padding-left:88px;
-    padding-right:88px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .dashboard-layout{
-    padding-left:140px;
-    padding-right:140px;
+    padding-left:24px;
+    padding-right:24px;
   }
 }
 
