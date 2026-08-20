@@ -14,10 +14,35 @@
   /* CustomerNavbar floats as position:fixed, so this can't rely on normal
      document flow to clear it - matches the pt:16 (128px) other pages
      under the same navbar (ViewProduct, Search) already use. */
-  padding:128px 60px 40px;
+  padding-top:128px;
+  padding-bottom:40px;
+  /* Side padding matches Search's px:{xs:3,sm:5,md:8,lg:12} scale. */
+  padding-left:24px;
+  padding-right:24px;
   width:100%;
   max-width:1600px;
   margin:0 auto;
+}
+
+@media (min-width: 600px) {
+  .dashboard-layout{
+    padding-left:40px;
+    padding-right:40px;
+  }
+}
+
+@media (min-width: 900px) {
+  .dashboard-layout{
+    padding-left:64px;
+    padding-right:64px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dashboard-layout{
+    padding-left:96px;
+    padding-right:96px;
+  }
 }
 
 /* SIDEBAR WIDTH (1/4) */
