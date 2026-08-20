@@ -191,7 +191,7 @@ const normalizeListing = (raw: any): ListingResponse => {
 };
 
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
-  const res = await api.get<ListingResponse[]>("/listings");
+  const res = await api.get<ListingResponse[]>("/listings/me");
   return res.data.map((item: any) => normalizeListing(item));
 };
 
