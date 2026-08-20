@@ -1,3 +1,4 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
   Container,
   Typography,
@@ -114,22 +115,30 @@ const Categories = (): JSX.Element => {
                 gap: 3,
               }}
             >
-              {visibleCategories.map((cat) => (
-                <Box
-                  key={cat}
-                  className={`category-box ${
-                    selectedCategories.includes(cat) ? "selected" : ""
-                  }`}
-                  onClick={() => handleSelect(cat)}
-                  sx={{ cursor: "pointer" }}
-                >
-                  {cat}
-                </Box>
-              ))}
+              {visibleCategories.map((cat) => {
+                const isSelected = selectedCategories.includes(cat);
+                return (
+                  <Box
+                    key={cat}
+                    className={`category-box ${isSelected ? "selected" : ""}`}
+                    onClick={() => handleSelect(cat)}
+                    sx={{
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 0.75,
+                    }}
+                  >
+                    {isSelected && <CheckCircleIcon sx={{ fontSize: 20 }} />}
+                    {cat}
+                  </Box>
+                );
+              })}
             </Box>
           )}
 
-          {error && <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>}
+          {error && <Typography sx={{ color: "error.main", mt: 2 }}>{error}</Typography>}
 
           <Box className="vendor-actions" sx={{ mt: 3 }}>
             <Button className="back" onClick={() => navigate("/vendor/contactinfo")}>

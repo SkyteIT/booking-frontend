@@ -6,6 +6,7 @@ import {
   TextField, Chip, IconButton, Alert, Pagination,
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import SnackbarAlert from '../../components/common/SnackbarAlert';
 import {
   getFraudFlags, reviewFraudFlag,
   type AdminFraudFlagDto,
@@ -97,24 +98,40 @@ export const FraudReviewPage: React.FC = () => {
 
   return (
     <Box>
-      {successMsg && (
-        <Box sx={{ mb: 2, p: 2, bgcolor: '#D1FAE5', color: '#059669', borderRadius: 1 }}>
-          {successMsg}
-        </Box>
-      )}
+      <SnackbarAlert
+        open={!!successMsg}
+        onClose={() => setSuccessMsg('')}
+        severity="success"
+        message={successMsg}
+      />
       {errorMsg && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg('')}>{errorMsg}</Alert>
       )}
 
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>Fraud Review</Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
+          Fraud Review
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           Bookings flagged by automated fraud rules. "Hold" bookings are stuck at Pending with payment on hold
           until you clear or reject them here — everything else is pattern tracking only and already went through.
         </Typography>
       </Box>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          mb: 3,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+        }}
+      >
         <Tabs value={statusTab} onChange={(_, val) => { setStatusTab(val); setPage(1); }}>
           {STATUS_TABS.map((label) => (
             <Tab key={label} label={label === 'ConfirmedFraud' ? 'Confirmed Fraud' : label} sx={{ textTransform: 'none', fontWeight: 500 }} />
@@ -122,7 +139,16 @@ export const FraudReviewPage: React.FC = () => {
         </Tabs>
       </Paper>
 
-      <Paper>
+      <Paper
+        sx={{
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+          overflow: "hidden",
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
@@ -175,7 +201,7 @@ export const FraudReviewPage: React.FC = () => {
                         {flag.status === 'Open' && (
                           <Button size="small" variant="contained" disabled={saving}
                             onClick={() => { setReviewTarget(flag); setReviewNotes(''); }}
-                            sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+                            sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
                             Review
                           </Button>
                         )}
@@ -195,7 +221,7 @@ export const FraudReviewPage: React.FC = () => {
       </Paper>
 
       {/* Review Dialog */}
-      <Dialog open={!!reviewTarget} onClose={() => setReviewTarget(null)} maxWidth="sm" fullWidth>
+      <Dialog open={!!reviewTarget} onClose={() => setReviewTarget(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Review Fraud Flag
           <IconButton onClick={() => setReviewTarget(null)}><Close /></IconButton>
@@ -226,7 +252,7 @@ export const FraudReviewPage: React.FC = () => {
             {saving ? 'Saving...' : 'Confirm Fraud'}
           </Button>
           <Button variant="contained" disabled={saving} onClick={() => handleReview('Clear')}
-            sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+            sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
             {saving ? 'Saving...' : 'Clear'}
           </Button>
         </DialogActions>

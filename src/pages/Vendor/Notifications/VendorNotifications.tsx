@@ -10,13 +10,13 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
   IconButton,
   Paper,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import { useAuth } from "../../../context/useAuth";
 import { useNotifications } from "../../../hooks/useNotifications";
 import type { Notification } from "../../../services/notificationService";
@@ -101,10 +101,13 @@ export default function VendorNotifications() {
     <Box p={{ xs: 2, md: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3} flexWrap="wrap" gap={2}>
         <Box>
-          <Typography variant="h4" fontWeight={700} mb={0.5}>
+          <Typography
+            variant="h5"
+            sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          >
             Notifications
           </Typography>
-          <Typography color="text.secondary" fontSize={14}>
+          <Typography color="text.secondary" fontSize={14} sx={{ mt: 0.5 }}>
             Bookings, payments, reviews and account activity for your business
           </Typography>
         </Box>
@@ -113,29 +116,19 @@ export default function VendorNotifications() {
           startIcon={<DoneAllIcon />}
           onClick={markAllAsRead}
           disabled={unreadCount === 0 || loading}
-          sx={{ textTransform: "none", borderRadius: 2 }}
+          sx={{ textTransform: "none", borderRadius: "999px" }}
         >
           Mark all read
         </Button>
       </Box>
 
-      <Box display="flex" gap={1} mb={2} flexWrap="wrap">
-        {FILTERS.map((f) => (
-          <Chip
-            key={f.value}
-            label={f.label}
-            clickable
-            size="small"
-            onClick={() => setActiveFilter(f.value)}
-            sx={{
-              fontWeight: 500,
-              fontSize: 12,
-              bgcolor: activeFilter === f.value ? "#0077B6" : "#f0f4f8",
-              color: activeFilter === f.value ? "#fff" : "#4a5568",
-              "&:hover": { bgcolor: activeFilter === f.value ? "#005A8D" : "#e2e8f0" },
-            }}
-          />
-        ))}
+      <Box mb={2}>
+        <SegmentedTabs
+          options={FILTERS.map((f) => f.value)}
+          value={activeFilter}
+          onChange={setActiveFilter}
+          labels={Object.fromEntries(FILTERS.map((f) => [f.value, f.label]))}
+        />
       </Box>
 
       {loading ? (
@@ -143,7 +136,17 @@ export default function VendorNotifications() {
           <CircularProgress sx={{ color: "#0077B6" }} />
         </Box>
       ) : (
-        <Paper sx={{ borderRadius: "14px", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+        <Paper
+          sx={{
+            borderRadius: "20px",
+            overflow: "hidden",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            p: filtered.length === 0 ? 0 : 1.5,
+          }}
+        >
           {filtered.length === 0 ? (
             <Box py={8} textAlign="center">
               <NotificationsNoneIcon sx={{ fontSize: 44, color: "#b0bec5", mb: 1 }} />
@@ -162,13 +165,17 @@ export default function VendorNotifications() {
                     display: "flex",
                     alignItems: "center",
                     gap: 2,
-                    px: 3,
-                    py: 2,
+                    px: 2,
+                    py: 1.75,
+                    mb: idx < filtered.length - 1 ? 1 : 0,
+                    borderRadius: "14px",
                     cursor: n.isRead ? "default" : "pointer",
-                    bgcolor: n.isRead ? "#fff" : "#f0f7ff",
-                    borderBottom: idx < filtered.length - 1 ? "1px solid #f0f0f0" : "none",
-                    "&:hover": { bgcolor: n.isRead ? "#f9fafb" : "#e8f1fb" },
-                    transition: "background 0.15s",
+                    background: n.isRead
+                      ? "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)"
+                      : "linear-gradient(160deg, #FFFFFF 0%, #DCEEFB 100%)",
+                    border: "1px solid rgba(15,27,45,0.06)",
+                    "&:hover": { transform: "translateY(-1px)", boxShadow: "0 6px 16px rgba(15,27,45,0.08)" },
+                    transition: "all 0.15s ease",
                   }}
                 >
                   <Box

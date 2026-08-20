@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import CartButton from "../buttons/CartButton";
+import UbeLogo from "../common/UbeLogo";
 
 const NAV_LINKS = [
   { label: "Explore", to: "/search", dot: "primary.main" },
@@ -125,56 +126,7 @@ export default function CustomerNavbar() {
       }}
     >
         {/* Logo */}
-        <Box
-          component={Link}
-          to="/"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            textDecoration: "none",
-            flexShrink: 0,
-            "&:hover .ube-logo-ring": { transform: "rotate(90deg)" },
-          }}
-        >
-          <Box
-            className="ube-logo-ring"
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              border: "2px solid",
-              borderColor: "primary.main",
-              display: "grid",
-              placeItems: "center",
-              position: "relative",
-              transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1)",
-            }}
-          >
-            <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "primary.main" }} />
-            <Box
-              sx={{
-                position: "absolute",
-                inset: "-6px",
-                border: "1px solid",
-                borderColor: alpha(theme.palette.primary.main, 0.35),
-                borderRadius: "50%",
-                transform: "rotateX(65deg)",
-              }}
-            />
-          </Box>
-          <Typography
-            sx={{
-              fontFamily: "'Syne', sans-serif",
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              color: "text.primary",
-              letterSpacing: "0.03em",
-            }}
-          >
-            UBE
-          </Typography>
-        </Box>
+        <UbeLogo />
 
         {/* Nav links */}
         <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 3 }}>

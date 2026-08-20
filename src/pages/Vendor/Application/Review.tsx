@@ -5,13 +5,13 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  Snackbar,
   Alert,
   Divider,
 } from "@mui/material";
 import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import api from "../../../services/api";
@@ -23,8 +23,12 @@ const Review = () => {
 
   const [checked, setChecked] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    setSubmitError(null);
+    setSubmitting(true);
     try {
       //create form data
       const formData = new FormData();
@@ -66,7 +70,12 @@ const Review = () => {
       // API CALL — routed through our shared api instance so the auth
       // token (and its automatic refresh-on-401) is handled consistently
       // with the rest of the app, instead of reading localStorage directly.
-      await api.post("/vendor-register/submit", formData);
+      // Content-Type must be set explicitly here - the api instance's
+      // default "application/json" header otherwise wins over FormData's
+      // own multipart boundary, which is what was causing the 415.
+      await api.post("/vendor-register/submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       // SUCCESS
       resetApplication();
@@ -76,11 +85,13 @@ const Review = () => {
         navigate("/vendor/application-status");
       }, 2000);
     } catch (err) {
-      if (isAxiosError(err)) {
-        console.error("Submission failed:", err.response?.data ?? err.message);
-      } else {
-        console.error("Submission failed:", err);
-      }
+      const serverMsg = isAxiosError(err)
+        ? (err.response?.data as { message?: string; error?: string } | undefined)?.message ??
+          (err.response?.data as { message?: string; error?: string } | undefined)?.error
+        : undefined;
+      setSubmitError(serverMsg ?? "Couldn't submit your application. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -238,6 +249,12 @@ const Review = () => {
             />
           </Box>
 
+          {submitError && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: "14px" }}>
+              {submitError}
+            </Alert>
+          )}
+
           {/* ================= BUTTONS ================= */}
           <Box className="vendor-actions">
             <Button
@@ -249,25 +266,21 @@ const Review = () => {
 
             <Button
               className="continue"
-              disabled={!checked}
+              disabled={!checked || submitting}
               onClick={handleSubmit}
             >
-              Submit Application
+              {submitting ? "Submitting..." : "Submit Application"}
             </Button>
           </Box>
         </Box>
 
         {/* ================= SUCCESS ================= */}
-        <Snackbar
+        <SnackbarAlert
           open={openSnackbar}
-          autoHideDuration={2000}
           onClose={() => setOpenSnackbar(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity="success" sx={{ width: "100%" }}>
-            Submitted Successfully!
-          </Alert>
-        </Snackbar>
+          severity="success"
+          message="Application submitted successfully!"
+        />
       </Container>
     </ApplicationLayout>
   );

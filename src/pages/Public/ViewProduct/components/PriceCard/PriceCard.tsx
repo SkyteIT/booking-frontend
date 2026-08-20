@@ -7,14 +7,16 @@
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import { Box, Typography, Button, Divider, Alert } from "@mui/material";
+import { Box, Typography, Button, Divider } from "@mui/material";
 import { useEffect, useState } from "react";
+import ToastAlert from "../../../../../components/common/ToastAlert";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../../../components/cart/app/contexts/CartContext";
 import { useAuth } from "../../../../../context/useAuth";
 import { getListingOffers, type ListingOfferDto } from "../../../../../services/Vendor/listingOfferService";
 import type { ListingUnitDto } from "../../../../../services/Vendor/listingUnitsService";
 import { getPriceQuote } from "../../../../../services/Vendor/seasonalPricingService";
+import { businessDateToday } from "../../../../../utils/businessDate";
 import { calculatePricingTotal } from "../../../../../utils/pricingCalculator";
 import type { Listing } from "../../../Search/utils/types";
 import { getQuantityConfig } from "../../utils/quantityConfig";
@@ -89,7 +91,7 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
     getListingOffers(listing.id)
       .then((offers) => {
         if (cancelled) return;
-        const today = new Date().toISOString().slice(0, 10);
+        const today = businessDateToday();
         const current = offers.find((o) => o.isActive && o.startDate <= today && o.endDate >= today);
         setActiveOffer(current ?? null);
       })
@@ -262,16 +264,18 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
         </>
       )}
 
-      {status === "success" && (
-        <Alert severity="success" sx={{ mb: 2, borderRadius: "10px" }}>
-          Added to your cart.
-        </Alert>
-      )}
-      {status === "error" && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: "10px" }}>
-          {errorMessage}
-        </Alert>
-      )}
+      <ToastAlert
+        open={status === "success"}
+        onClose={() => setStatus("idle")}
+        severity="success"
+        message="Added to your cart"
+      />
+      <ToastAlert
+        open={status === "error"}
+        onClose={() => setStatus("idle")}
+        severity="error"
+        message={errorMessage}
+      />
 
         <Button
           fullWidth

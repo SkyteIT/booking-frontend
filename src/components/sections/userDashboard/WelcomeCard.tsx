@@ -6,9 +6,12 @@ type WelcomeCardProps = {
 
 const WelcomeCard = ({ firstName }: WelcomeCardProps) => {
   return (
-    <Card sx={{ mb: 3, borderRadius: "14px", width: "100%" }}>
+    <Card className="welcome-card" sx={{ mb: 3, width: "100%" }}>
       <CardContent>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Welcome back{firstName ? `, ${firstName}` : ""}
         </Typography>
 

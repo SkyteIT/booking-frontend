@@ -11,11 +11,10 @@ import {
   Button,
   TextField,
   Chip,
-  Tabs,
-  Tab,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useEffect, useState } from "react";
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import { useAuth } from "../../../context/useAuth";
 import {
@@ -113,7 +112,10 @@ export default function VendorReviews() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Reviews & Questions
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -121,14 +123,12 @@ export default function VendorReviews() {
         </Typography>
       </Box>
 
-      <Tabs
+      <SegmentedTabs
+        options={["reviews", "questions"] as const}
         value={activeTab}
-        onChange={(_, value) => setActiveTab(value)}
-        sx={{ borderBottom: 1, borderColor: "divider" }}
-      >
-        <Tab label="Reviews" value="reviews" sx={{ textTransform: "none", fontWeight: 500 }} />
-        <Tab label="Questions" value="questions" sx={{ textTransform: "none", fontWeight: 500 }} />
-      </Tabs>
+        onChange={setActiveTab}
+        labels={{ reviews: "Reviews", questions: "Questions" }}
+      />
 
       {activeTab === "questions" ? (
         <VendorQuestionsTab />
@@ -140,7 +140,7 @@ export default function VendorReviews() {
           border: "1px solid",
           borderColor: "divider",
           boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-          bgcolor: "background.paper",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
         }}
       >
         <CardContent sx={{ display: "flex", alignItems: "center", gap: 2.5, py: 2.5 }}>
@@ -162,7 +162,7 @@ export default function VendorReviews() {
           border: "1px solid",
           borderColor: "divider",
           boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-          bgcolor: "background.paper",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
         }}
       >
         <CardContent sx={{ pt: 2, pb: 2.5 }}>
@@ -194,9 +194,9 @@ export default function VendorReviews() {
                   key={review.id}
                   sx={{
                     p: 2.5,
-                    borderRadius: 2,
-                    border: "1px solid",
-                    borderColor: "divider",
+                    borderRadius: "16px",
+                    border: "1px solid rgba(15,27,45,0.06)",
+                    background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
                   }}
                 >
                   <Stack direction="row" spacing={2} alignItems="flex-start">
@@ -216,7 +216,21 @@ export default function VendorReviews() {
                           })}
                         </Typography>
                       </Stack>
-                      <Rating value={review.rating} size="small" readOnly sx={{ mt: 0.25 }} />
+                      {review.listingTitle && (
+                        <Chip
+                          label={review.listingTitle}
+                          size="small"
+                          sx={{
+                            mt: 0.5,
+                            height: 20,
+                            fontSize: "0.7rem",
+                            fontWeight: 600,
+                            bgcolor: "rgba(0,119,182,0.1)",
+                            color: "primary.main",
+                          }}
+                        />
+                      )}
+                      <Rating value={review.rating} size="small" readOnly sx={{ mt: 0.5 }} />
                       <Typography variant="body2" sx={{ mt: 1, color: "text.primary" }}>
                         {review.comment}
                       </Typography>

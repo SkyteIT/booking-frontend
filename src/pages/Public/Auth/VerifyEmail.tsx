@@ -1,27 +1,8 @@
-import { isAxiosError } from "axios";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { verifyEmail } from "../../../services/authService";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 
 type Status = "verifying" | "success" | "error";
 
@@ -40,7 +21,7 @@ function VerifyEmail(): JSX.Element {
       .then(() => setStatus("success"))
       .catch((err) => {
         setStatus("error");
-        setError(getApiErrorMessage(err) ?? "Failed to verify email. The link may have expired.");
+        setError(getApiErrorMessage(err, "Failed to verify email. The link may have expired."));
       });
   }, [token]);
 

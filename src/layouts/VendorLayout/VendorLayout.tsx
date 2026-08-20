@@ -9,9 +9,17 @@ import { useAuth } from "../../context/useAuth";
 export default function VendorLayout() {
   const { loading } = useAuth();
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#F6F8FB",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.22), transparent 70%)",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       {loading && <LoadingSpinner />}
-      
+
       {/* 🔹 Navbar */}
       <VendorNavbar />
 

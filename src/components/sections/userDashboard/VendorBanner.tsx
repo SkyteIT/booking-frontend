@@ -12,12 +12,12 @@ const VendorBanner = () => {
 
   return (
     <Card
+      className="vendor-banner"
       sx={{
         mb: 3,
         width: "100%",
-        background: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
+        background: "linear-gradient(160deg, #005a8d, #0077b6)",
         color: "white",
-        borderRadius: "14px",
       }}
     >
       <CardContent>
@@ -28,18 +28,16 @@ const VendorBanner = () => {
           flexWrap="wrap"
           gap={2}
         >
-          {/* 🔹 LEFT TEXT */}
           <Box display="flex" alignItems="center" gap={2}>
             <BusinessCenterIcon />
 
-            <Typography sx= {{ fontWeight: 600, fontSize: "1.25rem",color: "white" }}>
+            <Typography sx={{ fontWeight: 600, fontSize: "1.25rem", color: "white" }}>
               {isVendor
                 ? "Manage your listings and bookings in the vendor portal"
                 : "Start selling your services by becoming a vendor"}
             </Typography>
           </Box>
 
-          {/* 🔹 BUTTON */}
           <Button
             variant="contained"
             onClick={() =>
@@ -51,13 +49,12 @@ const VendorBanner = () => {
             }
             sx={{
               backgroundColor: "white",
-              color:  "#1976d2",
+              color: "#0077b6",
+              fontWeight: 700,
               "&:hover": {
-                backgroundColor: "#1976d2",
-                color: "white",
-                
+                backgroundColor: "rgba(255,255,255,0.9)",
               },
-              borderRadius: "20px",
+              borderRadius: "999px",
               textTransform: "none",
               px: 3,
               whiteSpace: "nowrap",

@@ -38,7 +38,7 @@ export default function VendorSidebar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
 // MOBILE VERSION
-  
+
   if (isMobile) {
     return (
       <Paper
@@ -80,7 +80,7 @@ export default function VendorSidebar() {
   }
 
   //DESKTOP VERSION
-  
+
   return (
    <Box
       sx={{
@@ -91,10 +91,10 @@ export default function VendorSidebar() {
         height: "calc(100vh - 150px)",
         width: 260,
         borderRadius: 3,
-        boxShadow: "0 12px 24px rgba(0,0,0,0.12)", 
+        boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
         overflowY: "auto",
         background: "linear-gradient(to bottom, #0077b6, #005a8d)",
-        p: 1.5, 
+        p: 1.5,
       }}
     >
 
@@ -110,7 +110,7 @@ export default function VendorSidebar() {
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1.5, 
+          gap: 1.5,
           px: 2,
           py: 1.2,
           mb: 0.6,
@@ -122,9 +122,9 @@ export default function VendorSidebar() {
 
           ...(isActive
                 ? {
-                    backgroundColor: "secondary.main", 
+                    backgroundColor: "secondary.main",
                     color: "primary.main",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)", 
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   }
                 : {
                     color: "rgba(255,255,255,0.85)",
@@ -135,7 +135,7 @@ export default function VendorSidebar() {
                   }),
             }}
           >
-            <Icon sx={{ fontSize: 18 }} /> 
+            <Icon sx={{ fontSize: 18 }} />
 
             {item.label}
           </Box>

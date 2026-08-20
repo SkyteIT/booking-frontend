@@ -1,30 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { resetPassword } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { resetPasswordSchema, type ResetPasswordFormData } from "../../../utils/validationSchemas";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
 
 function ResetPassword(): JSX.Element {
   const navigate = useNavigate();
@@ -51,7 +32,7 @@ function ResetPassword(): JSX.Element {
       setSuccess(true);
       setTimeout(() => navigate("/login", { replace: true }), 2000);
     } catch (err) {
-      setError(getApiErrorMessage(err) ?? "Failed to reset password. The link may have expired.");
+      setError(getApiErrorMessage(err, "Failed to reset password. The link may have expired."));
     }
   };
 

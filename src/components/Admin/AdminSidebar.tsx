@@ -60,15 +60,6 @@ export default function AdminSidebar() {
         boxShadow: "0 22px 55px rgba(15,23,42,0.09)",
       })}
     >
-      <Box mb={3} px={1.25}>
-        <Typography sx={{ fontSize: "0.82rem", fontWeight: 800, letterSpacing: "0.08em", mb: 0.75 }}>
-          ADMIN PORTAL
-        </Typography>
-        <Typography sx={{ fontSize: "0.78rem", color: "text.secondary", lineHeight: 1.6 }}>
-          Manage your platform modules with quick access.
-        </Typography>
-      </Box>
-
       <Stack spacing={0.75}>
         {visibleMenu.map((item) => {
           const Icon = item.icon;

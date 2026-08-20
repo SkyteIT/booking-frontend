@@ -54,7 +54,9 @@ export default function ListingSelector({
 
                 border: "1px solid",
                 borderColor: selected ? "primary.main" : "divider",
-                backgroundColor: selected ? "secondary.light" : "background.paper",
+                background: selected
+                  ? "secondary.light"
+                  : "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
                 boxShadow: selected ? "0 6px 20px rgba(0,0,0,0.05)" : "none",
 
                 transition: "all 0.2s ease",

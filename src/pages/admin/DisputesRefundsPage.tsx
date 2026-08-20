@@ -7,6 +7,7 @@ import {
   IconButton, Alert, Pagination,
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import SnackbarAlert from '../../components/common/SnackbarAlert';
 import {
   getRefunds, approveRefund, rejectRefund,
   getDisputes, recordDispute, resolveDispute,
@@ -193,21 +194,36 @@ export const DisputesRefundsPage: React.FC = () => {
 
   return (
     <Box>
-      {successMsg && (
-        <Box sx={{ mb: 2, p: 2, bgcolor: '#D1FAE5', color: '#059669', borderRadius: 1 }}>
-          {successMsg}
-        </Box>
-      )}
+      <SnackbarAlert
+        open={!!successMsg}
+        onClose={() => setSuccessMsg('')}
+        severity="success"
+        message={successMsg}
+      />
       {errorMsg && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg('')}>{errorMsg}</Alert>
       )}
 
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>Disputes & Refunds</Typography>
-        <Typography variant="body2" color="text.secondary">Review refund requests and manage payment disputes</Typography>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
+          Disputes & Refunds
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Review refund requests and manage payment disputes</Typography>
       </Box>
 
-      <Paper sx={{ mb: 3 }}>
+      <Paper
+        sx={{
+          mb: 3,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+        }}
+      >
         <Tabs value={mainTab} onChange={(_, val) => setMainTab(val)} sx={{ px: 2, pt: 1 }}>
           <Tab label="Refunds" sx={{ textTransform: 'none', fontWeight: 500 }} />
           <Tab label="Disputes" sx={{ textTransform: 'none', fontWeight: 500 }} />
@@ -216,7 +232,17 @@ export const DisputesRefundsPage: React.FC = () => {
 
       {mainTab === 0 && (
         <>
-          <Paper sx={{ p: 2, mb: 3 }}>
+          <Paper
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            }}
+          >
             <Tabs value={refundTab} onChange={(_, val) => { setRefundTab(val); setRefundPage(1); }}>
               {REFUND_TABS.map((label) => (
                 <Tab key={label} label={label} sx={{ textTransform: 'none', fontWeight: 500 }} />
@@ -224,7 +250,16 @@ export const DisputesRefundsPage: React.FC = () => {
             </Tabs>
           </Paper>
 
-          <Paper>
+          <Paper
+            sx={{
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+              overflow: "hidden",
+            }}
+          >
             <TableContainer>
               <Table>
                 <TableHead>
@@ -264,7 +299,7 @@ export const DisputesRefundsPage: React.FC = () => {
                           <TableCell><Typography variant="body2">{refund.vendorName}</Typography></TableCell>
                           <TableCell><Typography variant="body2">{refund.listingTitle}</Typography></TableCell>
                           <TableCell>
-                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#0891B2' }}>{refund.amount.toFixed(2)}</Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#0077b6' }}>{refund.amount.toFixed(2)}</Typography>
                             <Typography variant="caption" color="text.secondary">{refund.policyTierApplied}% tier</Typography>
                           </TableCell>
                           <TableCell><Typography variant="body2" sx={{ maxWidth: 200 }}>{refund.reason}</Typography></TableCell>
@@ -276,7 +311,7 @@ export const DisputesRefundsPage: React.FC = () => {
                               <Box sx={{ display: 'flex', gap: 1 }}>
                                 <Button size="small" variant="contained" disabled={savingRefund}
                                   onClick={() => handleApprove(refund)}
-                                  sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+                                  sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
                                   Approve
                                 </Button>
                                 <Button size="small" variant="outlined" color="error" disabled={savingRefund}
@@ -305,7 +340,17 @@ export const DisputesRefundsPage: React.FC = () => {
 
       {mainTab === 1 && (
         <>
-          <Paper sx={{ p: 2, mb: 3 }}>
+          <Paper
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            }}
+          >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
               <Tabs value={disputeTab} onChange={(_, val) => { setDisputeTab(val); setDisputePage(1); }}>
                 {DISPUTE_TABS.map((label) => (
@@ -313,13 +358,22 @@ export const DisputesRefundsPage: React.FC = () => {
                 ))}
               </Tabs>
               <Button variant="contained" startIcon={<Add />} onClick={() => setRecordOpen(true)}
-                sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+                sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
                 Record Dispute
               </Button>
             </Box>
           </Paper>
 
-          <Paper>
+          <Paper
+            sx={{
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+              overflow: "hidden",
+            }}
+          >
             <TableContainer>
               <Table>
                 <TableHead>
@@ -355,7 +409,7 @@ export const DisputesRefundsPage: React.FC = () => {
                           <TableCell><Typography variant="body2">{dispute.customerName}</Typography></TableCell>
                           <TableCell><Typography variant="body2">{dispute.vendorName}</Typography></TableCell>
                           <TableCell>
-                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#0891B2' }}>{dispute.amount.toFixed(2)}</Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#0077b6' }}>{dispute.amount.toFixed(2)}</Typography>
                             {dispute.disputeFeeAmount != null && (
                               <Typography variant="caption" color="text.secondary">+{dispute.disputeFeeAmount.toFixed(2)} fee</Typography>
                             )}
@@ -369,7 +423,7 @@ export const DisputesRefundsPage: React.FC = () => {
                             {dispute.status === 'Opened' && (
                               <Button size="small" variant="contained" disabled={savingDispute}
                                 onClick={() => { setResolveTarget(dispute); setResolveOutcome('Won'); }}
-                                sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+                                sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
                                 Resolve
                               </Button>
                             )}
@@ -391,7 +445,7 @@ export const DisputesRefundsPage: React.FC = () => {
       )}
 
       {/* Reject Refund Dialog */}
-      <Dialog open={!!rejectTarget} onClose={() => setRejectTarget(null)} maxWidth="sm" fullWidth>
+      <Dialog open={!!rejectTarget} onClose={() => setRejectTarget(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px" } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Reject Refund
           <IconButton onClick={() => setRejectTarget(null)}><Close /></IconButton>
@@ -419,7 +473,7 @@ export const DisputesRefundsPage: React.FC = () => {
       </Dialog>
 
       {/* Resolve Dispute Dialog */}
-      <Dialog open={!!resolveTarget} onClose={() => setResolveTarget(null)} maxWidth="sm" fullWidth>
+      <Dialog open={!!resolveTarget} onClose={() => setResolveTarget(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px" } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Resolve Dispute
           <IconButton onClick={() => setResolveTarget(null)}><Close /></IconButton>
@@ -440,14 +494,14 @@ export const DisputesRefundsPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setResolveTarget(null)} sx={{ textTransform: 'none' }}>Cancel</Button>
           <Button variant="contained" disabled={savingDispute} onClick={handleResolveConfirm}
-            sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+            sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
             {savingDispute ? 'Saving...' : 'Confirm Outcome'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Record Dispute Dialog */}
-      <Dialog open={recordOpen} onClose={() => setRecordOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={recordOpen} onClose={() => setRecordOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px" } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Record a Dispute
           <IconButton onClick={() => setRecordOpen(false)}><Close /></IconButton>
@@ -469,7 +523,7 @@ export const DisputesRefundsPage: React.FC = () => {
           <Button onClick={() => setRecordOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
           <Button variant="contained" disabled={savingDispute || !recordPaymentId.trim() || !recordAmount || !recordReason.trim()}
             onClick={handleRecordSubmit}
-            sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+            sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
             {savingDispute ? 'Recording...' : 'Record Dispute'}
           </Button>
         </DialogActions>

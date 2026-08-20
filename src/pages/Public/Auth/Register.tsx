@@ -1,35 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GoogleLogin } from "@react-oauth/google";
-import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
+import ToastAlert from "../../../components/common/ToastAlert";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { register as registerUser, loginWithGoogle } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import {
   registerSchema,
   type RegisterFormData,
 } from "../../../utils/validationSchemas";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
 
 function Register(): JSX.Element {
   const navigate = useNavigate();
@@ -61,7 +43,7 @@ function Register(): JSX.Element {
       await refreshUser();
       navigate("/", { replace: true });
     } catch (error) {
-      setError(getApiErrorMessage(error) ?? "Unable to create your account. Please try again.");
+      setError(getApiErrorMessage(error, "Unable to create your account. Please try again."));
     }
   };
 
@@ -77,7 +59,7 @@ function Register(): JSX.Element {
       await refreshUser();
       navigate("/", { replace: true });
     } catch (error) {
-      setError(getApiErrorMessage(error) ?? "Google sign-up failed. Please try again.");
+      setError(getApiErrorMessage(error, "Google sign-up failed. Please try again."));
     }
   };
 
@@ -134,8 +116,6 @@ function Register(): JSX.Element {
             )}
           </div>
 
-          {error && <p className="error-text">{error}</p>}
-
           <button
             type="submit"
             className="primary-btn"
@@ -164,6 +144,13 @@ function Register(): JSX.Element {
           </p>
         </div>
       </div>
+
+      <ToastAlert
+        open={!!error}
+        onClose={() => setError("")}
+        severity="error"
+        message={error}
+      />
     </AuthLayout>
   );
 }

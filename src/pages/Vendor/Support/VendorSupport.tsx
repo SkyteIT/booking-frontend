@@ -230,7 +230,10 @@ export default function VendorSupport() {
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack spacing={1} alignItems="center" textAlign="center" mb={4}>
-        <Typography variant="h4" fontWeight={700}>
+        <Typography
+          variant="h4"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           How can we help you?
         </Typography>
         <Typography color="text.secondary">Get support and find answers to common questions</Typography>
@@ -241,7 +244,13 @@ export default function VendorSupport() {
         placeholder="Search for help..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        sx={{ mb: 4 }}
+        sx={{
+          mb: 4,
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "999px",
+            bgcolor: "#fff",
+          },
+        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -281,7 +290,16 @@ export default function VendorSupport() {
         />
       </Box>
 
-      <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", mb: 4 }}>
+      <Card
+        sx={{
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+          mb: 4,
+        }}
+      >
         <CardContent>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Quick Links
@@ -298,9 +316,9 @@ export default function VendorSupport() {
                     alignItems: "center",
                     gap: 1.5,
                     p: 2,
-                    borderRadius: 2,
-                    border: "1px solid",
-                    borderColor: "divider",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(15,27,45,0.06)",
+                    background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
                     cursor: "pointer",
                     transition: "all 0.15s",
                     "&:hover": { borderColor: "#0077B6", bgcolor: alpha("#0077B6", 0.04) },
@@ -327,7 +345,16 @@ export default function VendorSupport() {
         </CardContent>
       </Card>
 
-      <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", mb: 4 }}>
+      <Card
+        sx={{
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+          mb: 4,
+        }}
+      >
         <CardContent>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Frequently Asked Questions
@@ -360,9 +387,10 @@ export default function VendorSupport() {
         ref={ticketFormRef}
         sx={{
           borderRadius: 3,
-          bgcolor: alpha("#0077B6", 0.06),
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
           border: "1px solid",
           borderColor: alpha("#0077B6", 0.2),
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
         }}
       >
         <CardContent sx={{ p: 4 }}>
@@ -400,7 +428,13 @@ export default function VendorSupport() {
                 variant="contained"
                 disabled={submitting || !subject.trim() || !message.trim()}
                 onClick={handleSubmitTicket}
-                sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" }, alignSelf: "center", px: 4 }}
+                sx={{
+                  background: "linear-gradient(160deg, #005a8d, #0077b6)",
+                  "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+                  alignSelf: "center",
+                  px: 4,
+                  borderRadius: "999px",
+                }}
               >
                 {submitting ? "Sending..." : "Submit a Ticket"}
               </Button>
@@ -409,7 +443,13 @@ export default function VendorSupport() {
         </CardContent>
       </Card>
 
-      <Dialog open={openLink != null} onClose={() => setOpenLink(null)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openLink != null}
+        onClose={() => setOpenLink(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px" } }}
+      >
         <DialogTitle>{openLink?.title}</DialogTitle>
         <DialogContent dividers>{openLink?.content}</DialogContent>
       </Dialog>
@@ -435,7 +475,15 @@ function ContactCard({
   onClick: () => void;
 }) {
   return (
-    <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%" }}>
+    <Card
+      sx={{
+        borderRadius: 3,
+        border: "1px solid rgba(15,27,45,0.06)",
+        background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+        boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+        height: "100%",
+      }}
+    >
       <CardContent sx={{ textAlign: "center", py: 3 }}>
         <Box
           sx={{

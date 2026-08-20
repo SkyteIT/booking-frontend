@@ -9,8 +9,6 @@ import {
   CardContent,
   Stack,
   Typography,
-  Tabs,
-  Tab,
   Table,
   TableBody,
   TableCell,
@@ -30,6 +28,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useCallback, useEffect, useState } from "react";
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import StatCard from "../../../components/Vendor/Dashboard/StatCard";
 import { getVendorListings } from "../../../services/Vendor/listingService";
 import {
@@ -107,7 +106,7 @@ function SectionCard({ children }: { children: React.ReactNode }) {
         border: "1px solid",
         borderColor: "divider",
         boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-        bgcolor: "background.paper",
+        background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
       }}
     >
       <CardContent sx={{ pt: 2, pb: 2.5 }}>{children}</CardContent>
@@ -210,7 +209,12 @@ function CommissionTab() {
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={handleAcknowledge} disabled={checking}>
+        <Button
+          variant="contained"
+          onClick={handleAcknowledge}
+          disabled={checking}
+          sx={{ borderRadius: "999px" }}
+        >
           {checking ? "Checking…" : "View & Acknowledge Current Rate"}
         </Button>
       </Stack>
@@ -315,8 +319,8 @@ function MoneyTile({
     <Card
       sx={{
         borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
+        border: "1px solid rgba(15,27,45,0.06)",
+        background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
         flex: 1,
         minWidth: 180,
       }}
@@ -458,7 +462,7 @@ function EarningsTab() {
           startIcon={<FileDownloadIcon />}
           onClick={handleExport}
           disabled={exporting || !data || data.revenueTrend.length === 0}
-          sx={{ ml: "auto" }}
+          sx={{ ml: "auto", borderRadius: "999px" }}
         >
           {exporting ? "Exporting…" : "Export CSV"}
         </Button>
@@ -666,12 +670,15 @@ function EarningsTab() {
 }
 
 export default function Payouts() {
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Earnings");
 
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Earnings
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -680,15 +687,13 @@ export default function Payouts() {
       </Box>
 
       <SectionCard>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
-          {TABS.map((label) => (
-            <Tab key={label} label={label} />
-          ))}
-        </Tabs>
+        <Box sx={{ mb: 2 }}>
+          <SegmentedTabs options={TABS} value={tab} onChange={setTab} />
+        </Box>
 
-        {tab === 0 && <EarningsTab />}
-        {tab === 1 && <CommissionTab />}
-        {tab === 2 && <DisputesTab />}
+        {tab === "Earnings" && <EarningsTab />}
+        {tab === "Commission" && <CommissionTab />}
+        {tab === "Disputes" && <DisputesTab />}
       </SectionCard>
     </Stack>
   );

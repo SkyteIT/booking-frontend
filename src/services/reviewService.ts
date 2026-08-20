@@ -10,6 +10,8 @@ export interface ReviewDto {
   isLikedByCurrentUser: boolean;
   vendorReply?: string | null;
   vendorReplyAt?: string | null;
+  listingId: string;
+  listingTitle: string;
 }
 
 export interface PagedResult<T> {

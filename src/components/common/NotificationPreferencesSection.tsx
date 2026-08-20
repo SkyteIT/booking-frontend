@@ -1,4 +1,9 @@
-import { Alert, Box, Button, CircularProgress, Divider, Stack, Switch, Typography } from "@mui/material";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
+import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
+import { Alert, Box, Button, CircularProgress, Divider, Paper, Stack, Switch, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -18,6 +23,21 @@ export interface PreferenceGroup {
 interface NotificationPreferencesSectionProps {
   groups: PreferenceGroup[];
 }
+
+// Same grouped icon-card treatment as the Notifications page's inbox list,
+// keyed by the group label - Bookings/Payments/Reviews/Account across both
+// Vendor and Customer settings. Anything else falls back to a plain bell.
+const GROUP_STYLE: Record<string, { icon: typeof CalendarMonthOutlinedIcon; bg: string }> = {
+  bookings: { icon: CalendarMonthOutlinedIcon, bg: "#e6f4ea" },
+  payments: { icon: PaymentOutlinedIcon, bg: "#e3f0fb" },
+  reviews: { icon: StarOutlineOutlinedIcon, bg: "#fff8e1" },
+  account: { icon: AccountCircleOutlinedIcon, bg: "#f3e5f5" },
+};
+
+const styleFor = (label: string) => GROUP_STYLE[label.trim().toLowerCase()] ?? {
+  icon: NotificationsNoneOutlinedIcon,
+  bg: "rgba(0,119,182,0.08)",
+};
 
 export default function NotificationPreferencesSection({ groups }: NotificationPreferencesSectionProps) {
   const { user } = useAuth();
@@ -84,90 +104,131 @@ export default function NotificationPreferencesSection({ groups }: NotificationP
   }
 
   return (
-    <Box>
-      <Stack spacing={3}>
-        {isPushSupported() ? (
-          <Alert
-            severity={pushEnabled ? "success" : "info"}
-            action={
-              <Button
-                size="small"
-                color="inherit"
-                disabled={pushBusy}
-                onClick={handleTogglePush}
-                sx={{ textTransform: "none" }}
-              >
-                {pushBusy ? "Working..." : pushEnabled ? "Disable" : "Enable"}
-              </Button>
-            }
-          >
-            {pushEnabled
-              ? "Browser push notifications are enabled on this device."
-              : "Turn on browser push notifications to get alerts on this device, on top of Email/SMS."}
-          </Alert>
-        ) : (
-          <Alert severity="warning">This browser doesn't support push notifications.</Alert>
-        )}
-        {pushError && <Alert severity="error">{pushError}</Alert>}
+    <Stack spacing={2.5}>
+      {isPushSupported() ? (
+        <Alert
+          severity={pushEnabled ? "success" : "info"}
+          sx={{ borderRadius: "14px" }}
+          action={
+            <Button
+              size="small"
+              color="inherit"
+              disabled={pushBusy}
+              onClick={handleTogglePush}
+              sx={{ textTransform: "none", fontWeight: 600 }}
+            >
+              {pushBusy ? "Working..." : pushEnabled ? "Disable" : "Enable"}
+            </Button>
+          }
+        >
+          {pushEnabled
+            ? "Browser push notifications are enabled on this device."
+            : "Turn on browser push notifications to get alerts on this device, on top of Email/SMS."}
+        </Alert>
+      ) : (
+        <Alert severity="warning" sx={{ borderRadius: "14px" }}>
+          This browser doesn't support push notifications.
+        </Alert>
+      )}
+      {pushError && (
+        <Alert severity="error" sx={{ borderRadius: "14px" }}>
+          {pushError}
+        </Alert>
+      )}
 
-        {groups.map((group) => (
-          <Box key={group.label}>
-            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>{group.label}</Typography>
-            <Divider sx={{ mb: 1.5 }} />
-            <Stack spacing={1.5}>
-              {group.items.map((item) => (
+      {groups.map((group) => {
+        const { icon: Icon, bg } = styleFor(group.label);
+        return (
+          <Paper
+            key={group.label}
+            sx={{ borderRadius: "20px", overflow: "hidden", boxShadow: "0 12px 32px rgba(15,27,45,0.06)" }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 2.5, py: 2 }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "10px",
+                  display: "grid",
+                  placeItems: "center",
+                  bgcolor: bg,
+                }}
+              >
+                <Icon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontWeight: 700, fontSize: "0.95rem" }}>{group.label}</Typography>
+            </Box>
+
+            <Divider />
+
+            {group.items.map((item, ii) => (
+              <Box key={item.key}>
                 <Box
-                  key={item.key}
                   sx={{
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    p: 1.5,
-                    borderRadius: 1.5,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    bgcolor: "background.paper",
+                    justifyContent: "space-between",
+                    px: 2.5,
+                    py: 1.75,
+                    transition: "background 0.15s ease",
+                    "&:hover": { bgcolor: "rgba(0,119,182,0.04)" },
                   }}
                 >
-                  <Typography>{item.label}</Typography>
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Stack alignItems="center">
-                      <Typography variant="caption" color="text.secondary">
+                  <Typography fontSize={14} sx={{ fontWeight: 500 }}>
+                    {item.label}
+                  </Typography>
+
+                  <Stack direction="row" spacing={3}>
+                    <Stack alignItems="center" spacing={0.25}>
+                      <Typography fontSize={11} color="text.secondary" sx={{ fontWeight: 600 }}>
                         Email
                       </Typography>
                       <Switch
                         size="small"
                         checked={getPrefValue(item.notificationType, "emailEnabled")}
                         onChange={(e) => handleToggle(item.notificationType, "email", e.target.checked)}
+                        sx={{
+                          "& .MuiSwitch-switchBase.Mui-checked": { color: "primary.main" },
+                          "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "primary.main" },
+                        }}
                       />
                     </Stack>
-                    <Stack alignItems="center">
-                      <Typography variant="caption" color="text.secondary">
+                    <Stack alignItems="center" spacing={0.25}>
+                      <Typography fontSize={11} color="text.secondary" sx={{ fontWeight: 600 }}>
                         Push
                       </Typography>
                       <Switch
                         size="small"
                         checked={getPrefValue(item.notificationType, "pushEnabled")}
                         onChange={(e) => handleToggle(item.notificationType, "push", e.target.checked)}
+                        sx={{
+                          "& .MuiSwitch-switchBase.Mui-checked": { color: "primary.main" },
+                          "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "primary.main" },
+                        }}
                       />
                     </Stack>
-                    <Stack alignItems="center">
-                      <Typography variant="caption" color="text.secondary">
+                    <Stack alignItems="center" spacing={0.25}>
+                      <Typography fontSize={11} color="text.secondary" sx={{ fontWeight: 600 }}>
                         SMS
                       </Typography>
                       <Switch
                         size="small"
                         checked={getPrefValue(item.notificationType, "smsEnabled")}
                         onChange={(e) => handleToggle(item.notificationType, "sms", e.target.checked)}
+                        sx={{
+                          "& .MuiSwitch-switchBase.Mui-checked": { color: "primary.main" },
+                          "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "primary.main" },
+                        }}
                       />
                     </Stack>
                   </Stack>
                 </Box>
-              ))}
-            </Stack>
-          </Box>
-        ))}
-      </Stack>
-    </Box>
+                {ii < group.items.length - 1 && <Divider />}
+              </Box>
+            ))}
+          </Paper>
+        );
+      })}
+    </Stack>
   );
 }

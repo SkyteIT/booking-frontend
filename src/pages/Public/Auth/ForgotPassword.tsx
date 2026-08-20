@@ -1,30 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { requestPasswordReset } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../utils/validationSchemas";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
 
 function ForgotPassword(): JSX.Element {
   const [message, setMessage] = useState<string>("");
@@ -50,7 +31,7 @@ function ForgotPassword(): JSX.Element {
       reset();
     } catch (error) {
       setIsError(true);
-      setMessage(getApiErrorMessage(error) ?? "Failed to send reset link. Please try again.");
+      setMessage(getApiErrorMessage(error, "Failed to send reset link. Please try again."));
     }
   };
 

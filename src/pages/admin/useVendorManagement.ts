@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { VendorManagementTab } from "../../components/Admin/VendorManagement/VendorManagementTabs";
-import type { VendorApplication } from "../../services/Admin/vendor";
+import type { VendorApplicationDetail, VendorApplicationListItem } from "../../services/Admin/vendor";
 import {getVendorApplications, getVendorApplicationById, reviewVendorApplication } from "../../services/Admin/vendor";
 
 type SnackbarState = {
@@ -11,7 +11,7 @@ type SnackbarState = {
 
 export function useVendorManagement() {
   const [activeTab, setActiveTab] = useState<VendorManagementTab>("pending");
-  const [vendors, setVendors] = useState<VendorApplication[]>([]);
+  const [vendors, setVendors] = useState<VendorApplicationListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -19,7 +19,7 @@ export function useVendorManagement() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
 
-  const [selectedVendor, setSelectedVendor] = useState<VendorApplication | null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorApplicationDetail | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   const [rejectMode, setRejectMode] = useState(false);
@@ -38,8 +38,7 @@ export function useVendorManagement() {
   const selectedStatusLabel =
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
 
-  const getVendorId = (vendor: VendorApplication | null) =>
-    vendor?.id ?? vendor?.applicationId ?? vendor?.vendorApplicationId ?? "";
+  const getVendorId = (vendor: { id?: string } | null) => vendor?.id ?? "";
 
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +60,7 @@ export function useVendorManagement() {
           setVendors(data);
           setTotalCount(data.length);
         } else {
-          const items = (data.items ?? data.data ?? data.results ?? []) as VendorApplication[];
+          const items = (data.items ?? data.data ?? data.results ?? []) as VendorApplicationListItem[];
           setVendors(items);
           setTotalCount(Number(data.totalCount ?? data.count ?? items.length ?? 0));
         }

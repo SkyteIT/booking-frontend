@@ -157,7 +157,7 @@ export default function SeasonalPricingPanel({ listingId, onError, onSuccess }: 
           onChange={(e) => setForm((f) => ({ ...f, adjustmentValue: e.target.value }))}
           sx={{ maxWidth: 140 }}
         />
-        <Button variant="contained" disabled={saving} onClick={handleCreate} sx={{ textTransform: "none" }}>
+        <Button variant="contained" disabled={saving} onClick={handleCreate} sx={{ textTransform: "none", borderRadius: "999px" }}>
           {saving ? "Adding..." : "Add rule"}
         </Button>
       </Box>

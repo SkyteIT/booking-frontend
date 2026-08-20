@@ -27,7 +27,10 @@ export default function Pricing() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Pricing &amp; Promotions
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -35,7 +38,15 @@ export default function Pricing() {
         </Typography>
       </Box>
 
-      <Card sx={{ borderRadius: 3 }}>
+      <Card
+        sx={{
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+        }}
+      >
         <CardContent>
           {loading ? (
             <Typography color="text.secondary">Loading your listings...</Typography>
@@ -62,7 +73,15 @@ export default function Pricing() {
 
       {listings.length > 0 && (
         <>
-          <Card sx={{ borderRadius: 3 }}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            }}
+          >
             <CardContent>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                 Seasonal Pricing
@@ -75,7 +94,15 @@ export default function Pricing() {
             </CardContent>
           </Card>
 
-          <Card sx={{ borderRadius: 3 }}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            }}
+          >
             <CardContent>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                 Offers

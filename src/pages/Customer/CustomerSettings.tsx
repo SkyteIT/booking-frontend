@@ -9,8 +9,6 @@ import {
   CardContent,
   Divider,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -21,6 +19,7 @@ import { useEffect, useState } from "react";
 import NotificationPreferencesSection, {
   type PreferenceGroup,
 } from "../../components/common/NotificationPreferencesSection";
+import SegmentedTabs from "../../components/common/SegmentedTabs";
 import SelfServiceEmailChangeSection from "../../components/common/SelfServiceEmailChangeSection";
 import TwoFactorSettings from "../../components/common/TwoFactorSettings";
 import { useAuth } from "../../context/useAuth";
@@ -272,12 +271,15 @@ export default function CustomerSettings() {
 
   return (
     <CustomerPageLayout title="Settings" subtitle="Update your account settings.">
-      <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, borderBottom: "1px solid", borderColor: "divider" }}>
-          <Tab label="Profile" value="profile" />
-          <Tab label="Security" value="security" />
-          <Tab label="Notifications" value="notifications" />
-        </Tabs>
+      <Card sx={{ borderRadius: "20px", border: "1px solid", borderColor: "divider", boxShadow: "0 12px 32px rgba(15,27,45,0.06)" }}>
+        <Box sx={{ px: 3, pt: 2.5, pb: 2, borderBottom: "1px solid", borderColor: "divider" }}>
+          <SegmentedTabs
+            options={["profile", "security", "notifications"] as const}
+            labels={{ profile: "Profile", security: "Security", notifications: "Notifications" }}
+            value={tab}
+            onChange={setTab}
+          />
+        </Box>
         <CardContent sx={{ p: 3 }}>
           {tab === "profile" && <ProfileTab />}
           {tab === "security" && <SecurityTab />}

@@ -1,8 +1,4 @@
-import { Box } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import MainFooter from "../../components/footer/MainFooter";
-import MainNavbar from "../../components/navbars/CustomerNavbar";
-import DashboardSideBar from "../../components/sections/userDashboard/DashboardSideBar";
 import StatsCards from "../../components/sections/userDashboard/StatsCards";
 import UpcomingBookings from "../../components/sections/userDashboard/UpcomingBookings";
 import VendorBanner from "../../components/sections/userDashboard/VendorBanner";
@@ -10,8 +6,7 @@ import WelcomeCard from "../../components/sections/userDashboard/WelcomeCard";
 import { useAuth } from "../../context/useAuth";
 import { useCustomerBookings } from "../../hooks/useCustomerBookings";
 import { getMyReviews } from "../../services/reviewService";
-
-import "../../components/sections/userDashboard/userDashboard.css";
+import CustomerPageLayout from "./CustomerPageLayout";
 
 const UPCOMING_STATUSES = new Set(["Pending", "Confirmed"]);
 
@@ -50,31 +45,19 @@ const UserDashboard = () => {
   const upcomingBookingsPreview = allUpcomingBookings.slice(0, 5);
 
   return (
-    <Box className="dashboard-wrapper">
-      <MainNavbar />
+    <CustomerPageLayout title="Dashboard" subtitle="Your account at a glance.">
+      <WelcomeCard firstName={user?.firstName} />
 
-      <Box className="dashboard-layout">
-        <Box className="dashboard-sidebar">
-          <DashboardSideBar />
-        </Box>
+      <VendorBanner />
 
-        <Box className="dashboard-main">
-          <WelcomeCard firstName={user?.firstName} />
+      <StatsCards
+        totalBookings={bookingsLoading ? null : totalCount}
+        upcomingCount={bookingsLoading ? null : allUpcomingBookings.length}
+        reviewsCount={reviewsCount}
+      />
 
-          <VendorBanner />
-
-          <StatsCards
-            totalBookings={bookingsLoading ? null : totalCount}
-            upcomingCount={bookingsLoading ? null : allUpcomingBookings.length}
-            reviewsCount={reviewsCount}
-          />
-
-          <UpcomingBookings bookings={upcomingBookingsPreview} loading={bookingsLoading} />
-        </Box>
-      </Box>
-
-      <MainFooter />
-    </Box>
+      <UpcomingBookings bookings={upcomingBookingsPreview} loading={bookingsLoading} />
+    </CustomerPageLayout>
   );
 };
 

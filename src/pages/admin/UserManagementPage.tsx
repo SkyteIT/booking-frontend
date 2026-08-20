@@ -163,23 +163,43 @@ export const UserManagementPage: React.FC = () => {
         )}
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>User Management</Typography>
-          <Typography variant="body2" color="text.secondary">Manage all platform users and their activities</Typography>
+          <Typography
+            variant="h5"
+            sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          >
+            User Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Manage all platform users and their activities
+          </Typography>
         </Box>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+          }}
+        >
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               fullWidth size="small" placeholder="Search users..."
               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#94A3B8' }} /></InputAdornment> }}
-              sx={{ maxWidth: 400 }}
+              sx={{
+                maxWidth: 400,
+                '& .MuiOutlinedInput-root': { borderRadius: '999px', bgcolor: '#fff' },
+              }}
             />
             <Button
               variant="outlined"
               startIcon={<FilterList />}
               onClick={(e) => setFilterAnchorEl(e.currentTarget)}
-              sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}
+              sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B', borderRadius: '999px' }}
             >
               Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
             </Button>
@@ -216,7 +236,16 @@ export const UserManagementPage: React.FC = () => {
         </Paper>
 
         <Box sx={{ flex: 1 }}>
-          <Paper>
+          <Paper
+            sx={{
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+              overflow: "hidden",
+            }}
+          >
             <TableContainer>
               <Table>
                 <TableHead>
@@ -308,7 +337,7 @@ export const UserManagementPage: React.FC = () => {
         </Menu>
 
         {/* View Dialog */}
-        <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             User Details
             <IconButton onClick={() => setViewOpen(false)}><Close /></IconButton>
@@ -317,7 +346,7 @@ export const UserManagementPage: React.FC = () => {
             {selectedUser && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                  <Avatar sx={{ width: 64, height: 64, bgcolor: '#0891B2', fontSize: '1.5rem' }}>
+                  <Avatar sx={{ width: 64, height: 64, background: 'linear-gradient(160deg, #005a8d, #0077b6)', fontSize: '1.5rem' }}>
                     {selectedUser.fullName.charAt(0)}
                   </Avatar>
                   <Box>
@@ -344,14 +373,14 @@ export const UserManagementPage: React.FC = () => {
           <DialogActions>
             <Button onClick={() => setViewOpen(false)} sx={{ textTransform: 'none' }}>Close</Button>
             <Button variant="contained" onClick={() => { setViewOpen(false); if (selectedUser) handleEditOpen(selectedUser); }}
-              sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+              sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
               Change Role
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* Edit (role-only — that's the only field the admin API supports changing besides status) */}
-        <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             Change Role
             <IconButton onClick={() => setEditOpen(false)}><Close /></IconButton>
@@ -380,14 +409,14 @@ export const UserManagementPage: React.FC = () => {
           <DialogActions>
             <Button onClick={() => setEditOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
             <Button variant="contained" disabled={saving} onClick={handleEditSave}
-              sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+              sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* Block Confirm Dialog */}
-        <Dialog open={blockOpen} onClose={() => setBlockOpen(false)}>
+        <Dialog open={blockOpen} onClose={() => setBlockOpen(false)} PaperProps={{ sx: { borderRadius: '20px' } }}>
           <DialogTitle>{selectedUser?.status === 'Suspended' ? 'Reactivate User' : 'Suspend User'}</DialogTitle>
           <DialogContent>
             <DialogContentText>

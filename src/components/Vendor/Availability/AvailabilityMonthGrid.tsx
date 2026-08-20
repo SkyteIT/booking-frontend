@@ -72,12 +72,13 @@ export default function AvailabilityMonthGrid({
     return "Available";
   }
 
-  // UI styles
+  // UI styles - gradients instead of flat fills, matching the app-wide
+  // soft-glass treatment rather than the old harsh solid-color blocks.
   function getCellStyles(state: string) {
     if (state === "Booked") {
       return {
-        bg: grey[600],
-        hover: grey[700],
+        bg: `linear-gradient(160deg, ${grey[500]}, ${grey[700]})`,
+        hover: `linear-gradient(160deg, ${grey[600]}, ${grey[800]})`,
         text: "#fff",
         disabled: false,
         ring: "none",
@@ -86,8 +87,8 @@ export default function AvailabilityMonthGrid({
 
     if (state === "Blocked") {
       return {
-        bg: "error.main",
-        hover: "error.dark",
+        bg: "linear-gradient(160deg, #EF4444, #B91C1C)",
+        hover: "linear-gradient(160deg, #DC2626, #991B1B)",
         text: "error.contrastText",
         disabled: false,
         ring: "none",
@@ -96,8 +97,8 @@ export default function AvailabilityMonthGrid({
 
     if (state === "BlockedSelected") {
       return {
-        bg: "error.dark",
-        hover: "error.dark",
+        bg: "linear-gradient(160deg, #DC2626, #991B1B)",
+        hover: "linear-gradient(160deg, #DC2626, #991B1B)",
         text: "error.contrastText",
         disabled: false,
         ring: `0 0 0 3px ${grey[200]}`,
@@ -106,8 +107,8 @@ export default function AvailabilityMonthGrid({
 
     if (state === "Selected") {
       return {
-        bg: "primary.dark",
-        hover: "primary.main",
+        bg: "linear-gradient(160deg, #005a8d, #003a5c)",
+        hover: "linear-gradient(160deg, #005a8d, #0077b6)",
         text: "primary.contrastText",
         disabled: false,
         ring: `0 0 0 3px ${grey[300]}`,
@@ -115,8 +116,8 @@ export default function AvailabilityMonthGrid({
     }
     if (state === "Full") {
       return {
-        bg: grey[700],
-        hover: grey[700],
+        bg: `linear-gradient(160deg, ${grey[600]}, ${grey[800]})`,
+        hover: `linear-gradient(160deg, ${grey[600]}, ${grey[800]})`,
         text: "#fff",
         disabled: true,
         ring: "none",
@@ -124,8 +125,8 @@ export default function AvailabilityMonthGrid({
     }
 
     return {
-      bg: "primary.main",
-      hover: "primary.dark",
+      bg: "linear-gradient(160deg, #0077b6, #005a8d)",
+      hover: "linear-gradient(160deg, #005a8d, #004a75)",
       text: "primary.contrastText",
       disabled: false,
       ring: "none",
@@ -211,7 +212,7 @@ export default function AvailabilityMonthGrid({
                       height: 72,
                       width: "100%",
                       borderRadius: 2,
-                      bgcolor: styles.bg,
+                      background: styles.bg,
                       color: styles.text,
                       fontWeight: 800,
                       display: "flex",
@@ -221,7 +222,7 @@ export default function AvailabilityMonthGrid({
                       boxShadow:
                         styles.ring !== "none" ? styles.ring : "none",
                       "&:hover": {
-                        bgcolor: styles.hover,
+                        background: styles.hover,
                         transform: "scale(1.05)",
                       },
                       "&.Mui-disabled": {

@@ -372,15 +372,27 @@ export default function AdminSettingsPage() {
 
   return (
     <>
-      <Typography variant="h4" fontWeight={600}>
+      <Typography
+        variant="h5"
+        sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+      >
         Settings
       </Typography>
-      <Typography color="text.secondary" mb={3}>
+      <Typography color="text.secondary" mt={0.5} mb={3}>
         Your own account — profile and security. Platform-wide configuration lives elsewhere, not here.
       </Typography>
 
       <Box sx={{ display: "grid", gap: 3, gridTemplateColumns: { xs: "1fr", md: "240px 1fr" } }}>
-        <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", height: "fit-content" }}>
+        <Card
+          sx={{
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            height: "fit-content",
+          }}
+        >
           <CardContent sx={{ p: 1 }}>
             <List disablePadding>
               {SECTIONS.map((s) => {
@@ -410,7 +422,15 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+        <Card
+          sx={{
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+          }}
+        >
           <CardContent sx={{ p: 3 }}>
             <Box mb={2.5}>
               <Typography variant="h5" fontWeight={500}>

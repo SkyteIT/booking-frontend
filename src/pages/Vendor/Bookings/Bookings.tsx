@@ -45,7 +45,10 @@ export default function Bookings() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Bookings
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -59,7 +62,7 @@ export default function Bookings() {
           border: "1px solid",
           borderColor: "divider",
           boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-          bgcolor: "background.paper",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
         }}
       >
         <Box sx={{ px: 2.5, py: 2 }}>

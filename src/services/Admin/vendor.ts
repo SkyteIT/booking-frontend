@@ -1,23 +1,45 @@
 import type { RawApiRecord } from "../../utils/types";
 import api from "../api";
 
-export type VendorApplication = {
+// Matches the backend's ApplicationTableDto exactly (GET /admin/vendor-applications) -
+// the list view only gets a flat applicant name, not first/last separately.
+export type VendorApplicationListItem = {
   id: string;
-  applicationId?: string;
-  vendorApplicationId?: string;
-  userName: string;
-  contactPersonName?: string;
-  contactNumber: string;
+  applicantName: string;
+  email: string;
+  phone: string;
   businessName: string;
   businessType: string;
-  address?: string;
-  description?: string;
-  businessLicenseUrl?: string;
-  insurenceCertificateUrl?: string;
-  taxDocumentUrl?: string;
+  status: string;
+  submittedAt: string;
+};
+
+// Matches the backend's ApplicationDetailDto exactly (GET /admin/vendor-applications/{id}) -
+// a materially different shape from the list DTO above, not a superset of it.
+export type VendorApplicationDetail = {
+  id: string;
+  userId: string;
+  businessName: string;
+  businessType: string;
+  description: string;
+  website?: string;
+  taxId?: string;
+  address: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  categories?: string;
+  businessLicensePath?: string;
+  insuranceCertificatePath?: string;
+  taxDocumentPath?: string;
+  status: string;
   submittedAt: string;
   reviewedAt?: string;
-  status: string;
+  reviewedBy?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt?: string;
 };
 
 type GetVendorApplicationsParams = {
@@ -35,7 +57,7 @@ export const getVendorApplications = async ({
   pageNumber,
   pageSize,
 }: GetVendorApplicationsParams = {}) => {
-  const res = await api.get<VendorApplication[] | RawApiRecord>(
+  const res = await api.get<VendorApplicationListItem[] | RawApiRecord>(
     "/admin/vendor-applications",
     {
       params: {
@@ -58,7 +80,6 @@ export const reviewVendorApplication = async (id: string, status: string, reason
   });
 };
 export const getVendorApplicationById = async (id: string) => {
-  const res = await api.get<VendorApplication>(`/admin/vendor-applications/${id}`);
+  const res = await api.get<VendorApplicationDetail>(`/admin/vendor-applications/${id}`);
   return res.data;
 };
-

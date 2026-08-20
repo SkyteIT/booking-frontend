@@ -3,34 +3,24 @@
 /* Main container */
 .vendor-container {
   max-width: 900px;
-  margin: 40px auto;
-}
-
-/* Stepper Card */
-.vendor-stepper-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px 32px;
-  margin-bottom: 24px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin: 0 auto;
 }
 
 /* Form Card (White Box) */
 .vendor-form-card {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 32px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 12px 32px rgba(15, 27, 45, 0.06);
 }
 
 /* Section title */
 .vendor-title {
-  font-size: 18px !important;
-  font-weight: 600 !important;
+  font-family: 'Syne', sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
   margin-bottom: 24px !important;
-  color: #1f2937;
+  color: #111827;
 }
 
 /* Field label (above input) */
@@ -56,24 +46,35 @@
   grid-column: span 2;
 }
 
-/* Input styling */
-.MuiOutlinedInput-root {
-  border-radius: 8px !important;
-  background-color: #f9fafb;
+.vendor-form > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.vendor-form .MuiTextField-root {
+  margin-top: 4px;
+}
+
+/* Scoped to this form only (not a global MuiOutlinedInput override,
+   which would leak into every input on whatever else shares this page). */
+.vendor-form .MuiOutlinedInput-root {
+  border-radius: 12px;
+  background-color: rgba(0, 119, 182, 0.04);
+}
+.vendor-form .MuiOutlinedInput-root.Mui-focused {
+  background-color: transparent;
 }
 
 /* ===============================
    CATEGORIES PAGE STYLES
 ================================= */
 
-/* Description under title */
 .category-description {
   margin-bottom: 24px;
   color: #6b7280;
   font-size: 14px;
 }
 
-/* Grid for category boxes (3 per row) */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -81,11 +82,10 @@
   margin-bottom: 30px;
 }
 
-/* Category Box */
 .category-box {
-  background: #f9fafb;
+  background: rgba(0, 119, 182, 0.04);
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 30px 10px;
   text-align: center;
   font-weight: 500;
@@ -93,10 +93,18 @@
   transition: all 0.2s ease;
 }
 
-/* Hover effect */
 .category-box:hover {
-  border-color: #2f6db2;
-  background: #eef4fb;
+  border-color: #0077b6;
+  background: rgba(0, 119, 182, 0.08);
+  transform: translateY(-2px);
+}
+
+.category-box.selected {
+  border-color: #0077b6;
+  background: linear-gradient(160deg, #005a8d, #0077b6);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0, 119, 182, 0.28);
 }
 
 /* ===============================
@@ -105,47 +113,40 @@
 .vendor-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 20px;
 }
 
-.vendor-actions .back {
-  background-color: #f3f4f6 !important;
-  color: #6b7280 !important;
-  border-radius: 8px !important;
-  padding: 8px 24px !important;
+.vendor-actions .back,
+.back {
   text-transform: none !important;
+  border-radius: 999px !important;
+  background-color: rgba(0, 119, 182, 0.06) !important;
+  color: #64748b !important;
+  padding: 8px 24px !important;
+  font-weight: 600 !important;
 }
 
-.vendor-actions .continue {
-  background-color: #2f6db2 !important;
+.vendor-actions .continue,
+.continue {
+  text-transform: none !important;
+  border-radius: 999px !important;
+  background: linear-gradient(160deg, #005a8d, #0077b6) !important;
   color: white !important;
-  border-radius: 8px !important;
   padding: 8px 24px !important;
-  text-transform: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 20px rgba(0, 119, 182, 0.28);
 }
 
-.vendor-actions .continue:hover {
-  background-color: #255a94 !important;
-}
-/* Selected category style */
-.category-box.selected {
-  border-color: #2f6db2;
-  background-color: #e7f0fb;
-  font-weight: 600;
-}/* Fix spacing inside form card */
-.vendor-form-card {
-  margin-top: 10px;
+.vendor-actions .continue:hover,
+.continue:hover {
+  background: linear-gradient(160deg, #004a75, #005a8d) !important;
 }
 
-/* Proper spacing between label and input */
-.vendor-form > div {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Better input spacing */
-.vendor-form .MuiTextField-root {
-  margin-top: 4px;
+.continue:disabled {
+  background: #cbd5e1 !important;
+  color: white !important;
+  box-shadow: none;
 }
 
 /* Responsive fix (important) */
@@ -158,90 +159,66 @@
     grid-column: span 1;
   }
 }
+
 /* ===============================
    DOCUMENTS PAGE STYLES
 ================================= */
 
-/* Documents section spacing */
 .documents-section {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
 }
 
-/* Each document block */
 .document-item {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* Upload box */
 .upload-box {
-  border: 2px dashed #d1d5db;
-  border-radius: 12px;
-  padding: 40px 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 36px 20px;
   text-align: center;
-  background: #fafafa;
+  background: rgba(0, 119, 182, 0.03);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .upload-box:hover {
-  border-color: #2f6db2;
-  background: #eef4fb;
+  border-color: #0077b6;
+  background: rgba(0, 119, 182, 0.07);
 }
 
-/* Upload icon */
 .upload-icon {
   font-size: 40px !important;
-  color: #2f6db2;
+  color: #0077b6;
   margin-bottom: 10px;
 }
 
-/* Upload main text */
 .upload-text {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 4px;
 }
 
-/* Upload sub text */
 .upload-subtext {
   font-size: 12px;
   color: #6b7280;
-}/* Container width same as stepper */
-.vendor-container {
-  max-width: 900px;
-  margin: 40px auto;
 }
 
-/* White form card */
-.vendor-form-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 32px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  margin-top: 20px;
-}
+/* ===============================
+   REVIEW PAGE STYLES
+================================= */
 
-/* Title */
-.vendor-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 24px;
-}
-
-/* Summary grey box */
 .vendor-summary {
-  background-color: #f3f4f6;
-  border-radius: 10px;
+  background-color: #f8fafc;
+  border-radius: 14px;
   padding: 24px;
   margin-bottom: 24px;
 }
 
-/* Summary rows */
 .summary-item {
   margin-bottom: 18px;
 }
@@ -262,13 +239,12 @@
   color: #111827;
 }
 
-/* Agreement section */
 .agreement-box {
-  background-color: #eef2f7;
+  background-color: rgba(0, 119, 182, 0.06);
   padding: 14px 18px;
-  border-radius: 8px;
+  border-radius: 14px;
   margin-bottom: 28px;
-  border: 1px solid #dbe3ef;
+  border: 1px solid rgba(0, 119, 182, 0.16);
 }
 
 .agreement-text {
@@ -277,33 +253,7 @@
 }
 
 .agreement-link {
-  color: #2f6db2;
+  color: #0077b6;
   cursor: pointer;
-}
-
-/* Buttons */
-.vendor-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.back {
-  text-transform: none !important;
-  border: 1px solid #d1d5db !important;
-  background-color: #f9fafb !important;
-  color: #374151 !important;
-  padding: 6px 20px !important;
-}
-
-.continue {
-  text-transform: none !important;
-  background-color: #2f6db2 !important;
-  color: white !important;
-  padding: 8px 22px !important;
-}
-
-.continue:disabled {
-  background-color: #9ca3af !important;
-  color: white !important;
+  font-weight: 600;
 }

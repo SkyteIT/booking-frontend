@@ -48,7 +48,10 @@ export default function Settings() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Settings
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -70,6 +73,7 @@ export default function Settings() {
             border: "1px solid",
             borderColor: "divider",
             boxShadow: (t) => `0 8px 20px ${alpha(t.palette.common.black, 0.06)}`,
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
           }}
         >
           <CardContent>
@@ -134,6 +138,7 @@ export default function Settings() {
                   startIcon={<SaveOutlinedIcon />}
                   onClick={handleSave}
                   disabled={saving || loading}
+                  sx={{ borderRadius: "999px" }}
                 >
                   {saving ? "Saving..." : "Save"}
                 </Button>

@@ -16,6 +16,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import { useNotifications } from "../../../hooks/useNotifications";
 import type { Notification } from "../../../services/notificationService";
 import { useAuth } from "../../../context/useAuth";
@@ -88,12 +89,22 @@ export default function AdminNotifications() {
       <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
         <Box>
           <Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
-            <Typography variant="h4" fontWeight={700}>Notifications</Typography>
+            <Typography
+              variant="h5"
+              sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+            >
+              Notifications
+            </Typography>
             {unreadCount > 0 && (
               <Chip
                 label={`${unreadCount} unread`}
                 size="small"
-                sx={{ bgcolor: "#0077B6", color: "#fff", fontWeight: 600, fontSize: 12 }}
+                sx={{
+                  background: "linear-gradient(160deg, #005a8d, #0077b6)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 12,
+                }}
               />
             )}
           </Box>
@@ -107,31 +118,20 @@ export default function AdminNotifications() {
           startIcon={<DoneAllIcon />}
           onClick={markAllAsRead}
           disabled={unreadCount === 0 || loading}
-          sx={{ textTransform: "none", borderRadius: 2, fontSize: 13 }}
+          sx={{ textTransform: "none", borderRadius: "999px", fontSize: 13 }}
         >
           Mark All as Read
         </Button>
       </Box>
 
-      {/* ── Filter chips ── */}
-      <Box display="flex" gap={1} mb={2.5} flexWrap="wrap">
-        {FILTERS.map((f) => (
-          <Chip
-            key={f.value}
-            label={f.label}
-            clickable
-            onClick={() => setActiveFilter(f.value)}
-            sx={{
-              fontWeight: 500,
-              fontSize: 13,
-              bgcolor: activeFilter === f.value ? "#0077B6" : "#f0f4f8",
-              color:   activeFilter === f.value ? "#fff"    : "#4a5568",
-              "&:hover": {
-                bgcolor: activeFilter === f.value ? "#005A8D" : "#e2e8f0",
-              },
-            }}
-          />
-        ))}
+      {/* ── Filter tabs ── */}
+      <Box mb={2.5}>
+        <SegmentedTabs
+          options={FILTERS.map((f) => f.value)}
+          value={activeFilter}
+          onChange={setActiveFilter}
+          labels={Object.fromEntries(FILTERS.map((f) => [f.value, f.label]))}
+        />
       </Box>
 
       {/* ── Loading state ── */}
@@ -142,7 +142,17 @@ export default function AdminNotifications() {
       ) : (
         <>
           {/* ── Notification list ── */}
-          <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <Paper
+            sx={{
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+              p: filtered.length === 0 ? 0 : 1.5,
+            }}
+          >
             {filtered.length === 0 ? (
               <Box py={6} textAlign="center">
                 <InfoOutlinedIcon sx={{ fontSize: 40, color: "#b0bec5", mb: 1 }} />
@@ -161,13 +171,17 @@ export default function AdminNotifications() {
                       display: "flex",
                       alignItems: "center",
                       gap: 2,
-                      px: 3,
-                      py: 2,
+                      px: 2,
+                      py: 1.75,
+                      mb: idx < filtered.length - 1 ? 1 : 0,
+                      borderRadius: "14px",
                       cursor: "pointer",
-                      bgcolor: n.isRead ? "#fff" : "#f0f7ff",
-                      borderBottom: idx < filtered.length - 1 ? "1px solid #f0f0f0" : "none",
-                      "&:hover": { bgcolor: n.isRead ? "#f9fafb" : "#e8f1fb" },
-                      transition: "background 0.15s",
+                      background: n.isRead
+                        ? "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)"
+                        : "linear-gradient(160deg, #FFFFFF 0%, #DCEEFB 100%)",
+                      border: "1px solid rgba(15,27,45,0.06)",
+                      "&:hover": { transform: "translateY(-1px)", boxShadow: "0 6px 16px rgba(15,27,45,0.08)" },
+                      transition: "all 0.15s ease",
                     }}
                   >
                     {/* Icon bubble */}

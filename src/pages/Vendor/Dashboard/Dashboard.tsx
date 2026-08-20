@@ -55,7 +55,10 @@ export default function Dashboard() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Dashboard
         </Typography>
         <Typography variant="body2" color="text.secondary">

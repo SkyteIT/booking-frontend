@@ -1,29 +1,10 @@
-import { isAxiosError } from "axios";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { verifyTwoFactorCode } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { getRoleHomePath } from "../../../utils/roleHomePath";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
 
 function TwoFactorVerify(): JSX.Element {
   const navigate = useNavigate();
@@ -35,6 +16,7 @@ function TwoFactorVerify(): JSX.Element {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(true);
 
   if (!challengeToken) {
     return (
@@ -59,11 +41,11 @@ function TwoFactorVerify(): JSX.Element {
     setSubmitting(true);
     setError("");
     try {
-      await verifyTwoFactorCode(challengeToken, code.trim());
+      await verifyTwoFactorCode(challengeToken, code.trim(), rememberDevice);
       const refreshed = await refreshUser();
       navigate(getRoleHomePath(refreshed?.role ?? ""), { replace: true });
     } catch (err) {
-      setError(getApiErrorMessage(err) ?? "Invalid code. Please try again.");
+      setError(getApiErrorMessage(err, "Invalid code. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -100,6 +82,24 @@ function TwoFactorVerify(): JSX.Element {
           </div>
 
           {error && <p className="error-text">{error}</p>}
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              margin: "12px 0",
+              fontSize: "0.9rem",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={rememberDevice}
+              onChange={(e) => setRememberDevice(e.target.checked)}
+            />
+            Remember this device for 7 days
+          </label>
 
           <button
             type="submit"

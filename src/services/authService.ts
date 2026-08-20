@@ -14,6 +14,8 @@ type AuthResponse = {
   requiresTwoFactor?: boolean;
   requiresEnrollment?: boolean;
   challengeToken?: string;
+  // Only set right after a "remember this device" 2FA verification.
+  deviceToken?: string;
 };
 
 const saveAuthToken = (response: AuthResponse) => {
@@ -25,10 +27,17 @@ const saveAuthToken = (response: AuthResponse) => {
   if (response.refreshToken) {
     tokenStorage.setRefreshToken(response.refreshToken);
   }
+  if (response.deviceToken) {
+    tokenStorage.setDeviceToken(response.deviceToken);
+  }
 };
 
 export const login = async (email: string, password: string) => {
-  const res = await api.post<AuthResponse>("/auth/login", { email, password });
+  const res = await api.post<AuthResponse>("/auth/login", {
+    email,
+    password,
+    deviceToken: tokenStorage.getDeviceToken(),
+  });
 
   saveAuthToken(res.data);
 
@@ -52,7 +61,10 @@ export const register = async (payload: {
 };
 
 export const loginWithGoogle = async (credential: string) => {
-  const res = await api.post<AuthResponse>("/auth/google-login", { idToken: credential });
+  const res = await api.post<AuthResponse>("/auth/google-login", {
+    idToken: credential,
+    deviceToken: tokenStorage.getDeviceToken(),
+  });
 
   saveAuthToken(res.data);
 
@@ -135,14 +147,30 @@ export interface TwoFactorEnrollmentResult {
   backupCodes: string[];
 }
 
-export const confirmTwoFactorEnrollment = async (challengeToken: string, code: string) => {
-  const res = await api.post<TwoFactorEnrollmentResult>("/auth/2fa/enroll/confirm", { challengeToken, code });
+export const confirmTwoFactorEnrollment = async (
+  challengeToken: string,
+  code: string,
+  rememberDevice = false,
+) => {
+  const res = await api.post<TwoFactorEnrollmentResult>("/auth/2fa/enroll/confirm", {
+    challengeToken,
+    code,
+    rememberDevice,
+  });
   saveAuthToken(res.data.auth);
   return res.data;
 };
 
-export const verifyTwoFactorCode = async (challengeToken: string, code: string) => {
-  const res = await api.post<AuthResponse>("/auth/2fa/verify", { challengeToken, code });
+export const verifyTwoFactorCode = async (
+  challengeToken: string,
+  code: string,
+  rememberDevice = false,
+) => {
+  const res = await api.post<AuthResponse>("/auth/2fa/verify", {
+    challengeToken,
+    code,
+    rememberDevice,
+  });
   saveAuthToken(res.data);
   return res.data;
 };

@@ -1,33 +1,14 @@
-import { isAxiosError } from "axios";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { getRoleHomePath } from "../../../utils/roleHomePath";
 import {
   startTwoFactorEnrollment,
   confirmTwoFactorEnrollment,
 } from "../../../services/authService";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
 
 function TwoFactorEnroll(): JSX.Element {
   const navigate = useNavigate();
@@ -43,6 +24,7 @@ function TwoFactorEnroll(): JSX.Element {
   const [submitting, setSubmitting] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(true);
 
   useEffect(() => {
     if (!challengeToken) return;
@@ -52,7 +34,7 @@ function TwoFactorEnroll(): JSX.Element {
         setSecret(result.secret);
         setOtpAuthUri(result.otpAuthUri);
       })
-      .catch((err) => setError(getApiErrorMessage(err) ?? "Failed to start enrollment."))
+      .catch((err) => setError(getApiErrorMessage(err, "Failed to start enrollment.")))
       .finally(() => setLoading(false));
   }, [challengeToken]);
 
@@ -62,10 +44,10 @@ function TwoFactorEnroll(): JSX.Element {
     setSubmitting(true);
     setError("");
     try {
-      const result = await confirmTwoFactorEnrollment(challengeToken, code);
+      const result = await confirmTwoFactorEnrollment(challengeToken, code, rememberDevice);
       setBackupCodes(result.backupCodes);
     } catch (err) {
-      setError(getApiErrorMessage(err) ?? "Invalid code. Please try again.");
+      setError(getApiErrorMessage(err, "Invalid code. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -188,6 +170,24 @@ function TwoFactorEnroll(): JSX.Element {
             </div>
 
             {error && <p className="error-text">{error}</p>}
+
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                margin: "12px 0",
+                fontSize: "0.9rem",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={rememberDevice}
+                onChange={(e) => setRememberDevice(e.target.checked)}
+              />
+              Remember this device for 7 days
+            </label>
 
             <button
               type="button"

@@ -12,8 +12,8 @@ import { alpha } from "@mui/material/styles";
 
 type VendorRow = {
   id: string;
-  userName: string;
-  contactNumber: string;
+  applicantName: string;
+  phone: string;
   businessName: string;
   businessType: string;
   submittedAt: string | Date;
@@ -97,21 +97,21 @@ export default function VendorApplicationsTable({
               >
                 {/* Vendor */}
                 <TableCell>
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {r.userName}
+                  <Typography sx={{ fontWeight: 500 }}>
+                    {r.applicantName}
                   </Typography>
                 </TableCell>
 
                 {/* Phone */}
                 <TableCell>
                   <Typography color="text.secondary">
-                    {r.contactNumber}
+                    {r.phone}
                   </Typography>
                 </TableCell>
 
                 {/* Business */}
                 <TableCell>
-                  <Typography sx={{ fontWeight: 600 }}>
+                  <Typography sx={{ fontWeight: 500 }}>
                     {r.businessName}
                   </Typography>
                 </TableCell>

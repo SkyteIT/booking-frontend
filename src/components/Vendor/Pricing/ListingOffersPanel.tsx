@@ -182,7 +182,7 @@ export default function ListingOffersPanel({ listingId, onError, onSuccess }: Pr
               />
             </>
           )}
-          <Button variant="contained" disabled={saving} onClick={handleCreate} sx={{ textTransform: "none", ml: "auto" }}>
+          <Button variant="contained" disabled={saving} onClick={handleCreate} sx={{ textTransform: "none", ml: "auto", borderRadius: "999px" }}>
             {saving ? "Adding..." : "Add offer"}
           </Button>
         </Box>

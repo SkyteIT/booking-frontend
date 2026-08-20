@@ -95,7 +95,7 @@ export default function VendorQuestionsTab() {
         border: "1px solid",
         borderColor: "divider",
         boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-        bgcolor: "background.paper",
+        background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
       }}
     >
       <CardContent sx={{ pt: 2, pb: 2.5 }}>
@@ -127,9 +127,9 @@ export default function VendorQuestionsTab() {
                 key={q.id}
                 sx={{
                   p: 2.5,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
+                  borderRadius: "16px",
+                  border: "1px solid rgba(15,27,45,0.06)",
+                  background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
                 }}
               >
                 <Stack direction="row" spacing={2} alignItems="flex-start">

@@ -102,14 +102,15 @@ export default function CategoryCard({
           display: "flex",
           alignItems: "center",
           gap: 2,
-          background: "#fff",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+          backdropFilter: "blur(10px)",
           borderRadius: "22px",
           p: 2.75,
-          border: "1px solid #E5E7EB",
-          boxShadow: "0 18px 42px rgba(15,23,42,0.08)",
+          border: "1px solid rgba(0,0,0,0.04)",
+          boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
           transition: "box-shadow .3s ease, transform .3s ease, border-color .3s ease",
           "&:hover": {
-            boxShadow: "0 22px 50px rgba(15,23,42,0.14)",
+            boxShadow: "0 16px 40px rgba(15,23,42,0.1)",
             transform: "translateY(-3px)",
             borderColor: "#CBD5E1",
           },
@@ -235,14 +236,15 @@ export default function CategoryCard({
   return (
     <Box
       sx={{
-        background: "#fff",
+        background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+        backdropFilter: "blur(10px)",
         borderRadius: "24px",
-        border: "1px solid #E5E7EB",
+        border: "1px solid rgba(0,0,0,0.04)",
         overflow: "hidden",
-        boxShadow: "0 18px 36px rgba(15,23,42,0.08)",
+        boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
         transition: "box-shadow .3s ease, transform .3s ease",
         "&:hover": {
-          boxShadow: `0 24px 48px ${color}24`,
+          boxShadow: `0 18px 40px ${color}24`,
           transform: "translateY(-3px)",
         },
         "&:hover .card-banner": {

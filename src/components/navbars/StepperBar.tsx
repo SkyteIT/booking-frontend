@@ -1,6 +1,7 @@
 // src/components/navbars/StepperBar.tsx
 
   
+  import type { SvgIconComponent } from "@mui/icons-material";
   import BusinessIcon from "@mui/icons-material/Business";
   import CategoryIcon from "@mui/icons-material/Category";
   import CheckIcon from "@mui/icons-material/Check";
@@ -14,7 +15,6 @@ import {
     StepConnector,
     stepConnectorClasses,
   } from "@mui/material";
-  import type { SvgIconComponent } from "@mui/icons-material";
   import { styled } from "@mui/material/styles";
 
   export interface StepperStep {
@@ -48,10 +48,10 @@ import {
       borderRadius: 1,
     },
     [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}`]: {
-      backgroundColor: "#2f6db2",
+      backgroundColor: "#0077b6",
     },
     [`&.${stepConnectorClasses.completed} .${stepConnectorClasses.line}`]: {
-      backgroundColor: "#2f6db2",
+      backgroundColor: "#0077b6",
     },
   }));
   
@@ -60,14 +60,13 @@ import {
       <Box
         sx={{
           backgroundColor: "#ffffff",
-          borderRadius: "12px",
+          borderRadius: "20px",
           padding: "24px 32px",
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          boxShadow: "0 12px 32px rgba(15,27,45,0.06)",
           mb: 3,
         }}
       >
-        <Box sx={{ fontWeight: 600, mb: 3 }}>
+        <Box sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.1rem", mb: 3 }}>
           {title}
         </Box>
   
@@ -95,15 +94,16 @@ import {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          backgroundColor: isCompleted
-                            ? "#2f6db2"
+                          background: isCompleted
+                            ? "linear-gradient(160deg, #005a8d, #0077b6)"
                             : isActive
-                            ? "#dbeafe"
+                            ? "rgba(0,119,182,0.12)"
                             : "#e5e7eb",
+                          boxShadow: isCompleted ? "0 6px 16px rgba(0,119,182,0.32)" : "none",
                           color: isCompleted
                             ? "#ffffff"
                             : isActive
-                            ? "#2f6db2"
+                            ? "#0077b6"
                             : "#9ca3af",
                         }}
                       >

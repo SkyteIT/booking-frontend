@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { vendorContactInfoSchema } from "../../../utils/validationSchemas";
+import { zodErrorToFieldErrors } from "../../../utils/zodUtils";
 import "./application.css";
 
 interface ContactFormData {
@@ -11,6 +13,13 @@ interface ContactFormData {
   email: string;
   phone: string;
 }
+
+const FIELD_LABELS: Record<keyof ContactFormData, string> = {
+  firstName: "First Name",
+  lastName: "Last Name",
+  email: "Email",
+  phone: "Phone",
+};
 
 const ContactInfo = (): JSX.Element => {
   const navigate = useNavigate();
@@ -23,32 +32,25 @@ const ContactInfo = (): JSX.Element => {
     phone: data.contactInfo.phone || "",
   });
 
-  const [errors, setErrors] = useState<Partial<ContactFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: keyof ContactFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
-
-  const validate = () => {
-    const newErrors: Partial<ContactFormData> = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "Required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Required";
-    if (!formData.email.trim()) newErrors.email = "Required";
-    if (!formData.phone.trim()) newErrors.phone = "Required";
-    return newErrors;
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const handleContinue = () => {
-    const validationErrors = validate();
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
-      setData((prev) => ({
-        ...prev,
-        contactInfo: formData,
-      }));
-      navigate("/vendor/categories");
+    const result = vendorContactInfoSchema.safeParse(formData);
+    if (!result.success) {
+      setErrors(zodErrorToFieldErrors(result.error));
+      return;
     }
+    setErrors({});
+    setData((prev) => ({
+      ...prev,
+      contactInfo: formData,
+    }));
+    navigate("/vendor/categories");
   };
 
   return (
@@ -60,9 +62,7 @@ const ContactInfo = (): JSX.Element => {
           <Box className="vendor-form">
             {(Object.keys(formData) as (keyof ContactFormData)[]).map((key) => (
               <Box key={key}>
-                <Typography className="field-label">
-                  {key.replace(/([A-Z])/g, " $1")}
-                </Typography>
+                <Typography className="field-label">{FIELD_LABELS[key]}</Typography>
                 <TextField
                   fullWidth
                   value={formData[key]}

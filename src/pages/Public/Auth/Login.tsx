@@ -1,32 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GoogleLogin } from "@react-oauth/google";
-import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
+import ToastAlert from "../../../components/common/ToastAlert";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { login, loginWithGoogle } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
-
-const getApiErrorMessage = (error: unknown): string | undefined => {
-  if (!isAxiosError(error)) return undefined;
-
-  const data = error.response?.data;
-  if (!data) return error.message;
-
-  if (typeof data === "string") return data;
-  if (typeof data === "object") {
-    return (
-      (data as { message?: string; error?: string; detail?: string }).message ??
-      (data as { message?: string; error?: string; detail?: string }).error ??
-      (data as { message?: string; error?: string; detail?: string }).detail ??
-      JSON.stringify(data)
-    );
-  }
-
-  return error.message;
-};
 
 function Login(): JSX.Element {
   const navigate = useNavigate();
@@ -83,7 +65,7 @@ function Login(): JSX.Element {
 
       navigate("/", { replace: true });
     } catch (error) {
-      setError(getApiErrorMessage(error) ?? "Invalid email or password.");
+      setError(getApiErrorMessage(error, "Invalid email or password."));
     }
   };
 
@@ -123,7 +105,7 @@ function Login(): JSX.Element {
       }
       navigate("/", { replace: true });
     } catch (error) {
-      setError(getApiErrorMessage(error) ?? "Google login failed. Please try again.");
+      setError(getApiErrorMessage(error, "Google login failed. Please try again."));
     }
   };
 
@@ -156,8 +138,6 @@ function Login(): JSX.Element {
             {errors.password && <p className="error-text">{errors.password.message}</p>}
           </div>
 
-          {error && <p className="error-text">{error}</p>}
-
           <button
             type="submit"
             className="primary-btn"
@@ -189,6 +169,13 @@ function Login(): JSX.Element {
           </p>
         </div>
       </div>
+
+      <ToastAlert
+        open={!!error}
+        onClose={() => setError("")}
+        severity="error"
+        message={error}
+      />
     </AuthLayout>
   );
 }

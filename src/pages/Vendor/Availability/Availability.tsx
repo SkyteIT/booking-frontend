@@ -42,7 +42,10 @@ export default function Availability() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+        >
           Availability Management
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -50,7 +53,15 @@ export default function Availability() {
         </Typography>
       </Box>
 
-      <Card sx={{ borderRadius: 3 }}>
+      <Card
+        sx={{
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+        }}
+      >
         <CardContent>
           <ListingSelector
             listings={listings}

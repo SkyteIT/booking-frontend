@@ -11,11 +11,12 @@ import {
   Box,
   Chip,
 } from "@mui/material";
-import type { VendorApplication } from "../../../services/Admin/vendor";
+import { resolveAssetUrl } from "../../../pages/Vendor/Settings/vendorSettings";
+import type { VendorApplicationDetail } from "../../../services/Admin/vendor";
 
 type Props = {
   open: boolean;
-  vendor: VendorApplication | null;
+  vendor: VendorApplicationDetail | null;
   loading: boolean;
 
   rejectMode?: boolean;
@@ -113,7 +114,7 @@ export default function VendorDetailsDialog({
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Box>
                 <Typography sx={{ fontWeight: 700 }}>
-                  {vendor.contactPersonName}
+                  {vendor.firstName} {vendor.lastName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {vendor.businessName}
@@ -157,8 +158,8 @@ export default function VendorDetailsDialog({
             {/* CONTACT */}
             <Stack spacing={1}>
               {sectionTitle("Contact Details")}
-              {fieldRow("Contact Person", vendor.contactPersonName)}
-              {fieldRow("Phone", vendor.contactNumber)}
+              {fieldRow("Contact Person", `${vendor.firstName} ${vendor.lastName}`)}
+              {fieldRow("Phone", vendor.phone)}
             </Stack>
 
             <Divider />
@@ -178,9 +179,9 @@ export default function VendorDetailsDialog({
               {sectionTitle("Documents")}
               <Stack spacing={0.5}>
                 {[
-                  { label: "Business License", url: vendor.businessLicenseUrl },
-                  { label: "Insurance Certificate", url: vendor.insurenceCertificateUrl },
-                  { label: "Tax Document", url: vendor.taxDocumentUrl },
+                  { label: "Business License", url: resolveAssetUrl(vendor.businessLicensePath) },
+                  { label: "Insurance Certificate", url: resolveAssetUrl(vendor.insuranceCertificatePath) },
+                  { label: "Tax Document", url: resolveAssetUrl(vendor.taxDocumentPath) },
                 ].map((doc) => (
                   <Box
                     key={doc.label}

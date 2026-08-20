@@ -1,3 +1,4 @@
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -5,17 +6,19 @@ import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import StarIcon from "@mui/icons-material/Star";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import { Card, Typography, Box } from "@mui/material";
+import { Avatar, Card, Typography, Box } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
+import { resolveAssetUrl } from "../../../pages/Vendor/Settings/vendorSettings";
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
 
-  const isVendor =
-    String(user?.role ?? "").toLowerCase() === "vendor";
+  const role = String(user?.role ?? "").toLowerCase();
+  const isVendor = role === "vendor";
+  const isAdmin = role === "admin" || role === "superadmin";
 
   // ✅ BASE MENU
   const menuItems = [
@@ -35,25 +38,53 @@ const DashboardSidebar = () => {
     });
   }
 
-  return (
-    <Card className="sidebar-card" sx={{ p: 3 }}>
-      {/* 🔹 PROFILE */}
-      <Box textAlign="center">
-        <Box className="user-avatar">
-          <PersonIcon />
-        </Box>
+  // ✅ ADD ADMIN PORTAL ONLY IF ROLE = ADMIN / SUPERADMIN
+  if (isAdmin) {
+    menuItems.push({
+      label: "Admin Portal",
+      icon: <AdminPanelSettingsIcon fontSize="small" />,
+      path: "/admin/dashboard",
+    });
+  }
 
-        <Typography fontWeight={600}>
+  return (
+    <Card className="sidebar-card" sx={{ overflow: "hidden" }}>
+      {/* 🔹 PROFILE - gradient header, matches the theme accent used
+          across the rest of the redesigned pages. */}
+      <Box
+        sx={{
+          textAlign: "center",
+          pt: 3.5,
+          pb: 3,
+          px: 2,
+          background: "linear-gradient(160deg, #005a8d, #0077b6)",
+        }}
+      >
+        <Avatar
+          src={resolveAssetUrl(user?.profileImageUrl as string | undefined) || undefined}
+          sx={{
+            width: 64,
+            height: 64,
+            mx: "auto",
+            mb: 1.5,
+            border: "3px solid rgba(255,255,255,0.35)",
+            bgcolor: "rgba(255,255,255,0.15)",
+          }}
+        >
+          <PersonIcon sx={{ color: "#fff" }} />
+        </Avatar>
+
+        <Typography sx={{ fontWeight: 700, color: "#fff" }}>
           {user?.firstName ?? "--"}
         </Typography>
 
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
           {user?.email ?? "--"}
         </Typography>
       </Box>
 
       {/* 🔹 MENU */}
-      <Box mt={3}>
+      <Box sx={{ p: 2 }}>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
 
@@ -71,7 +102,7 @@ const DashboardSidebar = () => {
                 borderRadius: 2,
                 cursor: "pointer",
                 "&:hover": {
-                  backgroundColor: "#f5f5f5",
+                  backgroundColor: "rgba(0,119,182,0.06)",
                 },
               }}
             >

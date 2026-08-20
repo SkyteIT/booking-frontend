@@ -47,6 +47,7 @@ export default function VendorManagement() {
             border: "1px solid",
             borderColor: "divider",
             boxShadow: `0 8px 20px ${alpha(theme.palette.common.black, 0.05)}`,
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
           })}
         >
           <CardContent sx={{ p: 2.5 }}>

@@ -111,10 +111,13 @@ export default function AdminFinancePage() {
 
   return (
     <Box>
-      <Typography variant="h4" fontWeight={700} mb={0.5}>
+      <Typography
+        variant="h5"
+        sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+      >
         Finance &amp; Payments
       </Typography>
-      <Typography color="text.secondary" mb={3}>
+      <Typography color="text.secondary" mt={0.5} mb={3}>
         Payout batches, vendor invoices, and commission policy across all vendors.
       </Typography>
 
