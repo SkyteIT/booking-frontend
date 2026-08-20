@@ -27,6 +27,7 @@ import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import { useAuth } from "../../../context/useAuth";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import {
   getNotificationRoleConfig,
   resolveNotificationDestination,
@@ -352,36 +353,14 @@ export default function AdminNotifications() {
             }}
           />
 
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 0.8,
-            }}
-          >
-            {FILTERS.map((filter) => {
-              const isActive = activeFilter === filter.value;
-              const count = filterCounts[filter.value];
-
-              return (
-                <Chip
-                  key={filter.value}
-                  onClick={() => setActiveFilter(filter.value)}
-                  label={`${filter.label} · ${count}`}
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: 13,
-                    borderRadius: "999px",
-                    border: "1px solid",
-                    borderColor: isActive ? "#0077b6" : "#E2E8F0",
-                    background: isActive ? "linear-gradient(160deg, #005a8d, #0077b6)" : "#fff",
-                    color: isActive ? "#fff" : "#64748B",
-                    "&:hover": { borderColor: "#0077b6", background: isActive ? "linear-gradient(160deg, #005a8d, #0077b6)" : "rgba(0,119,182,0.06)" },
-                  }}
-                />
-              );
-            })}
-          </Box>
+          <SegmentedTabs
+            options={FILTERS.map((filter) => filter.value)}
+            value={activeFilter}
+            onChange={setActiveFilter}
+            labels={Object.fromEntries(
+              FILTERS.map((filter) => [filter.value, `${filter.label} ${filterCounts[filter.value]}`])
+            )}
+          />
         </Box>
 
         <Divider />
