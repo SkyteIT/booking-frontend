@@ -1,44 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { Snackbar, Alert } from "@mui/material";
 import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth"; // ✅ IMPORTANT
+import ToastAlert from "../../../components/common/ToastAlert";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { login as loginRequest, loginWithGoogle } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { loginSchema, type LoginFormData } from "../../../utils/validationSchemas";
-
-function getAuthErrorMessage(error: unknown, fallback: string) {
-  const response = error as {
-    response?: {
-      data?: {
-        message?: unknown;
-        title?: unknown;
-        errors?: Record<string, unknown>;
-      };
-    };
-  };
-
-  const message = response?.response?.data?.message;
-  if (typeof message === "string" && message.trim()) return message;
-
-  const title = response?.response?.data?.title;
-  if (typeof title === "string" && title.trim()) return title;
-
-  const errors = response?.response?.data?.errors;
-  if (errors && typeof errors === "object") {
-    return Object.values(errors)
-      .flat()
-      .map(String)
-      .filter(Boolean)
-      .join(" ") || fallback;
-  }
-
-  return error instanceof Error ? error.message || fallback : fallback;
-}
 
 function Login(): JSX.Element {
   const navigate = useNavigate();
@@ -60,7 +32,7 @@ function Login(): JSX.Element {
 
   const [showPassword, setShowPassword] = useState(false);
   const [successSnackbar, setSuccessSnackbar] = useState(false);
-  const [errorSnackbar, setErrorSnackbar] = useState("");
+  const [error, setError] = useState("");
 
   const {
     register,
@@ -108,15 +80,13 @@ function Login(): JSX.Element {
         redirectAfterLogin(role);
       }, 800);
     } catch (error) {
-      setErrorSnackbar(
-        getAuthErrorMessage(error, "Login failed. Please try again.")
-      );
+      setError(getApiErrorMessage(error, "Login failed. Please try again."));
     }
   };
 
   const handleGoogleLogin = async (credential?: string) => {
     if (!credential) {
-      setErrorSnackbar("Google login failed. Please try again.");
+      setError("Google login failed. Please try again.");
       return;
     }
 
@@ -138,9 +108,7 @@ function Login(): JSX.Element {
         redirectAfterLogin(currentUser?.role ?? authResponse.role);
       }, 800);
     } catch (error) {
-      setErrorSnackbar(
-        getAuthErrorMessage(error, "Google login failed. Please try again.")
-      );
+      setError(getApiErrorMessage(error, "Google login failed. Please try again."));
     }
   };
 
@@ -209,7 +177,7 @@ function Login(): JSX.Element {
             onSuccess={(credentialResponse: { credential?: string }) =>
               handleGoogleLogin(credentialResponse.credential)
             }
-            onError={() => setErrorSnackbar("Google login failed. Please try again.")}
+            onError={() => setError("Google login failed. Please try again.")}
             width="400"
           />
         </div>
@@ -228,25 +196,20 @@ function Login(): JSX.Element {
           </Link>
         </p>
 
-        {/* SUCCESS */}
-        <Snackbar
+        <ToastAlert
           open={successSnackbar}
-          autoHideDuration={2000}
           onClose={() => setSuccessSnackbar(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity="success">Login Successful!</Alert>
-        </Snackbar>
+          severity="success"
+          duration={2000}
+          message="Login successful!"
+        />
 
-        {/* ERROR */}
-        <Snackbar
-          open={Boolean(errorSnackbar)}
-          autoHideDuration={2500}
-          onClose={() => setErrorSnackbar("")}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity="error">{errorSnackbar}</Alert>
-        </Snackbar>
+        <ToastAlert
+          open={!!error}
+          onClose={() => setError("")}
+          severity="error"
+          message={error}
+        />
       </div>
     </AuthLayout>
   );

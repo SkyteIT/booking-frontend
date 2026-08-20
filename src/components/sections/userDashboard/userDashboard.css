@@ -136,11 +136,12 @@
 
 @media (max-width: 1200px) {
   .dashboard-layout{
-    grid-template-columns: 1fr;
+    flex-direction: column;
     padding: 28px 24px 36px;
   }
 
   .dashboard-sidebar{
+    width: 100%;
     position: static;
   }
 }

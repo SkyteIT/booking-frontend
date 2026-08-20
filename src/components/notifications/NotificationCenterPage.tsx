@@ -41,6 +41,7 @@ import {
   resolveNotificationEventMeta,
   resolveNotificationMatch,
 } from "./notificationCatalog";
+import { belongsToPortal } from "../../utils/notificationPortals";
 
 type NotificationFilter = "all" | "unread" | string;
 
@@ -124,7 +125,6 @@ export default function NotificationCenterPage({
     notifications,
     preferences,
     loading,
-    unreadCount,
     markAsRead,
     markAllAsRead,
     savePreference,
@@ -144,7 +144,15 @@ export default function NotificationCenterPage({
   });
 
   const notificationsWithMeta = useMemo(() => {
-    return notifications.map((item: Notification) => {
+    // This account's feed may also contain events from the other portal
+    // (e.g. a vendor account that also books things as a customer) - only
+    // "vendor"/"customer" have a portal to scope to; admin sees everything.
+    const scoped =
+      role === "vendor" || role === "customer"
+        ? notifications.filter((item: Notification) => belongsToPortal(item.type, role))
+        : notifications;
+
+    return scoped.map((item: Notification) => {
       const match = resolveNotificationMatch(role, item.type, item.title, item.message);
       return { ...item, match };
     });
@@ -384,8 +392,19 @@ export default function NotificationCenterPage({
             <Button
               variant="contained"
               startIcon={<DoneAllOutlinedIcon />}
-              onClick={() => userId && markAllAsRead()}
-              disabled={!userId || loading || unreadCount === 0}
+              onClick={() => {
+                if (!userId) return;
+                // The backend's bulk mark-all-read has no portal filter and
+                // would also mark this account's other-portal notifications
+                // read - go through the scoped (inbox) list one at a time
+                // instead of calling the unscoped bulk endpoint.
+                if (role === "vendor" || role === "customer") {
+                  inboxNotifications.filter((item) => !item.isRead).forEach((item) => void markAsRead(item.id));
+                } else {
+                  markAllAsRead();
+                }
+              }}
+              disabled={!userId || loading || summary.unread === 0}
               sx={{
                 bgcolor: "#fff",
                 color: "#0f172a",
