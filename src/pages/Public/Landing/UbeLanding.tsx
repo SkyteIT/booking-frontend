@@ -13,26 +13,71 @@ const GRADIENTS = [
   "linear-gradient(160deg, #33465C, #7C93AC)",
 ];
 
-// Same fixed category photos used on the old landing page's CategoriesSection.
-const CATEGORY_IMAGES: Record<string, string> = {
-  hotels: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600",
-  hotel: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600",
-  restaurants: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600",
-  restaurant: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600",
-  events: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600",
-  event: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600",
-  activities: "https://images.unsplash.com/photo-1526401485004-46910ecc8e51?w=600",
-  activity: "https://images.unsplash.com/photo-1526401485004-46910ecc8e51?w=600",
-  "car rentals": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600",
-  "car rental": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600",
-  apartments: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600",
-  apartment: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600",
+
+const CATEGORY_IMAGE_SETS: { keywords: string[]; images: string[] }[] = [
+  {
+    keywords: ["hotel", "resort", "stay"],
+    images: [
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
+      "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1200&q=80",
+    ],
+  },
+  {
+    keywords: ["restaurant", "dining", "food"],
+    images: [
+      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80",
+    ],
+  },
+  {
+    keywords: ["event", "ticket"],
+    images: [
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&q=80",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=80",
+    ],
+  },
+  {
+    keywords: ["activit", "tour", "experience"],
+    images: [
+      "https://images.unsplash.com/photo-1526401485004-46910ecc8e51?w=1200&q=80",
+      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=1200&q=80",
+    ],
+  },
+  {
+    keywords: ["car", "rental", "vehicle"],
+    images: [
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=80",
+      "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200&q=80",
+    ],
+  },
+  {
+    keywords: ["apartment", "rent"],
+    images: [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80",
+    ],
+  },
+  {
+    keywords: ["photo"],
+    images: [
+      "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=1200&q=80",
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1200&q=80",
+    ],
+  },
+];
+
+// seed varies the pick across repeated cards of the same category (deck vs
+// coverflow vs fan, and repeated positions within one) - deterministic per
+// render (no flicker), not truly random.
+const imageFor = (name: string, seed: number) => {
+  const lower = name.trim().toLowerCase();
+  const set = CATEGORY_IMAGE_SETS.find((s) => s.keywords.some((k) => lower.includes(k)));
+  if (!set) return undefined;
+  return set.images[Math.abs(seed) % set.images.length];
 };
 
-const imageFor = (name: string) => CATEGORY_IMAGES[name.trim().toLowerCase()];
-
-const cardBackground = (name: string, gradient: string) => {
-  const image = imageFor(name);
+const cardBackground = (name: string, gradient: string, seed: number) => {
+  const image = imageFor(name, seed);
   return image
     ? `linear-gradient(to top, rgba(15,27,45,0.88) 0%, rgba(15,27,45,0.45) 35%, rgba(15,27,45,0.05) 65%, rgba(15,27,45,0) 100%), url(${image})`
     : gradient;
@@ -163,7 +208,7 @@ const UbeLanding = () => {
         const abs = Math.abs(off);
         return {
           ...c,
-          bg: cardBackground(c.name, GRADIENTS[i % GRADIENTS.length]),
+          bg: cardBackground(c.name, GRADIENTS[i % GRADIENTS.length], i),
           transform:
             abs === 0
               ? "rotate(0deg) scale(1)"
@@ -184,6 +229,8 @@ const UbeLanding = () => {
         loc: l.location || "Location TBA",
         rating: l.averageRating > 0 ? l.averageRating.toFixed(1) : "New",
         price: `${l.currency} ${l.price}`,
+        hasOffer: l.hasActiveOffer,
+        offerLabel: l.offerBadgeText,
       })),
     [featuredListings]
   );
@@ -197,7 +244,7 @@ const UbeLanding = () => {
         const abs = Math.abs(off);
         return {
           ...l,
-          bg: cardBackground(l.cat, GRADIENTS[i % GRADIENTS.length]),
+          bg: cardBackground(l.cat, GRADIENTS[i % GRADIENTS.length], i + 5),
           transform: `translateX(${off * 250}px) translateZ(${-abs * 190}px) rotateY(${-off * 24}deg)`,
           opacity: abs > 2 ? 0 : 1 - abs * 0.18,
           z: 10 - abs,
@@ -214,7 +261,7 @@ const UbeLanding = () => {
   const fanCards = categories.map((c, i) => ({
     ...c,
     num: `0${i + 1}`,
-    bg: cardBackground(c.name, GRADIENTS[i % GRADIENTS.length]),
+    bg: cardBackground(c.name, GRADIENTS[i % GRADIENTS.length], i + 1),
     rot: `${((i - (categories.length - 1) / 2) * 12).toFixed(1)}deg`,
   }));
 
@@ -284,7 +331,6 @@ const UbeLanding = () => {
               >
                 <div className="orbit-deck-tags">
                   <span className="orbit-tag-dark">{d.name}</span>
-                  <span className="orbit-tag-light">{d.count.toLocaleString()} listings</span>
                 </div>
               </div>
             ))}
@@ -315,7 +361,6 @@ const UbeLanding = () => {
             >
               <div className="orbit-chip-inner" style={{ background: ch.bg }}>
                 <span className="orbit-chip-name">{ch.name}</span>
-                <span className="orbit-chip-count">{ch.count.toLocaleString()} listings</span>
               </div>
             </div>
           ))}
@@ -365,7 +410,6 @@ const UbeLanding = () => {
             >
               <div className="orbit-fan-top">
                 <span className="orbit-fan-num">{f.num}</span>
-                <span className="orbit-fan-count">{f.count.toLocaleString()}</span>
               </div>
               <div>
                 <div className="orbit-fan-name">{f.name}</div>
@@ -411,6 +455,9 @@ const UbeLanding = () => {
                 >
                   <span className="orbit-tag-dark">{fc.cat}</span>
                   <span className="orbit-tag-light">★ {fc.rating}</span>
+                  {fc.hasOffer && (
+                    <span className="orbit-tag-offer">{fc.offerLabel || "Special Offer"}</span>
+                  )}
                 </div>
                 <div className="orbit-flow-body">
                   <div className="orbit-flow-name">{fc.name}</div>

@@ -15,6 +15,7 @@ import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import CategoryCard from "./components/CategoryCard";
 import BannerTable from "./components/BannerTable";
 import PromotionTable from "./components/PromotionTable";
@@ -147,7 +148,10 @@ export default function ContentManagement() {
       {/* ── Header ── */}
       <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={2} mb={3.5}>
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: "-0.5px", color: "#0F172A" }}>
+          <Typography
+            variant="h5"
+            sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em", color: "#0F172A" }}
+          >
             Content Management
           </Typography>
           <Typography sx={{ color: "#64748B", mt: 0.4, fontSize: 14 }}>
@@ -159,12 +163,12 @@ export default function ContentManagement() {
           startIcon={<AddIcon />}
           onClick={() => navigate(TAB_ROUTES[tab])}
           sx={{
-            borderRadius: "12px", px: 2.5, py: 1.2, fontSize: 14, fontWeight: 700,
-            background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)",
-            boxShadow: "0 4px 14px rgba(99,102,241,0.4)", textTransform: "none",
+            borderRadius: "999px", px: 2.5, py: 1.2, fontSize: 14, fontWeight: 700,
+            background: "linear-gradient(135deg, #0077b6 0%, #005a8d 100%)",
+            boxShadow: "0 4px 14px rgba(0,119,182,0.32)", textTransform: "none",
             "&:hover": {
-              background: "linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)",
-              boxShadow: "0 6px 20px rgba(99,102,241,0.5)",
+              background: "linear-gradient(135deg, #005a8d 0%, #004a75 100%)",
+              boxShadow: "0 6px 20px rgba(0,119,182,0.38)",
             },
           }}
         >
@@ -176,7 +180,7 @@ export default function ContentManagement() {
       {tab === 0 && (
         <Grid container spacing={2} mb={3}>
           {[
-            { label: "Total Categories", value: categories.length, color: "#6366F1", bg: "linear-gradient(135deg,#EEF2FF,#E0E7FF)", dot: "#6366F1" },
+            { label: "Total Categories", value: categories.length, color: "#0077b6", bg: "linear-gradient(135deg,#E0F2FE,#BAE6FD)", dot: "#0077b6" },
             { label: "Active", value: activeCount, color: "#10B981", bg: "linear-gradient(135deg,#ECFDF5,#D1FAE5)", dot: "#10B981" },
             { label: "Inactive", value: inactiveCount, color: "#F59E0B", bg: "linear-gradient(135deg,#FFFBEB,#FEF3C7)", dot: "#F59E0B" },
             { label: "Total Listings", value: totalListings, color: "#3B82F6", bg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", dot: "#3B82F6" },
@@ -200,24 +204,13 @@ export default function ContentManagement() {
         </Grid>
       )}
 
-      {/* ── Custom Tabs ── */}
-      <Box display="flex" gap={1} mb={3} sx={{
-        background: "#fff", p: 0.6, borderRadius: "14px",
-        border: "1px solid #E2E8F0", width: "fit-content",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-      }}>
-        {TABS.map((label, i) => (
-          <Box key={label} onClick={() => setTab(i)} sx={{
-            px: 2.5, py: 0.9, borderRadius: "10px", cursor: "pointer",
-            fontSize: 14, fontWeight: tab === i ? 700 : 500,
-            color: tab === i ? "#fff" : "#64748B",
-            background: tab === i ? "linear-gradient(135deg,#6366F1,#4F46E5)" : "transparent",
-            transition: "all .2s", userSelect: "none",
-            "&:hover": tab !== i ? { background: "#F1F5F9", color: "#0F172A" } : {},
-          }}>
-            {label}
-          </Box>
-        ))}
+      {/* ── Tabs ── */}
+      <Box mb={3}>
+        <SegmentedTabs
+          options={TABS}
+          value={TABS[tab]}
+          onChange={(v) => setTab(TABS.indexOf(v))}
+        />
       </Box>
 
       {/* ── Search + Filter + View (categories tab only) ── */}
@@ -239,10 +232,10 @@ export default function ContentManagement() {
             {FILTERS.map((f) => (
               <Chip key={f} label={f} onClick={() => setFilter(f)} sx={{
                 fontWeight: 600, fontSize: 13, borderRadius: "8px", border: "1px solid",
-                borderColor: filter === f ? "#6366F1" : "#E2E8F0",
-                background: filter === f ? "#EEF2FF" : "#fff",
-                color: filter === f ? "#4F46E5" : "#64748B",
-                "&:hover": { background: "#EEF2FF", borderColor: "#6366F1" }, cursor: "pointer",
+                borderColor: filter === f ? "#0077b6" : "#E2E8F0",
+                background: filter === f ? "#E0F2FE" : "#fff",
+                color: filter === f ? "#005a8d" : "#64748B",
+                "&:hover": { background: "#E0F2FE", borderColor: "#0077b6" }, cursor: "pointer",
               }} />
             ))}
           </Box>
@@ -252,7 +245,7 @@ export default function ContentManagement() {
               "& .MuiToggleButton-root": {
                 border: "1px solid #E2E8F0", borderRadius: "8px !important",
                 px: 1.2, color: "#94A3B8",
-                "&.Mui-selected": { background: "#EEF2FF", color: "#4F46E5", borderColor: "#6366F1" },
+                "&.Mui-selected": { background: "#E0F2FE", color: "#005a8d", borderColor: "#0077b6" },
               },
               gap: 0.5,
             }}

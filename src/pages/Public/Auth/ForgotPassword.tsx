@@ -3,10 +3,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
+import { requestPasswordReset } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../utils/validationSchemas";
-import { forgotPassword } from "../../../services/authService";
 function ForgotPassword(): JSX.Element {
   const [message, setMessage] = useState<string>("");
+  const [isError, setIsError] = useState(false);
 
   const {
     register,
@@ -20,16 +22,15 @@ function ForgotPassword(): JSX.Element {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      const response = await forgotPassword(data.email);
-  
-      setMessage(
-        response.message ||
-          "If an account exists with this email, password reset instructions have been sent."
-      );
-  
+      setIsError(false);
+      // Backend always returns the same generic response whether or not the
+      // email is registered — never used to tell the user which is true.
+      await requestPasswordReset(data.email);
+      setMessage("If that email is registered, a password reset link has been sent.");
       reset();
-    } catch {
-      setMessage("Failed to send reset link. Please try again.");
+    } catch (error) {
+      setIsError(true);
+      setMessage(getApiErrorMessage(error, "Failed to send reset link. Please try again."));
     }
   };
 
@@ -58,7 +59,7 @@ function ForgotPassword(): JSX.Element {
             />
 
             {errors.email && <p className="error-text">{errors.email.message}</p>}
-            {message && <p className="success-text">{message}</p>}
+            {message && <p className={isError ? "error-text" : "success-text"}>{message}</p>}
           </div>
 
           <button

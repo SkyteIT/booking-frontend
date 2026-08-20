@@ -12,7 +12,10 @@ export default function AdminLayout() {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#F3F5F9", // softer background
+        backgroundColor: "#F3F5F9",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <AdminNavbar />
@@ -46,7 +49,7 @@ export default function AdminLayout() {
               borderRadius: 4,
 
               // 👇 Apple-like surface
-              bgcolor: "rgba(255,255,255,0.75)",
+              background: "linear-gradient(160deg, rgba(255,255,255,0.85), rgba(224,242,254,0.55))",
               backdropFilter: "blur(10px)",
 
               // 👇 subtle border instead of heavy

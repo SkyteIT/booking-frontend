@@ -13,7 +13,17 @@ type CustomerPageLayoutProps = {
 
 export default function CustomerPageLayout({ title, subtitle, children }: CustomerPageLayoutProps) {
   return (
-    <Box className="dashboard-wrapper" sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box
+      className="dashboard-wrapper"
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <MainNavbar />
 
       <Box component="main" sx={{ flex: 1 }}>
@@ -23,11 +33,33 @@ export default function CustomerPageLayout({ title, subtitle, children }: Custom
           </Box>
 
           <Box className="dashboard-main">
-            <Typography variant="h4" fontWeight={800} mb={1} sx={{ letterSpacing: "-0.5px", color: "#0F172A" }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 700,
+                mb: 1,
+                letterSpacing: "-0.02em",
+                display: "flex",
+                alignItems: "baseline",
+                gap: "2px",
+              }}
+            >
               {title}
+              <Box
+                component="span"
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "3px",
+                  backgroundColor: "primary.main",
+                  display: "inline-block",
+                  ml: 0.5,
+                }}
+              />
             </Typography>
             {subtitle && (
-              <Typography variant="subtitle1" color="#64748B" mb={3} sx={{ fontSize: 14 }}>
+              <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
                 {subtitle}
               </Typography>
             )}

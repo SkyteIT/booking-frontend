@@ -1,77 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { Snackbar, Alert } from "@mui/material";
 import { GoogleLogin } from "@react-oauth/google";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
+import ToastAlert from "../../../components/common/ToastAlert";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import { register as registerRequest, loginWithGoogle } from "../../../services/authService";
-import { registerSchema, type RegisterFormData } from "../../../utils/validationSchemas";
-
-function getAuthErrorMessage(error: unknown, fallback: string) {
-  const response = error as { response?: { data?: { message?: unknown; title?: unknown; errors?: Record<string, unknown> } } };
-  const message = response?.response?.data?.message;
-
-  if (typeof message === "string" && message.trim()) {
-    return message;
-  }
-
-  const title = response?.response?.data?.title;
-  if (typeof title === "string" && title.trim()) {
-    return title;
-  }
-
-  const errors = response?.response?.data?.errors;
-  if (errors && typeof errors === "object") {
-    return Object.values(errors)
-      .flat()
-      .map(String)
-      .filter(Boolean)
-      .join(" ") || fallback;
-  }
-
-  return error instanceof Error ? error.message || fallback : fallback;
-}
-
-function splitFullName(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-
-  if (parts.length === 0) {
-    return { firstName: "", lastName: "" };
-  }
-
-  if (parts.length === 1) {
-    return { firstName: parts[0], lastName: "" };
-  }
-
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(" "),
-  };
-}
+import { register as registerUser, loginWithGoogle } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
+import {
+  registerSchema,
+  type RegisterFormData,
+} from "../../../utils/validationSchemas";
 
 function Register(): JSX.Element {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
-
-  useEffect(() => {
-    window.history.replaceState(null, "", "/register");
-
-    const handlePopState = () => {
-      navigate("/", { replace: true });
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [navigate]);
-
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  const [successSnackbar, setSuccessSnackbar] = useState<boolean>(false);
-  const [errorSnackbar, setErrorSnackbar] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const {
     register,
@@ -84,76 +29,47 @@ function Register(): JSX.Element {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const { firstName, lastName } = splitFullName(data.name);
-      const response = await registerRequest({
+      setError("");
+      const [firstName, ...rest] = data.name.trim().split(/\s+/);
+      const lastName = rest.join(" ") || firstName;
+
+      await registerUser({
         firstName,
         lastName,
         email: data.email,
         password: data.password,
       });
-      
-      // Load the newly registered user's complete profile into AuthContext
-      const currentUser = await refreshUser();
-      
-      if (!currentUser) {
-        throw new Error("Registration succeeded, but the user profile could not be loaded.");
-      }
-      
-      setSuccessSnackbar(true);
-      
-      setTimeout(() => {
-        const role = currentUser.role ?? response.role;
-      
-        navigate(
-          String(role ?? "").toLowerCase() === "vendor"
-            ? "/vendor/dashboard"
-            : "/customer/dashboard",
-          { replace: true }
-        );
-      }, 900);
+
+      await refreshUser();
+      navigate("/", { replace: true });
     } catch (error) {
-      setErrorSnackbar(getAuthErrorMessage(error, "Registration failed. Please try again."));
+      setError(getApiErrorMessage(error, "Unable to create your account. Please try again."));
     }
   };
 
   const handleGoogleSignUp = async (credential?: string) => {
     if (!credential) {
-      setErrorSnackbar("Google sign-up failed. Please try again.");
+      setError("Google sign-up failed. Please try again.");
       return;
     }
 
     try {
-      const authResponse = await loginWithGoogle(credential);
-      const currentUser = await refreshUser();
-
-      setSuccessSnackbar(true);
-
-      setTimeout(() => {
-        const role = currentUser?.role ?? authResponse.role;
-        navigate(
-          String(role ?? "").toLowerCase() === "vendor"
-            ? "/vendor/dashboard"
-            : "/customer/dashboard",
-          { replace: true }
-        );
-      }, 900);
+      setError("");
+      await loginWithGoogle(credential);
+      await refreshUser();
+      navigate("/", { replace: true });
     } catch (error) {
-      setErrorSnackbar(
-        getAuthErrorMessage(error, "Google sign-up failed. Please try again.")
-      );
+      setError(getApiErrorMessage(error, "Google sign-up failed. Please try again."));
     }
   };
 
   return (
     <AuthLayout>
       <div className="auth-card">
-        <h2 className="title center">Create Account</h2>
-        <p className="subtitle center">
-          Please fill in the details to create your account.
-        </p>
+        <h2 className="title center">Register</h2>
+        <p className="subtitle center">Create your account to get started.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          {/* Full Name */}
           <div className="input-group">
             <label>Full Name</label>
             <input
@@ -165,7 +81,6 @@ function Register(): JSX.Element {
             {errors.name && <p className="error-text">{errors.name.message}</p>}
           </div>
 
-          {/* Email */}
           <div className="input-group">
             <label>Email Address</label>
             <input
@@ -177,97 +92,67 @@ function Register(): JSX.Element {
             {errors.email && <p className="error-text">{errors.email.message}</p>}
           </div>
 
-          {/* Password */}
-          <div className="input-group password-group">
+          <div className="input-group">
             <label>Password</label>
-            <div className="password-wrapper styled">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                {...register("password")}
-                className={errors.password ? "input-error" : ""}
-              />
-              <span className="eye-icon" onClick={() => setShowPassword(prev => !prev)}>
-                {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-              </span>
-            </div>
+            <input
+              type="password"
+              placeholder="Create a password"
+              {...register("password")}
+              className={errors.password ? "input-error" : ""}
+            />
             {errors.password && <p className="error-text">{errors.password.message}</p>}
           </div>
 
-          {/* Confirm Password */}
-          <div className="input-group password-group">
+          <div className="input-group">
             <label>Confirm Password</label>
-            <div className="password-wrapper styled">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm your password"
-                {...register("confirmPassword")}
-                className={errors.confirmPassword ? "input-error" : ""}
-              />
-              <span
-                className="eye-icon"
-                onClick={() => setShowConfirmPassword(prev => !prev)}
-              >
-                {showConfirmPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-              </span>
-            </div>
+            <input
+              type="password"
+              placeholder="Confirm your password"
+              {...register("confirmPassword")}
+              className={errors.confirmPassword ? "input-error" : ""}
+            />
             {errors.confirmPassword && (
               <p className="error-text">{errors.confirmPassword.message}</p>
             )}
           </div>
 
-          <button type="submit" className="primary-btn" disabled={isSubmitting}>
-            {isSubmitting ? "Creating Account..." : "Sign Up"}
+          <button
+            type="submit"
+            className="primary-btn"
+            disabled={isSubmitting}
+            style={{
+              opacity: isSubmitting ? 0.7 : 1,
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+            }}
+          >
+            {isSubmitting ? "Creating account..." : "Register"}
           </button>
         </form>
 
-        <div className="divider">
-          <span>OR CONTINUE WITH</span>
-        </div>
+        <div style={{ margin: "16px 0", textAlign: "center", color: "#888" }}>OR</div>
 
-        <div className="google-login-container">
+        <div style={{ display: "flex", justifyContent: "center" }}>
           <GoogleLogin
-            onSuccess={(credentialResponse: { credential?: string }) =>
-              handleGoogleSignUp(credentialResponse.credential)
-            }
-            onError={() => setErrorSnackbar("Google sign-up failed. Please try again.")}
-            width="400"
+            onSuccess={(credentialResponse) => handleGoogleSignUp(credentialResponse.credential)}
+            onError={() => setError("Google sign-up failed. Please try again.")}
           />
         </div>
 
-        <p className="bottom-text">
-          Already have an account?{" "}
-          <Link to="/login" className="bold-link">
-            Sign in
-          </Link>
-        </p>
-
-        {/* ✅ Success Snackbar */}
-        <Snackbar
-          open={successSnackbar}
-          autoHideDuration={2000}
-          onClose={() => setSuccessSnackbar(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity="success" sx={{ width: "100%" }}>
-            Registration Successful!
-          </Alert>
-        </Snackbar>
-
-        <Snackbar
-          open={Boolean(errorSnackbar)}
-          autoHideDuration={2500}
-          onClose={() => setErrorSnackbar("")}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity="error" sx={{ width: "100%" }} onClose={() => setErrorSnackbar("")}>
-            {errorSnackbar}
-          </Alert>
-        </Snackbar>
+        <div style={{ marginTop: "16px", textAlign: "center" }}>
+          <p className="subtitle">
+            Already have an account? <Link to="/login">Login</Link>
+          </p>
+        </div>
       </div>
+
+      <ToastAlert
+        open={!!error}
+        onClose={() => setError("")}
+        severity="error"
+        message={error}
+      />
     </AuthLayout>
   );
 }
-
 
 export default Register;

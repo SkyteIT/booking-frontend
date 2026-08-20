@@ -11,10 +11,13 @@ export default function VendorManagementHeader({
 }: Props) {
   return (
     <Box>
-      <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: -0.5 }}>
+      <Typography
+        variant="h5"
+        sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+      >
         {title}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
         {subtitle}
       </Typography>
     </Box>

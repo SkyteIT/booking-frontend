@@ -23,8 +23,24 @@ interface CustomField {
 }
 
 const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental", "Activity"];
-const BOOKING_TYPES = ["Instant Confirmation", "Request to Confirm"];
-const SERVICE_MODELS = ["Per Night", "Per Hour", "Per Person", "Per Day", "Fixed Price"];
+// value = wire value sent to the backend (must match the BookingConfirmationType/
+// PricingUnit/ServiceCollectionModel enum member names, since the API
+// serializes enums as strings); label = what the admin sees.
+const BOOKING_TYPES = [
+  { value: "Instant", label: "Instant Confirmation" },
+  { value: "Request", label: "Request to Confirm" },
+];
+const SERVICE_MODELS = [
+  { value: "PerNight", label: "Per Night" },
+  { value: "PerHour", label: "Per Hour" },
+  { value: "PerPerson", label: "Per Person" },
+  { value: "PerDay", label: "Per Day" },
+  { value: "FixedPrice", label: "Fixed Price" },
+];
+const PAYMENT_COLLECTION_MODELS = [
+  { value: "Prepay", label: "Prepay (customer pays platform now)" },
+  { value: "PayAtVenue", label: "Pay at venue (vendor collects directly)" },
+];
 const FIELD_TYPES    = ["Text", "Number", "Date", "Dropdown", "Checkbox", "File Upload"];
 // Backend only accepts "Active"/"Inactive" (CreateCategoryDtoValidator) Ã¢â‚¬â€ no "Draft".
 const STATUS_OPTIONS = ["Active", "Inactive"];
@@ -47,6 +63,7 @@ export default function AddCategory() {
     type: "" as ListingType | "",
     bookingType: "",
     serviceModel: "",
+    paymentCollectionModel: "",
     dateSelection: false,
     timeSlot: false,
     availabilityCalendar: false,
@@ -142,6 +159,7 @@ export default function AddCategory() {
         type: form.type as ListingType,
         bookingType: form.bookingType || undefined,
         serviceModel: form.serviceModel || undefined,
+        paymentCollectionModel: form.paymentCollectionModel || undefined,
         dateSelectionEnabled: form.dateSelection,
         timeSlotEnabled: form.timeSlot,
         availabilityCalendarEnabled: form.availabilityCalendar,
@@ -263,11 +281,11 @@ export default function AddCategory() {
               helperText={errors.bookingType}
               sx={{ mb: 2 }}
             >
-              {BOOKING_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              {BOOKING_TYPES.map((t) => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
             </TextField>
 
             <TextField
-              label="Service Model"
+              label="Service Model (pricing unit)"
               select fullWidth required
               value={form.serviceModel}
               onChange={(e) => set("serviceModel", e.target.value)}
@@ -275,7 +293,18 @@ export default function AddCategory() {
               helperText={errors.serviceModel}
               sx={{ mb: 2 }}
             >
-              {SERVICE_MODELS.map((m) => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+              {SERVICE_MODELS.map((m) => <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>)}
+            </TextField>
+
+            <TextField
+              label="Payment Collection"
+              select fullWidth
+              value={form.paymentCollectionModel}
+              onChange={(e) => set("paymentCollectionModel", e.target.value)}
+              helperText="Who collects payment from the customer — defaults to Prepay if left blank"
+              sx={{ mb: 2 }}
+            >
+              {PAYMENT_COLLECTION_MODELS.map((m) => <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>)}
             </TextField>
 
             {/* Feature toggles */}

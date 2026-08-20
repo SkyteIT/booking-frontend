@@ -76,8 +76,35 @@ export const getUserById = async (userId: string): Promise<AdminUserDto> => {
   return res.data;
 };
 
-export const updateUserRole = async (userId: string, role: string): Promise<AdminUserDto> => {
-  const res = await api.put<AdminUserDto>(`/admin/users/${userId}/role`, { role });
+export interface RoleChangeRequestDto {
+  id: string;
+  targetUserId: string;
+  targetUserName: string;
+  targetUserEmail: string;
+  requestedByUserId: string;
+  requestedByUserName: string;
+  currentRole: string;
+  requestedRole: string;
+  reason?: string | null;
+  status: "Pending" | "Approved" | "Rejected";
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+  createdAt: string;
+}
+
+// A SuperAdmin's role change applies immediately (`user` is set). A
+// plain Admin's attempt never mutates anything - it creates a pending
+// RoleChangeRequest instead (`request` is set) for a SuperAdmin to
+// later approve or reject.
+export interface RoleChangeOutcomeDto {
+  appliedImmediately: boolean;
+  user: AdminUserDto | null;
+  request: RoleChangeRequestDto | null;
+}
+
+export const updateUserRole = async (userId: string, role: string, reason?: string): Promise<RoleChangeOutcomeDto> => {
+  const res = await api.put<RoleChangeOutcomeDto>(`/admin/users/${userId}/role`, { role, reason });
   return res.data;
 };
 
@@ -90,6 +117,13 @@ export const updateUserStatus = async (userId: string, isSuspended: boolean): Pr
 export const getAllBookings = async (): Promise<AdminBookingDto[]> => {
   const res = await api.get<AdminBookingDto[]>("/admin/bookings");
   return res.data;
+};
+
+// Fetches the server-generated CSV as a Blob. Needs responseType: "blob" -
+// without it, axios would try to parse the CSV text as JSON and fail.
+export const exportBookingsCsv = async (): Promise<Blob> => {
+  const res = await api.get("/admin/bookings/export", { responseType: "blob" });
+  return res.data as Blob;
 };
 
 export const getBookingById = async (bookingId: string): Promise<AdminBookingDto> => {

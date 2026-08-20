@@ -6,6 +6,12 @@ export interface ReviewDto {
   comment: string;
   createdAt: string;
   customerName: string;
+  likeCount: number;
+  isLikedByCurrentUser: boolean;
+  vendorReply?: string | null;
+  vendorReplyAt?: string | null;
+  listingId: string;
+  listingTitle: string;
 }
 
 export interface PagedResult<T> {
@@ -32,6 +38,19 @@ export interface GetVendorReviewsParams {
   pageSize?: number;
   search?: string;
   rating?: number;
+}
+
+export interface CustomerReviewDto {
+  id: string;
+  bookingId: string;
+  listingId: string;
+  listingTitle: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  vendorReply?: string | null;
+  vendorReplyAt?: string | null;
 }
 
 // Creates a review for a completed booking. Backend enforces: booking must
@@ -71,13 +90,50 @@ export const getVendorReviews = async (
   return res.data;
 };
 
+export const getMyReviews = async (
+  params: GetVendorReviewsParams = {}
+): Promise<PagedResult<CustomerReviewDto>> => {
+  const res = await api.get<PagedResult<CustomerReviewDto>>("/reviews/mine", {
+    params: {
+      PageNumber: params.pageNumber,
+      PageSize: params.pageSize,
+      ...(params.search && { Search: params.search }),
+      ...(params.rating !== undefined && { Rating: params.rating }),
+    },
+  });
+  return res.data;
+};
+
 export const getVendorRating = async (vendorId: string): Promise<VendorRatingDto> => {
   const res = await api.get<VendorRatingDto>(`/vendors/${vendorId}/reviews/rating`);
+  return res.data;
+};
+
+export const getListingReviews = async (
+  listingId: string,
+  params: GetVendorReviewsParams = {}
+): Promise<PagedResult<ReviewDto>> => {
+  const res = await api.get<PagedResult<ReviewDto>>(`/listings/${listingId}/reviews`, {
+    params: {
+      PageNumber: params.pageNumber,
+      PageSize: params.pageSize,
+      ...(params.search && { Search: params.search }),
+      ...(params.rating !== undefined && { Rating: params.rating }),
+    },
+  });
   return res.data;
 };
 
 // Vendor-only: reply to a review left on their listing.
 export const replyToReview = async (reviewId: string, reply: string): Promise<{ message: string }> => {
   const res = await api.post<{ message: string }>(`/vendor/reviews/${reviewId}/reply`, { reply });
+  return res.data;
+};
+
+// Toggles the current customer's like on a review. Requires authentication.
+export const toggleReviewLike = async (
+  reviewId: string
+): Promise<{ likeCount: number; isLiked: boolean }> => {
+  const res = await api.post<{ likeCount: number; isLiked: boolean }>(`/reviews/${reviewId}/like`);
   return res.data;
 };

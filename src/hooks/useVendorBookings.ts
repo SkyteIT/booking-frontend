@@ -8,6 +8,7 @@ type UseVendorBookingsParams = {
   sortBy?: string;
   startDate?: string;
   endDate?: string;
+  search?: string;
 };
 
 export function useVendorBookings({
@@ -16,6 +17,7 @@ export function useVendorBookings({
   sortBy,
   startDate,
   endDate,
+  search,
 }: UseVendorBookingsParams) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
@@ -33,8 +35,6 @@ export function useVendorBookings({
   const fetchBookings = useCallback(
     async (isCancelled?: () => boolean) => {
       try {
-        console.log("Fetching bookings:", { page, pageSize });
-
         setLoading(true);
         setError(null);
 
@@ -45,9 +45,8 @@ export function useVendorBookings({
           sortBy,
           startDate,
           endDate,
+          search,
         });
-
-        console.log("API RESULT:", result);
 
         if (isCancelled?.()) return;
 
@@ -64,8 +63,6 @@ export function useVendorBookings({
       } catch (err) {
         if (isCancelled?.()) return;
 
-        console.error("FETCH ERROR:", err);
-
         setError(err instanceof Error ? err.message : "Failed to load bookings");
         setData([]);
         setTotalCount(0);
@@ -73,7 +70,7 @@ export function useVendorBookings({
         if (!isCancelled?.()) setLoading(false);
       }
     },
-    [page, pageSize, status, sortBy, startDate, endDate]
+    [page, pageSize, status, sortBy, startDate, endDate, search]
   );
 
   useEffect(() => {

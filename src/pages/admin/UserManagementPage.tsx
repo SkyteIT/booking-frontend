@@ -16,12 +16,16 @@ import {
   updateUserStatus,
   type AdminUserDto,
 } from '../../services/Admin/adminService';
+import { getApiErrorMessage } from '../../utils/getApiErrorMessage';
 
 export const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUserDto | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -78,13 +82,18 @@ export const UserManagementPage: React.FC = () => {
     if (!selectedUser) return;
     setSaving(true);
     try {
-      const updated = await updateUserRole(selectedUser.id, editRole);
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
-      refreshDashboard();
+      const outcome = await updateUserRole(selectedUser.id, editRole);
+      if (outcome.appliedImmediately && outcome.user) {
+        const updated = outcome.user;
+        setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+        showSuccess('User role updated successfully');
+      } else {
+        // Plain Admin actor - nothing changed yet, a SuperAdmin has to approve it.
+        showSuccess('Request submitted for SuperAdmin approval');
+      }
       setEditOpen(false);
-      showSuccess('User role updated successfully');
-    } catch {
-      setErrorMsg('Failed to update user role.');
+    } catch (err) {
+      setErrorMsg(getApiErrorMessage(err, 'Failed to update user role.'));
     } finally {
       setSaving(false);
     }
@@ -118,11 +127,17 @@ export const UserManagementPage: React.FC = () => {
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const roleOptions = ['All', ...Array.from(new Set(users.map((u) => u.role)))];
+  const activeFilterCount = (roleFilter !== 'All' ? 1 : 0) + (statusFilter !== 'All' ? 1 : 0);
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === 'All' || user.role === roleFilter;
+    const matchesStatus = statusFilter === 'All' || user.status === statusFilter;
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -153,26 +168,89 @@ export const UserManagementPage: React.FC = () => {
         )}
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>User Management</Typography>
-          <Typography variant="body2" color="text.secondary">Manage all platform users and their activities</Typography>
+          <Typography
+            variant="h5"
+            sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          >
+            User Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Manage all platform users and their activities
+          </Typography>
         </Box>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+          }}
+        >
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               fullWidth size="small" placeholder="Search users..."
               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#94A3B8' }} /></InputAdornment> }}
-              sx={{ maxWidth: 400 }}
+              sx={{
+                maxWidth: 400,
+                '& .MuiOutlinedInput-root': { borderRadius: '999px', bgcolor: '#fff' },
+              }}
             />
-            <Button variant="outlined" startIcon={<FilterList />} sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}>
-              Filters
+            <Button
+              variant="outlined"
+              startIcon={<FilterList />}
+              onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+              sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B', borderRadius: '999px' }}
+            >
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
             </Button>
+            <Menu anchorEl={filterAnchorEl} open={!!filterAnchorEl} onClose={() => setFilterAnchorEl(null)}>
+              <Box sx={{ px: 2, py: 1.5, minWidth: 220 }}>
+                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                  <InputLabel>Role</InputLabel>
+                  <Select label="Role" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                    {roleOptions.map((role) => (
+                      <MenuItem key={role} value={role}>{role}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth size="small" sx={{ mb: activeFilterCount > 0 ? 1.5 : 0 }}>
+                  <InputLabel>Status</InputLabel>
+                  <Select label="Status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <MenuItem value="All">All</MenuItem>
+                    <MenuItem value="Active">Active</MenuItem>
+                    <MenuItem value="Suspended">Suspended</MenuItem>
+                  </Select>
+                </FormControl>
+                {activeFilterCount > 0 && (
+                  <Button
+                    size="small"
+                    onClick={() => { setRoleFilter('All'); setStatusFilter('All'); }}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </Box>
+            </Menu>
           </Box>
         </Paper>
 
         <Box sx={{ flex: 1 }}>
-          <Paper>
+          <Paper
+            sx={{
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+              overflow: "hidden",
+            }}
+          >
             <TableContainer>
               <Table>
                 <TableHead>
@@ -264,7 +342,7 @@ export const UserManagementPage: React.FC = () => {
         </Menu>
 
         {/* View Dialog */}
-        <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             User Details
             <IconButton onClick={() => setViewOpen(false)}><Close /></IconButton>
@@ -273,7 +351,7 @@ export const UserManagementPage: React.FC = () => {
             {selectedUser && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                  <Avatar sx={{ width: 64, height: 64, bgcolor: '#0891B2', fontSize: '1.5rem' }}>
+                  <Avatar sx={{ width: 64, height: 64, background: 'linear-gradient(160deg, #005a8d, #0077b6)', fontSize: '1.5rem' }}>
                     {selectedUser.fullName.charAt(0)}
                   </Avatar>
                   <Box>
@@ -300,14 +378,14 @@ export const UserManagementPage: React.FC = () => {
           <DialogActions>
             <Button onClick={() => setViewOpen(false)} sx={{ textTransform: 'none' }}>Close</Button>
             <Button variant="contained" onClick={() => { setViewOpen(false); if (selectedUser) handleEditOpen(selectedUser); }}
-              sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+              sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
               Change Role
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* Edit (role-only — that's the only field the admin API supports changing besides status) */}
-        <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             Change Role
             <IconButton onClick={() => setEditOpen(false)}><Close /></IconButton>
@@ -323,21 +401,27 @@ export const UserManagementPage: React.FC = () => {
                   <MenuItem value="User">User</MenuItem>
                   <MenuItem value="Vendor">Vendor</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
+                  <MenuItem value="Finance">Finance</MenuItem>
+                  <MenuItem value="SuperAdmin">SuperAdmin</MenuItem>
                 </Select>
               </FormControl>
+              <Typography variant="caption" color="text.secondary">
+                If you're not a SuperAdmin, this submits a request for SuperAdmin approval instead
+                of changing the role immediately.
+              </Typography>
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setEditOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
             <Button variant="contained" disabled={saving} onClick={handleEditSave}
-              sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+              sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* Block Confirm Dialog */}
-        <Dialog open={blockOpen} onClose={() => setBlockOpen(false)}>
+        <Dialog open={blockOpen} onClose={() => setBlockOpen(false)} PaperProps={{ sx: { borderRadius: '20px' } }}>
           <DialogTitle>{selectedUser?.status === 'Suspended' ? 'Reactivate User' : 'Suspend User'}</DialogTitle>
           <DialogContent>
             <DialogContentText>

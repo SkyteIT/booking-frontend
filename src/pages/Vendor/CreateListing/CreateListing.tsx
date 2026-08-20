@@ -1,7 +1,10 @@
 // src/pages/Vendor/CreateListing/CreateListing.tsx
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SaveIcon from "@mui/icons-material/Save";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import CategoryIcon from "@mui/icons-material/Category";
+import CheckIcon from "@mui/icons-material/Check";
+import EventSeatIcon from "@mui/icons-material/EventSeat";
+import ImageIcon from "@mui/icons-material/Image";
+import InfoIcon from "@mui/icons-material/Info";
 import {
   Box,
   Container,
@@ -16,6 +19,7 @@ import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import StepperBar, { type StepperStep } from "../../../components/navbars/StepperBar";
 import {
   createListing,
   updateListing,
@@ -34,8 +38,18 @@ import BaseFields from "./components/BaseFields";
 import CarRentalFields from "./components/CarRentalFields";
 import EventFields from "./components/EventFields";
 import HotelFields from "./components/HotelFields";
-import ListingPreview from "./components/ListingPreview";
+import ImagesStep from "./components/ImagesStep";
+import ReviewStep from "./components/ReviewStep";
 import RestaurantFields from "./components/RestaurantFields";
+import BookableUnitsSection, {
+  type UnitsMode,
+  type ListRow,
+  type GridConfig,
+  type TimeSlotConfig,
+} from "./components/BookableUnitsSection";
+import { defaultListRows, defaultGridConfig, defaultTimeSlotConfig } from "./components/bookableUnitsDefaults";
+import { addUnit, addUnitsGrid, addUnitsTimeSlots } from "../../../services/Vendor/listingUnitsService";
+import { getLocalizationSettings } from "../../../services/Vendor/settings";
 
 // ListingType and ListingCategory are the same set of string literals
 // (Hotel/Restaurant/Event/CarRental/Activity) — kept as an explicit map
@@ -46,6 +60,32 @@ const typeToCategory: Record<ListingType, ListingCategory> = {
   Event: "Event",
   CarRental: "CarRental",
   Activity: "Activity",
+};
+
+const WIZARD_STEPS: StepperStep[] = [
+  { label: "Basic Info", icon: InfoIcon },
+  { label: "Category Details", icon: CategoryIcon },
+  { label: "Bookable Units", icon: EventSeatIcon },
+  { label: "Images", icon: ImageIcon },
+  { label: "Review", icon: CheckIcon },
+];
+
+// Fields validated per step before allowing "Next" — mirrors the
+// `required` rules registered in BaseFields/each category-fields
+// component, which in turn mirror the backend's FluentValidation rules
+// (CreateListingRequestValidator + the five *DetailsDtoValidator classes).
+// Several of these (roomTypes/amenities/model/seatCountCar/averageCost/
+// organizer/seatCount) previously had no frontend input or validation at
+// all, so those categories' listings always failed backend validation on
+// submit regardless of what the vendor filled in — fixed alongside adding
+// the wizard's step-gated validation.
+const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = ["title", "location", "categoryId", "price", "currency"];
+const CATEGORY_REQUIRED_FIELDS: Record<ListingCategory, (keyof ListingFormData)[]> = {
+  Hotel: ["roomTypes", "amenities"],
+  Restaurant: ["cuisineType", "seatingCapacity", "openingTime", "closingTime", "averageCost"],
+  Activity: ["activityType", "duration"],
+  Event: ["organizer", "seatCount", "eventDate", "eventTime"],
+  CarRental: ["brand", "model", "seatCountCar"],
 };
 
 const notifyDashboardRefresh = () => {
@@ -61,6 +101,7 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     category: typeToCategory[listing.type] ?? "Hotel",
     categoryId: listing.categoryId,
     isActive: listing.isActive,
+    currency: listing.currency ?? "LKR",
     imageUrls: listing.images?.join(", ") ?? "",
     tagsInput: listing.tags?.join(", ") ?? "",
     cancellationPolicy: listing.cancellationPolicy ?? "",
@@ -135,7 +176,7 @@ function buildCreateListingRequest(
     title: data.title,
     description: data.description ?? "",
     price: Number(data.price) || 0,
-    currency: "LKR",
+    currency: data.currency || "LKR",
     location: data.location,
     isActive: data.isActive ?? true,
     images: data.imageUrls
@@ -225,20 +266,28 @@ const CreateListing = () => {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState<CategoryDto[]>([]);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
+  const [activeStep, setActiveStep] = useState(0);
+  const [unitsError, setUnitsError] = useState<string | null>(null);
+
+  const [unitsMode, setUnitsMode] = useState<UnitsMode>("none");
+  const [listRows, setListRows] = useState<ListRow[]>(defaultListRows);
+  const [gridConfig, setGridConfig] = useState<GridConfig>(defaultGridConfig);
+  const [timeSlotConfig, setTimeSlotConfig] = useState<TimeSlotConfig>(defaultTimeSlotConfig);
 
   const {
     register,
     control,
     watch,
     setValue,
+    trigger,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ListingFormData>({
     defaultValues: {
       category: "Hotel",
+      currency: "LKR",
       ticketTypes: [
         { type: "General Admission", quantity: 100, price: 50 },
         { type: "VIP", quantity: 100, price: 150 },
@@ -256,6 +305,18 @@ const CreateListing = () => {
         if (isEditMode && id) {
           const listing = await getListingById(id);
           reset(buildEditFormData(listing) as ListingFormData);
+        } else {
+          // New listings default to the vendor's own currency preference
+          // (Settings > Localization) rather than always publishing in LKR —
+          // still overridable per listing below.
+          try {
+            const localization = await getLocalizationSettings();
+            if (localization.currency) {
+              setValue("currency", localization.currency);
+            }
+          } catch {
+            // Keep the LKR default if localization settings aren't available.
+          }
         }
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -283,6 +344,37 @@ const CreateListing = () => {
     }
   }, [selectedCategoryId, categories, setValue]);
 
+  const createUnitsIfConfigured = async (listingId: string) => {
+    if (unitsMode === "list") {
+      const rows = listRows.filter((r) => r.name.trim());
+      for (const row of rows) {
+        await addUnit(listingId, {
+          name: row.name.trim(),
+          priceOverride: row.priceOverride ? Number(row.priceOverride) : undefined,
+          capacity: Number(row.capacity) || 1,
+        });
+      }
+    } else if (unitsMode === "grid") {
+      const rows = Number(gridConfig.rows);
+      const columns = Number(gridConfig.columns);
+      if (rows > 0 && columns > 0) {
+        await addUnitsGrid(listingId, {
+          rows,
+          columns,
+          pricePerSeat: gridConfig.pricePerSeat ? Number(gridConfig.pricePerSeat) : undefined,
+        });
+      }
+    } else if (unitsMode === "timeslot") {
+      await addUnitsTimeSlots(listingId, {
+        startTime: `${timeSlotConfig.startTime}:00`,
+        endTime: `${timeSlotConfig.endTime}:00`,
+        slotDurationMinutes: Number(timeSlotConfig.slotDurationMinutes) || 30,
+        capacityPerSlot: Number(timeSlotConfig.capacityPerSlot) || 1,
+        price: timeSlotConfig.price ? Number(timeSlotConfig.price) : undefined,
+      });
+    }
+  };
+
   const onSubmit = async (data: ListingFormData) => {
     try {
       // The category select is required and only ever offers real,
@@ -299,9 +391,11 @@ const CreateListing = () => {
 
       if (isEditMode && id) {
         await updateListing(id, request);
+        await createUnitsIfConfigured(id);
         alert("Listing updated successfully!");
       } else {
-        await createListing(request);
+        const created = await createListing(request);
+        await createUnitsIfConfigured(created.id);
         alert("Listing published successfully!");
       }
       notifyDashboardRefresh();
@@ -331,6 +425,41 @@ const CreateListing = () => {
         return null;
     }
   };
+
+  const validateUnitsStep = (): string | null => {
+    if (unitsMode === "grid") {
+      const rows = Number(gridConfig.rows);
+      const columns = Number(gridConfig.columns);
+      if (!(rows > 0 && columns > 0)) return "Enter positive rows and columns, or switch back to None.";
+    } else if (unitsMode === "timeslot") {
+      if (!timeSlotConfig.startTime || !timeSlotConfig.endTime || !(Number(timeSlotConfig.slotDurationMinutes) > 0)) {
+        return "Fill in start time, end time, and a positive slot duration, or switch back to None.";
+      }
+    } else if (unitsMode === "list") {
+      if (!listRows.some((r) => r.name.trim())) {
+        return "Name at least one unit, or switch back to None.";
+      }
+    }
+    return null;
+  };
+
+  const handleNext = async () => {
+    if (activeStep === 0) {
+      const valid = await trigger(BASIC_INFO_FIELDS);
+      if (!valid) return;
+    } else if (activeStep === 1) {
+      const fields = CATEGORY_REQUIRED_FIELDS[selectedCategory] ?? [];
+      const valid = fields.length === 0 || (await trigger(fields));
+      if (!valid) return;
+    } else if (activeStep === 2) {
+      const error = validateUnitsStep();
+      setUnitsError(error);
+      if (error) return;
+    }
+    setActiveStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1));
+  };
+
+  const handleBack = () => setActiveStep((s) => Math.max(0, s - 1));
 
   if (loading) {
     return (
@@ -363,12 +492,11 @@ const CreateListing = () => {
         </MuiLink>
       </Box>
 
-      <Typography
-        variant="h4"
-        sx={{ mb: 4, fontWeight: 700, color: "#1E293B" }}
-      >
-        {isEditMode ? "Edit Listing" : "Create New Listing"}
-      </Typography>
+      <StepperBar
+        activeStep={activeStep}
+        steps={WIZARD_STEPS}
+        title={isEditMode ? "Edit Listing" : "Create New Listing"}
+      />
 
       <Card
         sx={{
@@ -379,9 +507,52 @@ const CreateListing = () => {
       >
         <CardContent sx={{ p: { xs: 3, md: 5 } }}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <BaseFields register={register} control={control} errors={errors} categories={categories} />
+            {activeStep === 0 && (
+              <BaseFields register={register} control={control} errors={errors} categories={categories} />
+            )}
 
-            {renderCategoryFields()}
+            {activeStep === 1 && renderCategoryFields()}
+
+            {activeStep === 2 && (
+              <>
+                <BookableUnitsSection
+                  category={selectedCategory}
+                  mode={unitsMode}
+                  onModeChange={(mode) => {
+                    setUnitsMode(mode);
+                    setUnitsError(null);
+                  }}
+                  listRows={listRows}
+                  onListRowsChange={setListRows}
+                  gridConfig={gridConfig}
+                  onGridConfigChange={setGridConfig}
+                  timeSlotConfig={timeSlotConfig}
+                  onTimeSlotConfigChange={setTimeSlotConfig}
+                />
+                {unitsError && (
+                  <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+                    {unitsError}
+                  </Typography>
+                )}
+              </>
+            )}
+
+            {activeStep === 3 && <ImagesStep register={register} control={control} errors={errors} />}
+
+            {activeStep === 4 && (
+              <ReviewStep
+                data={formData}
+                categories={categories}
+                register={register}
+                unitsMode={unitsMode}
+                listRows={listRows}
+                gridConfig={gridConfig}
+                timeSlotConfig={timeSlotConfig}
+                onSubmit={handleSubmit(onSubmit)}
+                isSubmitting={isSubmitting}
+                isEditMode={isEditMode}
+              />
+            )}
 
             <Box
               sx={{
@@ -389,64 +560,38 @@ const CreateListing = () => {
                 pt: 4,
                 borderTop: "1px solid #E2E8F0",
                 display: "flex",
-                justifyContent: "flex-end",
+                justifyContent: "space-between",
                 gap: 2,
                 flexWrap: "wrap",
               }}
             >
               <Button
                 variant="outlined"
-                onClick={() => navigate("/vendor/listings")}
+                onClick={activeStep === 0 ? () => navigate("/vendor/listings") : handleBack}
                 sx={{ borderRadius: "10px", px: 3 }}
               >
-                Cancel
+                {activeStep === 0 ? "Cancel" : "Back"}
               </Button>
-              {!isEditMode && (
+
+              {activeStep < WIZARD_STEPS.length - 1 && (
                 <Button
-                  variant="outlined"
-                  startIcon={<SaveIcon />}
-                  sx={{ borderRadius: "10px", px: 3 }}
+                  type="button"
+                  variant="contained"
+                  onClick={handleNext}
+                  sx={{
+                    borderRadius: "10px",
+                    px: 4,
+                    backgroundColor: "#0F5A8A",
+                    "&:hover": { backgroundColor: "#0C4A73" },
+                  }}
                 >
-                  Save Draft
+                  Next
                 </Button>
               )}
-              <Button
-                variant="outlined"
-                startIcon={<VisibilityIcon />}
-                onClick={() => setPreviewOpen(true)}
-                sx={{ borderRadius: "10px", px: 3 }}
-              >
-                Preview
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                sx={{
-                  borderRadius: "10px",
-                  px: 4,
-                  backgroundColor: "#0F5A8A",
-                  "&:hover": { backgroundColor: "#0C4A73" },
-                }}
-              >
-                {isSubmitting ? (
-                  <CircularProgress size={24} sx={{ color: "white" }} />
-                ) : isEditMode ? (
-                  "Update Listing"
-                ) : (
-                  "Publish Listing"
-                )}
-              </Button>
             </Box>
           </form>
         </CardContent>
       </Card>
-
-      <ListingPreview
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        data={formData}
-      />
     </Container>
   );
 };

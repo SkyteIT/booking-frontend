@@ -10,13 +10,20 @@ interface CarRentalFieldsProps {
   errors: FieldErrors<ListingFormData>;
 }
 
+// CreateListingRequestValidator (backend) requires Brand, Model,
+// Transmission, FuelType, AvailabilityStatus (all NotEmpty) and
+// SeatCount > 0 for every car-rental listing - Model and SeatCount
+// previously had no input anywhere on this form, so every car-rental
+// listing failed backend validation with a 400 regardless of what the
+// vendor filled in.
+
 const insuranceOptions = [
   { label: "Basic Insurance", price: "Included" },
   { label: "Premium Insurance", price: "$25/day" },
   { label: "Full Coverage", price: "$45/day" },
 ] as const;
 
-const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
+const CarRentalFields = ({ register, control, errors }: CarRentalFieldsProps) => {
   return (
     <Box sx={{ mt: 4 }}>
       <Typography
@@ -31,9 +38,38 @@ const CarRentalFields = ({ register, control }: CarRentalFieldsProps) => {
       >
         <TextField
           fullWidth
+          label="Brand"
+          placeholder="e.g., Toyota"
+          {...register("brand", { required: "Brand is required" })}
+          error={!!errors.brand}
+          helperText={errors.brand?.message}
+        />
+        <TextField
+          fullWidth
+          label="Model"
+          placeholder="e.g., Corolla"
+          {...register("model", { required: "Model is required" })}
+          error={!!errors.model}
+          helperText={errors.model?.message}
+        />
+        <TextField
+          fullWidth
           label="Vehicle Type"
           placeholder="e.g., Sedan, SUV"
           {...register("vehicleType")}
+        />
+        <TextField
+          fullWidth
+          type="number"
+          label="Seat Count"
+          placeholder="e.g., 5"
+          {...register("seatCountCar", {
+            required: "Seat count is required",
+            valueAsNumber: true,
+            min: { value: 1, message: "Seat count must be greater than 0" },
+          })}
+          error={!!errors.seatCountCar}
+          helperText={errors.seatCountCar?.message}
         />
         <TextField
           fullWidth

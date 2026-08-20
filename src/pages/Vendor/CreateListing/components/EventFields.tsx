@@ -21,7 +21,7 @@ interface EventFieldsProps {
   errors: FieldErrors<ListingFormData>;
 }
 
-const EventFields = ({ register, control }: EventFieldsProps) => {
+const EventFields = ({ register, control, errors }: EventFieldsProps) => {
   const { fields } = useFieldArray({
     control,
     name: "ticketTypes",
@@ -41,6 +41,27 @@ const EventFields = ({ register, control }: EventFieldsProps) => {
       >
         <TextField
           fullWidth
+          label="Organizer"
+          placeholder="e.g., Acme Events"
+          {...register("organizer", { required: "Organizer is required" })}
+          error={!!errors.organizer}
+          helperText={errors.organizer?.message}
+        />
+        <TextField
+          fullWidth
+          type="number"
+          label="Total Seat Count"
+          placeholder="e.g., 200"
+          {...register("seatCount", {
+            required: "Seat count is required",
+            valueAsNumber: true,
+            min: { value: 1, message: "Seat count must be greater than 0" },
+          })}
+          error={!!errors.seatCount}
+          helperText={errors.seatCount?.message}
+        />
+        <TextField
+          fullWidth
           label="Event Type"
           placeholder="e.g., Concert, Workshop"
           {...register("eventType")}
@@ -56,14 +77,18 @@ const EventFields = ({ register, control }: EventFieldsProps) => {
           type="date"
           label="Event Date"
           InputLabelProps={{ shrink: true }}
-          {...register("eventDate")}
+          {...register("eventDate", { required: "Event date is required" })}
+          error={!!errors.eventDate}
+          helperText={errors.eventDate?.message}
         />
         <TextField
           fullWidth
           type="time"
           label="Event Time"
           InputLabelProps={{ shrink: true }}
-          {...register("eventTime")}
+          {...register("eventTime", { required: "Event time is required" })}
+          error={!!errors.eventTime}
+          helperText={errors.eventTime?.message}
         />
       </Box>
 

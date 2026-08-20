@@ -10,6 +10,7 @@ export const getBookings = async (params: {
   pageSize?: number;
   startDate?: string;
   endDate?: string;
+  search?: string;
 }) => {
   const res = await api.get<PageResult<VendorBookingDto>>("/vendor/bookings", {
     params: {
@@ -19,6 +20,7 @@ export const getBookings = async (params: {
       ...(params.sortBy && { SortBy: params.sortBy }),
       ...(params.startDate && { StartDate: params.startDate }),
       ...(params.endDate && { EndDate: params.endDate }),
+      ...(params.search && { Search: params.search }),
     },
   });
 

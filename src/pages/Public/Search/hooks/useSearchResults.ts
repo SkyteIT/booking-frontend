@@ -76,6 +76,7 @@ export const useSearchResults = () => {
           minPrice: filters.minPrice,
           maxPrice: filters.maxPrice,
           minRating: filters.minRating,
+          hasActiveOffer: filters.hasOffer,
         });
 
         if (cancelled) return;
@@ -167,9 +168,15 @@ export const useSearchResults = () => {
     [searchParams, setSearchParams]
   );
 
+  const toggleHasOffer = useCallback(() => {
+    const next = new URLSearchParams(searchParams);
+    filters.hasOffer ? next.delete("hasOffer") : next.set("hasOffer", "true");
+    setSearchParams(next);
+  }, [searchParams, setSearchParams, filters.hasOffer]);
+
   const clearFilters = useCallback(() => {
     const next = new URLSearchParams(searchParams);
-    ["q", "category", "minPrice", "maxPrice", "minRating", "maxRating"].forEach((key) =>
+    ["q", "category", "minPrice", "maxPrice", "minRating", "maxRating", "hasOffer"].forEach((key) =>
       next.delete(key)
     );
     setSearchParams(next);
@@ -191,6 +198,7 @@ export const useSearchResults = () => {
     clearCategories,
     toggleCategory,
     setMinRating,
+    toggleHasOffer,
     clearFilters,
   };
 };

@@ -1,48 +1,161 @@
-// Sticky booking card: price, date inputs, guest picker, and an Add to
-// Cart action that actually calls the backend (POST /api/cart/items)
-// instead of faking a "Booking Confirmed" state with no real effect.
+// Sticky summary card: price, a one-line recap of what's selected in
+// BookingOptions (the main-section picker), and an Add to Cart action.
+// Adds to CartContext (the localStorage cart the whole Cart -> Checkout
+// -> Payment flow actually reads from). All interactive selection
+// (dates, seats/units, quantity) lives in BookingOptions now - this
+// card only reads that state via props and submits it.
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import {
-  Box,
-  Typography,
-  Button,
-  Divider,
-  TextField,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Alert,
-} from "@mui/material";
-import { useState } from "react";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { Box, Typography, Button, Divider } from "@mui/material";
+import { useEffect, useState } from "react";
+import ToastAlert from "../../../../../components/common/ToastAlert";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../../../../../components/cart/app/contexts/CartContext";
 import { useAuth } from "../../../../../context/useAuth";
-import { addToCart } from "../../../../../services/cartService";
+import { getListingOffers, type ListingOfferDto } from "../../../../../services/Vendor/listingOfferService";
+import type { ListingUnitDto } from "../../../../../services/Vendor/listingUnitsService";
+import { getPriceQuote } from "../../../../../services/Vendor/seasonalPricingService";
+import { businessDateToday } from "../../../../../utils/businessDate";
+import { calculatePricingTotal } from "../../../../../utils/pricingCalculator";
 import type { Listing } from "../../../Search/utils/types";
+import { getQuantityConfig } from "../../utils/quantityConfig";
 
 interface PriceCardProps {
   listing: Listing;
+  units: ListingUnitDto[] | null;
+  selectedUnitId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
 }
 
-const PriceCard = ({ listing }: PriceCardProps) => {
+const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }: PriceCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(1);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const { addToCart } = useCart();
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleAddToCart = async () => {
+  const seatUnits = units?.filter((u) => u.kind === "Seat") ?? [];
+  const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
+  const selectedUnit = units?.find((u) => u.id === selectedUnitId);
+  const displayPrice = selectedUnit?.priceOverride ?? listing.price;
+  const quantityConfig = getQuantityConfig(listing);
+  const effectiveQuantity = seatUnits.length > 0 || timeSlotUnits.length > 0 || !quantityConfig ? 1 : guests;
+
+  const estimatedTotal =
+    checkIn && checkOut
+      ? calculatePricingTotal(displayPrice, effectiveQuantity, checkIn, checkOut || checkIn, listing.pricingUnit)
+      : null;
+
+  // Seasonal pricing rules live server-side only - the client-side
+  // estimate above can't know about them. Debounced quote call gives an
+  // accurate preview once dates settle, falling back to the client-side
+  // estimate while in flight or if it fails, so the UI is never blocked
+  // on the network. Keyed by the inputs it was fetched for, so a quote
+  // from stale inputs is never shown against the current selection -
+  // avoids a synchronous reset in the effect body.
+  const quoteKey =
+    checkIn && checkOut ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}` : null;
+  const [quote, setQuote] = useState<{ key: string; total: number } | null>(null);
+
+  useEffect(() => {
+    if (!quoteKey || !checkIn || !checkOut) return;
+
+    const timer = setTimeout(() => {
+      getPriceQuote(listing.id, {
+        startDate: checkIn,
+        endDate: checkOut || checkIn,
+        unitId: selectedUnitId || undefined,
+        quantity: effectiveQuantity,
+      })
+        .then((result) => setQuote({ key: quoteKey, total: result.totalAmount }))
+        .catch(() => {});
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [quoteKey, listing.id, checkIn, checkOut, selectedUnitId, effectiveQuantity]);
+
+  const serverQuote = quote && quote.key === quoteKey ? quote.total : null;
+  const displayedTotal = serverQuote ?? estimatedTotal;
+
+  // Full offer text (title/description) isn't on the listing payload
+  // itself - fetched separately, same established pattern as units
+  // (getUnits). The price above already reflects any discount via the
+  // quote call; this block is purely explanatory.
+  const [activeOffer, setActiveOffer] = useState<ListingOfferDto | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getListingOffers(listing.id)
+      .then((offers) => {
+        if (cancelled) return;
+        const today = businessDateToday();
+        const current = offers.find((o) => o.isActive && o.startDate <= today && o.endDate >= today);
+        setActiveOffer(current ?? null);
+      })
+      .catch(() => setActiveOffer(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [listing.id]);
+
+  // One-line recap of what's selected in BookingOptions, so this card
+  // reads as a summary instead of just a bare price.
+  const selectionSummary = (() => {
+    const parts: string[] = [];
+    if (selectedUnit && (seatUnits.length > 0 || timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))) {
+      parts.push(selectedUnit.name);
+    }
+    if (quantityConfig && seatUnits.length === 0 && timeSlotUnits.length === 0) {
+      parts.push(`${guests} ${quantityConfig.singular}${guests > 1 ? "s" : ""}`);
+    }
+    if (checkIn) parts.push(checkOut && checkOut !== checkIn ? `${checkIn} – ${checkOut}` : checkIn);
+    return parts.join(" · ");
+  })();
+
+  const handleAddToCart = () => {
     if (!isAuthenticated) {
       navigate(`/login?next=/view-product/${listing.id}`);
       return;
     }
 
-    setStatus("loading");
+    if (!checkIn || !checkOut) {
+      setStatus("error");
+      setErrorMessage("Please select both dates.");
+      return;
+    }
+
+    if (units && units.length > 0 && !selectedUnitId) {
+      setStatus("error");
+      setErrorMessage("Please make a selection before adding to cart.");
+      return;
+    }
+
     setErrorMessage("");
     try {
-      await addToCart(listing.id, guests);
+      addToCart(
+        {
+          id: listing.id,
+          name: listing.title,
+          category: listing.category as string,
+          // The selected unit's own price wins when set (e.g. "Deluxe
+          // Room" costing more than the listing's base price) - falling
+          // back to listing.price always was a real bug: picking a
+          // priced unit silently added the wrong amount to the cart.
+          price: selectedUnit?.priceOverride ?? listing.price,
+          priceUnit: listing.priceUnit ?? "per day",
+          pricingUnit: listing.pricingUnit,
+          description: listing.description ?? "",
+          image: listing.image,
+          location: listing.location,
+          listingUnitId: selectedUnitId || undefined,
+        },
+        effectiveQuantity,
+        checkIn,
+        checkOut
+      );
       setStatus("success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
@@ -54,77 +167,89 @@ const PriceCard = ({ listing }: PriceCardProps) => {
   return (
     <Box
       sx={{
-        border: "1px solid",
-        borderColor: "divider",
-        borderRadius: "20px",
-        p: 3,
-        boxShadow: "0 4px 24px rgba(17,24,39,0.06)",
+        borderRadius: "24px",
+        overflow: "hidden",
+        boxShadow: "0 20px 48px rgba(15,27,45,0.12)",
         position: { md: "sticky" },
         top: { md: "88px" },
         backgroundColor: "background.paper",
       }}
     >
-      {/* Price */}
-      <Box sx={{ mb: 2.5 }}>
+      {/* Gradient header - price lives here, matching the landing page's
+          card-accent treatment rather than a flat white block. */}
+      <Box
+        sx={{
+          background: "linear-gradient(160deg, #005a8d, #0077b6)",
+          px: 3,
+          py: 2.75,
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
           <Typography
             variant="h4"
-            sx={{ fontWeight: 700, color: "primary.main", letterSpacing: "-0.02em" }}
+            sx={{ fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}
           >
-            ${listing.price}
+            ${displayPrice}
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.85)" }}>
             /{listing.priceUnit}
           </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+        <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.75)" }}>
           Plus taxes and fees
         </Typography>
       </Box>
 
-      <Divider sx={{ mb: 2.5 }} />
-
-      {/* Date Pickers */}
-      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: "text.primary" }}>
-        Select dates
-      </Typography>
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, mb: 2 }}>
-        <TextField
-          label="Check-in"
-          type="date"
-          size="small"
-          value={checkIn}
-          onChange={(e) => setCheckIn(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
-        />
-        <TextField
-          label="Check-out"
-          type="date"
-          size="small"
-          value={checkOut}
-          onChange={(e) => setCheckOut(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
-        />
-      </Box>
-
-      {/* Guests */}
-      <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
-        <InputLabel>Guests</InputLabel>
-        <Select
-          value={guests}
-          label="Guests"
-          onChange={(e) => setGuests(Number(e.target.value))}
-          sx={{ borderRadius: "10px" }}
+      <Box sx={{ p: 3 }}>
+        {/* Summary of what's been picked below in the main section */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1.5,
+            alignItems: "flex-start",
+            mb: 2.5,
+            p: 1.75,
+            borderRadius: "14px",
+            backgroundColor: "rgba(0,119,182,0.06)",
+          }}
         >
-          {[1, 2, 3, 4, 5, 6].map((n) => (
-            <MenuItem key={n} value={n}>
-              {n} guest{n > 1 ? "s" : ""}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+          <CalendarMonthOutlinedIcon sx={{ fontSize: "1.2rem", color: "primary.main", mt: 0.2 }} />
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.25, color: "text.primary" }}>
+              Your selection
+            </Typography>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {selectionSummary || "Choose your options below"}
+            </Typography>
+            {displayedTotal !== null && (
+              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}>
+                Estimated total: ${displayedTotal.toFixed(2)}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+      {/* Active vendor offer, if one is running right now */}
+      {activeOffer && (
+        <>
+          <Divider sx={{ mb: 2 }} />
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2.5 }}>
+            <LocalOfferIcon sx={{ fontSize: "1rem", color: "#E85D3D", mt: 0.2 }} />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {activeOffer.title}
+                {activeOffer.discountType === "PercentageDiscount" && ` — ${activeOffer.discountValue}% off`}
+                {activeOffer.discountType === "FixedAmountDiscount" && ` — ${activeOffer.discountValue} off`}
+              </Typography>
+              {activeOffer.description && (
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  {activeOffer.description}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </>
+      )}
 
       {/* Real cancellation policy, if the vendor set one */}
       {listing.cancellationPolicy && (
@@ -139,44 +264,51 @@ const PriceCard = ({ listing }: PriceCardProps) => {
         </>
       )}
 
-      {status === "success" && (
-        <Alert severity="success" sx={{ mb: 2, borderRadius: "10px" }}>
-          Added to your cart.
-        </Alert>
-      )}
-      {status === "error" && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: "10px" }}>
-          {errorMessage}
-        </Alert>
-      )}
+      <ToastAlert
+        open={status === "success"}
+        onClose={() => setStatus("idle")}
+        severity="success"
+        message="Added to your cart"
+      />
+      <ToastAlert
+        open={status === "error"}
+        onClose={() => setStatus("idle")}
+        severity="error"
+        message={errorMessage}
+      />
 
-      <Button
-        fullWidth
-        variant="contained"
-        size="large"
-        disabled={status === "loading" || !listing.isAvailable}
-        onClick={handleAddToCart}
-        sx={{
-          borderRadius: "12px",
-          py: 1.5,
-          fontWeight: 600,
-          fontSize: "1rem",
-          textTransform: "none",
-        }}
-      >
-        {!listing.isAvailable
-          ? "Currently unavailable"
-          : status === "loading"
-            ? "Adding…"
-            : "Add to cart"}
-      </Button>
+        <Button
+          fullWidth
+          size="large"
+          disabled={!listing.isAvailable}
+          onClick={handleAddToCart}
+          sx={{
+            borderRadius: "999px",
+            py: 1.5,
+            fontWeight: 700,
+            fontSize: "1rem",
+            textTransform: "none",
+            color: "#fff",
+            background: listing.isAvailable
+              ? "linear-gradient(160deg, #005a8d, #0077b6)"
+              : undefined,
+            "&:hover": {
+              background: listing.isAvailable ? "linear-gradient(160deg, #004a75, #005a8d)" : undefined,
+              boxShadow: listing.isAvailable ? "0 12px 28px rgba(0,119,182,0.32)" : "none",
+            },
+            "&.Mui-disabled": { color: "rgba(15,27,45,0.4)" },
+          }}
+        >
+          {!listing.isAvailable ? "Currently unavailable" : "Add to cart"}
+        </Button>
 
-      <Typography
-        variant="caption"
-        sx={{ display: "block", textAlign: "center", color: "text.secondary", mt: 1 }}
-      >
-        You won't be charged yet
-      </Typography>
+        <Typography
+          variant="caption"
+          sx={{ display: "block", textAlign: "center", color: "text.secondary", mt: 1.25 }}
+        >
+          You won't be charged yet
+        </Typography>
+      </Box>
     </Box>
   );
 };

@@ -3,11 +3,15 @@ import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { CartProvider } from "../components/cart/app/contexts/CartContext";
 import { BookingOversightPage } from "../pages/admin/BookingOversightPage";
+import { DisputesRefundsPage } from "../pages/admin/DisputesRefundsPage";
+import { FraudReviewPage } from "../pages/admin/FraudReviewPage";
+import { RoleChangeRequestsPage } from "../pages/admin/RoleChangeRequestsPage";
+import { EmailChangeRequestsPage } from "../pages/admin/EmailChangeRequestsPage";
 import AdminSectionPlaceholder from "../pages/admin/AdminSectionPlaceholder";
+import AdminFinancePage from "../pages/admin/finance/AdminFinancePage";
 import DashboardAdmin from "../pages/admin/Dashboard";
 import { UserManagementPage } from "../pages/admin/UserManagementPage";
 import AdminNotifications from "../pages/admin/notifications/AdminNotifications";
-import CustomerNotifications from "../pages/customer/notifications/CustomerNotifications";
 import AddBanner from "../pages/admin/contentManagement/components/AddBanner";
 import AddCategory from "../pages/admin/contentManagement/components/AddCategory";
 import AddPromotion from "../pages/admin/contentManagement/components/AddPromotion";
@@ -21,36 +25,44 @@ import SecuritySettings from "../pages/admin/settings/sections/SecuritySettings"
 import ContentManagement from "../pages/admin/contentManagement/ContentManagement";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useAuth } from "../context/useAuth";
+import { getRoleHomePath } from "../utils/roleHomePath";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import LandingLayout from "../layouts/MainLayout/LandingLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import VendorLayout from "../layouts/VendorLayout/VendorLayout";
 import CustomerMain from "../pages/Customer/customerMain";
-import CustomerBookings from "../pages/Customer/CustomerBookings";
-import CustomerPaymentMethods from "../pages/Customer/CustomerPaymentMethods";
-import CustomerReviews from "../pages/Customer/CustomerReviews";
 import UserDashboard from "../pages/Customer/UserDashboard";
+import CustomerReviews from "../pages/Customer/CustomerReviews";
+import CustomerBookings from "../pages/Customer/CustomerBookings";
 import CustomerSettings from "../pages/Customer/CustomerSettings";
+import CustomerNotificationsPage from "../pages/Customer/CustomerNotificationsPage";
 import ForgotPassword from "../pages/Public/Auth/ForgotPassword";
-import ResetPassword from "../pages/Public/Auth/ResetPassword";
 import Login from "../pages/Public/Auth/Login";
 import Register from "../pages/Public/Auth/Register";
+import ResetPassword from "../pages/Public/Auth/ResetPassword";
+import VerifyEmail from "../pages/Public/Auth/VerifyEmail";
+import TwoFactorEnroll from "../pages/Public/Auth/TwoFactorEnroll";
+import TwoFactorVerify from "../pages/Public/Auth/TwoFactorVerify";
 import LandingPage from "../pages/Public/LandingPage";
 import SearchResultsPage from "../pages/Public/Search/SearchResultsPage";
 import ViewProduct from "../pages/Public/ViewProduct/ViewProduct";
 import Availability from "../pages/Vendor/Availability/Availability";
+import Pricing from "../pages/Vendor/Pricing/Pricing";
 import VendorReviews from "../pages/Vendor/Reviews/VendorReviews";
+import Payouts from "../pages/Vendor/Payouts/Payouts";
 import Bookings from "../pages/Vendor/Bookings/Bookings";
 import BusinessInfo from "../pages/Vendor/Application/BusinessInfo";
 import Categories from "../pages/Vendor/Application/Categories";
 import ContactInfo from "../pages/Vendor/Application/ContactInfo";
 import Documents from "../pages/Vendor/Application/Documents";
 import Review from "../pages/Vendor/Application/Review";
+import ApplicationStatus from "../pages/Vendor/Application/ApplicationStatus";
 import CreateListing from "../pages/Vendor/CreateListing/CreateListing";
 import Dashboard from "../pages/Vendor/Dashboard/Dashboard";
 import VendorListings from "../pages/Vendor/Listings/VendorListings";
-import VendorNotifications from "../pages/vendor/notifications/VendorNotifications";
+import VendorNotifications from "../pages/Vendor/Notifications/VendorNotifications";
 import Settings from "../pages/Vendor/Settings/Settings";
+import VendorSupport from "../pages/Vendor/Support/VendorSupport";
 import VendorManagement from "../pages/admin/VendorManagement";
 import { CartPage } from "../components/cart/app/pages/CartPage";
 import { CheckoutPage } from "../components/cart/app/pages/CheckoutPage";
@@ -58,19 +70,9 @@ import { ConfirmationPage } from "../components/cart/app/pages/ConfirmationPage"
 import { PaymentPage } from "../components/cart/app/pages/PaymentPage";
 
 type RoleGateProps = {
-  allowedRole: "admin" | "vendor";
+  allowedRole: string | string[];
   children: ReactNode;
 };
-
-function getRoleHomePath(role: string) {
-  const normalizedRole = role.toLowerCase();
-
-  if (normalizedRole === "admin") return "/admin/dashboard";
-  if (normalizedRole === "vendor") return "/vendor/dashboard";
-  if (normalizedRole === "customer") return "/";
-
-  return "/";
-}
 
 function RoleGate({ allowedRole, children }: RoleGateProps) {
   const { user, loading } = useAuth();
@@ -83,7 +85,14 @@ function RoleGate({ allowedRole, children }: RoleGateProps) {
     return <Navigate to="/" replace />;
   }
 
-  if (role !== allowedRole) {
+  // SuperAdmin "watches everything" - bypasses every RoleGate check
+  // rather than needing to be added to each one individually.
+  if (role === "superadmin") {
+    return <>{children}</>;
+  }
+
+  const allowed = Array.isArray(allowedRole) ? allowedRole : [allowedRole];
+  if (!allowed.some((r) => r.toLowerCase() === role)) {
     return <Navigate to={getRoleHomePath(role)} replace />;
   }
 
@@ -128,15 +137,24 @@ function AppRouter() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/2fa-enroll" element={<TwoFactorEnroll />} />
+        <Route path="/2fa-verify" element={<TwoFactorVerify />} />
 
-        <Route path="/customer" element={<CustomerMain />}>
+        <Route
+          path="/customer"
+          element={
+            <RequireAuth>
+              <CustomerMain />
+            </RequireAuth>
+          }
+        >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<UserDashboard />} />
-          <Route path="bookings" element={<CustomerBookings />} />
           <Route path="reviews" element={<CustomerReviews />} />
-          <Route path="payments" element={<CustomerPaymentMethods />} />
+          <Route path="bookings" element={<CustomerBookings />} />
           <Route path="settings" element={<CustomerSettings />} />
-          <Route path="notifications" element={<CustomerNotifications />} />
+          <Route path="notifications" element={<CustomerNotificationsPage />} />
         </Route>
 
         <Route
@@ -155,9 +173,13 @@ function AppRouter() {
           <Route path="listings/new" element={<CreateListing />} />
           <Route path="listings/edit/:id" element={<CreateListing />} />
           <Route path="availability" element={<Availability />} />
+          <Route path="pricing" element={<Pricing />} />
           <Route path="reviews" element={<VendorReviews />} />
+          <Route path="payouts" element={<Payouts />} />
           <Route path="notifications" element={<VendorNotifications />} />
+          <Route path="reports" element={<Navigate to="/vendor/payouts" replace />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="support" element={<VendorSupport />} />
         </Route>
 
         <Route
@@ -200,24 +222,44 @@ function AppRouter() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/vendor/application-status"
+          element={
+            <RequireAuth>
+              <ApplicationStatus />
+            </RequireAuth>
+          }
+        />
 
-        {/* Admin routes */}
+        {/* Admin routes - Admin and Finance both enter the shell; each
+            Admin-only page is gated again individually so Finance can't
+            reach it just by typing the URL. Disputes/Fraud Review are the
+            two domains already Finance-gated backend-side, so they stay
+            open to both. SuperAdmin bypasses every gate here (RoleGate). */}
         <Route
           path="/admin"
           element={
-            <RoleGate allowedRole="admin">
+            <RoleGate allowedRole={["admin", "finance"]}>
               <AdminLayout />
             </RoleGate>
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardAdmin />} />
-          <Route path="users" element={<UserManagementPage />} />
-          <Route path="bookings" element={<BookingOversightPage />} />
-          <Route path="vendors" element={<VendorManagement />} />
-          <Route path="notifications" element={<AdminNotifications />} />
-          <Route path="content" element={<ContentManagement />} />
-          <Route path="settings" element={<AdminSettings />}>
+          <Route path="dashboard" element={<RoleGate allowedRole="admin"><DashboardAdmin /></RoleGate>} />
+          <Route path="users" element={<RoleGate allowedRole="admin"><UserManagementPage /></RoleGate>} />
+          <Route path="role-requests" element={<RoleGate allowedRole="superadmin"><RoleChangeRequestsPage /></RoleGate>} />
+          <Route path="email-requests" element={<RoleGate allowedRole="superadmin"><EmailChangeRequestsPage /></RoleGate>} />
+          <Route path="bookings" element={<RoleGate allowedRole="admin"><BookingOversightPage /></RoleGate>} />
+          <Route path="disputes" element={<DisputesRefundsPage />} />
+          <Route path="fraud-review" element={<FraudReviewPage />} />
+          <Route path="vendors" element={<RoleGate allowedRole="admin"><VendorManagement /></RoleGate>} />
+          <Route path="notifications" element={<RoleGate allowedRole="admin"><AdminNotifications /></RoleGate>} />
+          <Route path="finance" element={<RoleGate allowedRole={["admin", "finance"]}><AdminFinancePage /></RoleGate>} />
+          <Route path="content" element={<RoleGate allowedRole="admin"><ContentManagement /></RoleGate>} />
+          <Route path="categories/add" element={<RoleGate allowedRole="admin"><AddCategory /></RoleGate>} />
+          <Route path="banners/add" element={<RoleGate allowedRole="admin"><AddBanner /></RoleGate>} />
+          <Route path="promotions/add" element={<RoleGate allowedRole="admin"><AddPromotion /></RoleGate>} />
+          <Route path="settings" element={<RoleGate allowedRole={["admin", "finance"]}><AdminSettings /></RoleGate>}>
             <Route index element={<Navigate to="profile" replace />} />
             <Route path="profile" element={<ProfileSettings />} />
             <Route path="system" element={<SystemSettings />} />
@@ -226,10 +268,7 @@ function AppRouter() {
             <Route path="users-vendor" element={<UsersVendorSettings />} />
             <Route path="security" element={<SecuritySettings />} />
           </Route>
-          <Route path="categories/add" element={<AddCategory />} />
-          <Route path="banners/add" element={<AddBanner />} />
-          <Route path="promotions/add" element={<AddPromotion />} />
-          <Route path=":section" element={<AdminSectionPlaceholder />} />
+          <Route path=":section" element={<RoleGate allowedRole="admin"><AdminSectionPlaceholder /></RoleGate>} />
         </Route>
         <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
 

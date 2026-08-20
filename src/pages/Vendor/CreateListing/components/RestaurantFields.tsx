@@ -61,6 +61,20 @@ const RestaurantFields = ({
 
         <TextField
           fullWidth
+          type="number"
+          label="Average Cost per Person"
+          placeholder="e.g., 2000"
+          {...register("averageCost", {
+            required: "Average cost is required",
+            valueAsNumber: true,
+            min: { value: 1, message: "Average cost must be greater than 0" },
+          })}
+          error={!!errors.averageCost}
+          helperText={errors.averageCost?.message}
+        />
+
+        <TextField
+          fullWidth
           type="time"
           label="Opening Time"
           InputLabelProps={{ shrink: true }}

@@ -125,6 +125,73 @@ export const availabilitySchema = z.object({
 
 export type AvailabilityFormData = z.infer<typeof availabilitySchema>;
 
+//  Checkout Schema (Cart -> Checkout contact + billing address form)
+export const checkoutSchema = z.object({
+  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
+  email: emailSchema,
+  phone: z.string().min(1, "Phone is required").regex(/^[\d\s\-+()]{10,}$/, "Enter a valid phone number"),
+  address: z.string().min(1, "Address is required").min(5, "Address must be at least 5 characters"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  zipCode: z.string().min(1, "ZIP code is required").regex(/^[\d-]+$/, "Enter a valid ZIP code"),
+  country: z.string().min(1, "Country is required"),
+  specialRequests: z.string().optional(),
+  agreeToTerms: z.boolean().refine((v) => v === true, { message: "You must agree to the terms" }),
+});
+
+export type CheckoutFormData = z.infer<typeof checkoutSchema>;
+
+//  Payment Schema (Cart -> Payment card form - the payment gateway itself
+//  is still mocked, see PaymentPage.tsx, but the form is real UI a user
+//  can mistype into, so it gets real validation).
+export const paymentSchema = z.object({
+  cardNumber: z
+    .string()
+    .min(1, "Card number is required")
+    .refine((v) => v.replace(/\s/g, "").length >= 13, "Invalid card number"),
+  cardName: z.string().min(1, "Cardholder name is required"),
+  expiryDate: z
+    .string()
+    .min(1, "Expiry date is required")
+    .regex(/^(0[1-9]|1[0-2]) \/ \d{2}$/, "Enter a valid expiry date (MM / YY)"),
+  cvv: z.string().regex(/^\d{3}$/, "CVV must be 3 digits"),
+});
+
+export type PaymentFormData = z.infer<typeof paymentSchema>;
+
+//  Vendor Application - Business Info step
+export const vendorBusinessInfoSchema = z.object({
+  businessName: z.string().min(1, "Business name is required").min(3, "Business name must be at least 3 characters"),
+  businessType: z.string().min(1, "Business type is required"),
+  taxId: z
+    .string()
+    .min(1, "Tax ID / EIN is required")
+    .regex(/^[A-Za-z0-9-]{4,100}$/, "Tax ID must be 4-100 alphanumeric characters"),
+  website: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (v) => !v || /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v),
+      "Enter a valid website URL"
+    ),
+  address: z.string().min(1, "Business address is required").min(5, "Address is too short"),
+});
+
+export type VendorBusinessInfoFormData = z.infer<typeof vendorBusinessInfoSchema>;
+
+//  Vendor Application - Contact Info step (previously only checked
+//  "required", not real email/phone format - a real gap, not a style choice)
+export const vendorContactInfoSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: emailSchema,
+  phone: z.string().min(1, "Phone is required").regex(/^[\d\s\-+()]{7,20}$/, "Enter a valid phone number"),
+});
+
+export type VendorContactInfoFormData = z.infer<typeof vendorContactInfoSchema>;
+
 //  Booking Filter Schema
 export const bookingFilterSchema = z.object({
   status: z.string().optional(),

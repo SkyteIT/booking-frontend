@@ -37,9 +37,11 @@ export interface UpdatePreferencePayload {
   smsEnabled: boolean;
 }
 
-// ── Fetch notifications for a user ─────────────────────────
-export const getNotifications = (userId: string) =>
-  api.get<Notification[]>(`/notifications/user/${userId}`).then((r) => r.data);
+// ── Fetch notifications for the authenticated user ─────────
+// The backend always scopes to the caller's JWT regardless of any id
+// passed in, so these take no userId - it was always a dead route param.
+export const getNotifications = () =>
+  api.get<Notification[]>("/notifications/mine").then((r) => r.data);
 
 // ── Create a notification (also triggers email/SMS based on preferences) ──
 export const createNotification = (payload: CreateNotificationPayload) =>
@@ -49,14 +51,14 @@ export const createNotification = (payload: CreateNotificationPayload) =>
 export const markAsRead = (id: string) =>
   api.put(`/notifications/${id}/read`);
 
-// ── Mark all notifications read for a user ─────────────────
-export const markAllAsRead = (userId: string) =>
-  api.put(`/notifications/user/${userId}/read-all`).then((r) => r.data);
+// ── Mark all notifications read for the authenticated user ──
+export const markAllAsRead = () =>
+  api.put("/notifications/read-all").then((r) => r.data);
 
 // ── Get notification preferences ───────────────────────────
-export const getPreferences = (userId: string) =>
-  api.get<NotificationPreference[]>(`/notifications/preferences/${userId}`).then((r) => r.data);
+export const getPreferences = () =>
+  api.get<NotificationPreference[]>("/notifications/preferences").then((r) => r.data);
 
 // ── Save (upsert) a notification preference ─────────────────
-export const savePreference = (userId: string, payload: UpdatePreferencePayload) =>
-  api.put<NotificationPreference>(`/notifications/preferences/${userId}`, payload).then((r) => r.data);
+export const savePreference = (payload: UpdatePreferencePayload) =>
+  api.put<NotificationPreference>("/notifications/preferences", payload).then((r) => r.data);

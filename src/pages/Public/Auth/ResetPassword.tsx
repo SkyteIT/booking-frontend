@@ -1,19 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import {
-  resetPasswordSchema,
-  type ResetPasswordFormData,
-} from "../../../utils/validationSchemas";
 import { resetPassword } from "../../../services/authService";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
+import { resetPasswordSchema, type ResetPasswordFormData } from "../../../utils/validationSchemas";
 
 function ResetPassword(): JSX.Element {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  const token = searchParams.get("token") || "";
-  const email = searchParams.get("email") || "";
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const {
     register,
@@ -25,15 +24,48 @@ function ResetPassword(): JSX.Element {
   });
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    try {
-      await resetPassword(email, token, data.newPassword);
+    if (!token) return;
 
-      alert("Password reset successfully. You can now log in.");
-      navigate("/login");
-    } catch {
-      alert("Unable to reset password. The link may be invalid or expired.");
+    try {
+      setError("");
+      await resetPassword(token, data.newPassword);
+      setSuccess(true);
+      setTimeout(() => navigate("/login", { replace: true }), 2000);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Failed to reset password. The link may have expired."));
     }
   };
+
+  if (!token) {
+    return (
+      <AuthLayout>
+        <div className="auth-card">
+          <h2 className="title center">Invalid reset link</h2>
+          <p className="subtitle center">
+            This password reset link is missing or invalid. Please request a new one.
+          </p>
+          <div style={{ marginTop: "16px", textAlign: "center" }}>
+            <Link to="/forgot-password" className="back-link">
+              Request a new reset link
+            </Link>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (success) {
+    return (
+      <AuthLayout>
+        <div className="auth-card">
+          <h2 className="title center">Password reset successful</h2>
+          <p className="subtitle center">
+            Redirecting you to login...
+          </p>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
@@ -44,46 +76,33 @@ function ResetPassword(): JSX.Element {
           </Link>
         </div>
 
-        <h2 className="title center">Reset password</h2>
-
-        <p className="subtitle center">
-          Enter your new password below.
-        </p>
+        <h2 className="title center">Reset your password</h2>
+        <p className="subtitle center">Choose a new password for your account.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="input-group">
             <label>New Password</label>
-
             <input
               type="password"
-              placeholder="Enter your new password"
+              placeholder="Enter new password"
               {...register("newPassword")}
               className={errors.newPassword ? "input-error" : ""}
             />
-
-            {errors.newPassword && (
-              <p className="error-text">
-                {errors.newPassword.message}
-              </p>
-            )}
+            {errors.newPassword && <p className="error-text">{errors.newPassword.message}</p>}
           </div>
 
           <div className="input-group">
             <label>Confirm Password</label>
-
             <input
               type="password"
-              placeholder="Confirm your new password"
+              placeholder="Confirm new password"
               {...register("confirmPassword")}
               className={errors.confirmPassword ? "input-error" : ""}
             />
-
-            {errors.confirmPassword && (
-              <p className="error-text">
-                {errors.confirmPassword.message}
-              </p>
-            )}
+            {errors.confirmPassword && <p className="error-text">{errors.confirmPassword.message}</p>}
           </div>
+
+          {error && <p className="error-text">{error}</p>}
 
           <button
             type="submit"

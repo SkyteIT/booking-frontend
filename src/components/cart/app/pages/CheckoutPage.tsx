@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { CheckCircle } from '@mui/icons-material';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import {
   Box,
   Typography,
@@ -10,17 +14,27 @@ import {
   Grid,
   Checkbox,
   FormControlLabel,
-  
+  InputAdornment,
 } from '@mui/material';
-import { CheckCircle } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../../context/useAuth';
+import { checkoutSchema } from '../../../../utils/validationSchemas';
+import { zodErrorToFieldErrors } from '../../../../utils/zodUtils';
 import { useCart } from '../contexts/CartContext';
-//import { Footer } from '../components/Footer';
-//import { toast } from 'sonner';
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    backgroundColor: 'rgba(0,119,182,0.04)',
+    '&.Mui-focused': { backgroundColor: 'transparent' },
+  },
+};
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { selectedCart, getSelectedTotal } = useCart();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -39,90 +53,92 @@ export const CheckoutPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (cart.length === 0) {
+    // Reached directly via URL rather than the Cart page's own guarded
+    // button - same check, applied again here so this page is never
+    // reachable unauthenticated regardless of entry point.
+    if (!isAuthenticated) {
+      navigate('/login?next=/cart');
+      return;
+    }
+    // Nothing selected (or nothing left in the cart at all) - there's
+    // nothing to check out, so send the user back to select something.
+    if (selectedCart.length === 0) {
       navigate('/cart');
     }
-  }, [cart, navigate]);
+  }, [isAuthenticated, selectedCart, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    
+
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
-    
+
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
   };
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const validatePhone = (phone: string) => {
-    return /^[\d\s\-\+\(\)]{10,}$/.test(phone);
-  };
-
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Invalid email format';
+    const result = checkoutSchema.safeParse(formData);
+    if (!result.success) {
+      setErrors(zodErrorToFieldErrors(result.error));
+      return false;
     }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone is required';
-    } else if (!validatePhone(formData.phone)) {
-      newErrors.phone = 'Invalid phone format';
-    }
-    if (!formData.address.trim()) newErrors.address = 'Address is required';
-    if (!formData.city.trim()) newErrors.city = 'City is required';
-    if (!formData.state.trim()) newErrors.state = 'State is required';
-    if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
   };
 
   const handleContinueToPayment = () => {
     if (validate()) {
-      // Store form data in sessionStorage
       sessionStorage.setItem('checkoutData', JSON.stringify(formData));
       navigate('/payment');
-    } else {
-      //toast.error('Please fill in all required fields correctly');
-      alert('Please fill in all required fields correctly');
     }
   };
 
-  const subtotal = getCartTotal();
+  const subtotal = getSelectedTotal();
   const tax = subtotal * 0.1;
   const serviceFee = 25;
   const total = subtotal + tax + serviceFee;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
-      <Container maxWidth="xl" sx={{ flex: 1, py: 4 }}>
-        {/* Header */}
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: 'background.default',
+        backgroundImage:
+          'radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <Container maxWidth="lg" sx={{ flex: 1, pt: 16, pb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            fontSize: { xs: '2rem', md: '2.4rem' },
+            mb: 4,
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '2px',
+          }}
+        >
           Checkout
+          <Box component="span" sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: 'primary.main', ml: 0.5 }} />
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
           {/* Main Form */}
           <Box sx={{ flex: 1 }}>
             {/* Contact Information */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+            <Paper sx={{ p: 3, mb: 3, borderRadius: '20px', boxShadow: '0 12px 32px rgba(15,27,45,0.06)' }}>
+              <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 3 }}>
                 Contact Information
               </Typography>
 
@@ -139,12 +155,15 @@ export const CheckoutPage: React.FC = () => {
                     onChange={handleInputChange}
                     error={!!errors.firstName}
                     helperText={errors.firstName}
-                    InputProps={{
-                      startAdornment: (
-                        <Box component="span" sx={{ mr: 1, color: '#94A3B8' }}>
-                          👤
-                        </Box>
-                      ),
+                    sx={fieldSx}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonOutlineIcon sx={{ fontSize: '1.1rem', color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
@@ -161,12 +180,15 @@ export const CheckoutPage: React.FC = () => {
                     onChange={handleInputChange}
                     error={!!errors.lastName}
                     helperText={errors.lastName}
-                    InputProps={{
-                      startAdornment: (
-                        <Box component="span" sx={{ mr: 1, color: '#94A3B8' }}>
-                          👤
-                        </Box>
-                      ),
+                    sx={fieldSx}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonOutlineIcon sx={{ fontSize: '1.1rem', color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
@@ -181,16 +203,18 @@ export const CheckoutPage: React.FC = () => {
                     type="email"
                     placeholder="john@example.com"
                     value={formData.email}
-
                     onChange={handleInputChange}
                     error={!!errors.email}
                     helperText={errors.email}
-                    InputProps={{
-                      startAdornment: (
-                        <Box component="span" sx={{ mr: 1, color: '#94A3B8' }}>
-                          ✉️
-                        </Box>
-                      ),
+                    sx={fieldSx}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailOutlinedIcon sx={{ fontSize: '1.1rem', color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
@@ -204,16 +228,18 @@ export const CheckoutPage: React.FC = () => {
                     name="phone"
                     placeholder="+1 (555) 000-0000"
                     value={formData.phone}
-
                     onChange={handleInputChange}
                     error={!!errors.phone}
                     helperText={errors.phone}
-                    InputProps={{
-                      startAdornment: (
-                        <Box component="span" sx={{ mr: 1, color: '#94A3B8' }}>
-                          📞
-                        </Box>
-                      ),
+                    sx={fieldSx}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneOutlinedIcon sx={{ fontSize: '1.1rem', color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
@@ -221,8 +247,8 @@ export const CheckoutPage: React.FC = () => {
             </Paper>
 
             {/* Billing Address */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+            <Paper sx={{ p: 3, mb: 3, borderRadius: '20px', boxShadow: '0 12px 32px rgba(15,27,45,0.06)' }}>
+              <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 3 }}>
                 Billing Address
               </Typography>
 
@@ -238,14 +264,16 @@ export const CheckoutPage: React.FC = () => {
                     value={formData.address}
                     onChange={handleInputChange}
                     error={!!errors.address}
-
                     helperText={errors.address}
-                    InputProps={{
-                      startAdornment: (
-                        <Box component="span" sx={{ mr: 1, color: '#94A3B8' }}>
-                          📍
-                        </Box>
-                      ),
+                    sx={fieldSx}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocationOnOutlinedIcon sx={{ fontSize: '1.1rem', color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
@@ -258,11 +286,11 @@ export const CheckoutPage: React.FC = () => {
                     fullWidth
                     name="city"
                     placeholder="New York"
-
                     value={formData.city}
                     onChange={handleInputChange}
                     error={!!errors.city}
                     helperText={errors.city}
+                    sx={fieldSx}
                   />
                 </Grid>
 
@@ -272,14 +300,13 @@ export const CheckoutPage: React.FC = () => {
                   </Typography>
                   <TextField
                     fullWidth
-
-
                     name="state"
                     placeholder="NY"
                     value={formData.state}
                     onChange={handleInputChange}
                     error={!!errors.state}
                     helperText={errors.state}
+                    sx={fieldSx}
                   />
                 </Grid>
 
@@ -295,6 +322,7 @@ export const CheckoutPage: React.FC = () => {
                     onChange={handleInputChange}
                     error={!!errors.zipCode}
                     helperText={errors.zipCode}
+                    sx={fieldSx}
                   />
                 </Grid>
 
@@ -302,20 +330,14 @@ export const CheckoutPage: React.FC = () => {
                   <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Country
                   </Typography>
-                  <TextField
-                    fullWidth
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-
-                  />
+                  <TextField fullWidth name="country" value={formData.country} onChange={handleInputChange} sx={fieldSx} />
                 </Grid>
               </Grid>
             </Paper>
 
             {/* Special Requests */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+            <Paper sx={{ p: 3, mb: 3, borderRadius: '20px', boxShadow: '0 12px 32px rgba(15,27,45,0.06)' }}>
+              <Typography variant="h6" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 3 }}>
                 Special Requests
               </Typography>
 
@@ -327,19 +349,14 @@ export const CheckoutPage: React.FC = () => {
                 placeholder="Any special requests or requirements?"
                 value={formData.specialRequests}
                 onChange={handleInputChange}
+                sx={fieldSx}
               />
             </Paper>
 
             {/* Terms Agreement */}
-            <Paper sx={{ p: 3, mb: 3 }}>
+            <Paper sx={{ p: 3, mb: 3, borderRadius: '20px', boxShadow: '0 12px 32px rgba(15,27,45,0.06)' }}>
               <FormControlLabel
-                control={
-                  <Checkbox
-                    name="agreeToTerms"
-                    checked={formData.agreeToTerms}
-                    onChange={handleInputChange}
-                  />
-                }
+                control={<Checkbox name="agreeToTerms" checked={formData.agreeToTerms} onChange={handleInputChange} />}
                 label={
                   <Typography variant="body2">
                     I agree to the Terms of Service and Privacy Policy. I understand that all bookings
@@ -357,93 +374,102 @@ export const CheckoutPage: React.FC = () => {
 
           {/* Order Summary */}
           <Box sx={{ width: { xs: '100%', lg: 380 } }}>
-            <Paper sx={{ p: 3, position: { lg: 'sticky' }, top: { lg: 80 } }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                Order Summary
-              </Typography>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Items
+            <Paper
+              sx={{
+                borderRadius: '24px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 48px rgba(15,27,45,0.12)',
+                position: { lg: 'sticky' },
+                top: { lg: 128 },
+              }}
+            >
+              <Box sx={{ background: 'linear-gradient(160deg, #005a8d, #0077b6)', px: 3, py: 2.5 }}>
+                <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', fontWeight: 600, mb: 0.5 }}>
+                  ORDER SUMMARY
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  ${subtotal.toFixed(2)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Tax
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  ${tax.toFixed(2)}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Service Fee
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  ${serviceFee.toFixed(2)}
-                </Typography>
-              </Box>
-
-              <Divider sx={{ mb: 3 }} />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Total
-                </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#0891B2' }}>
+                <Typography variant="h4" sx={{ fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
                   ${total.toFixed(2)}
                 </Typography>
               </Box>
 
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                onClick={handleContinueToPayment}
-                sx={{
-                  bgcolor: '#0891B2',
-                  '&:hover': { bgcolor: '#0E7490' },
-                  textTransform: 'none',
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  mb: 2,
-                }}
-              >
-                Continue to Payment
-              </Button>
+              <Box sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Items ({selectedCart.length})
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    ${subtotal.toFixed(2)}
+                  </Typography>
+                </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: '1rem', color: '#10B981' }} />
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
-                    Free cancellation up to 24 hours
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Tax
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    ${tax.toFixed(2)}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: '1rem', color: '#10B981' }} />
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
-                    Instant confirmation
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Service Fee
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    ${serviceFee.toFixed(2)}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: '1rem', color: '#10B981' }} />
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
-                    Secure payment processing
-                  </Typography>
+
+                <Divider sx={{ mb: 2.5 }} />
+
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  onClick={handleContinueToPayment}
+                  sx={{
+                    borderRadius: '999px',
+                    textTransform: 'none',
+                    py: 1.5,
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    mb: 2,
+                    color: '#fff',
+                    background: 'linear-gradient(160deg, #005a8d, #0077b6)',
+                    '&:hover': {
+                      background: 'linear-gradient(160deg, #004a75, #005a8d)',
+                      boxShadow: '0 12px 28px rgba(0,119,182,0.32)',
+                    },
+                  }}
+                >
+                  Continue to Payment
+                </Button>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CheckCircle sx={{ fontSize: '1rem', color: 'success.main' }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
+                      Free cancellation up to 24 hours
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CheckCircle sx={{ fontSize: '1rem', color: 'success.main' }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
+                      Instant confirmation
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CheckCircle sx={{ fontSize: '1rem', color: 'success.main' }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
+                      Secure payment processing
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
             </Paper>
           </Box>
         </Box>
       </Container>
-
-      {/*<Footer />*/}
     </Box>
   );
 };

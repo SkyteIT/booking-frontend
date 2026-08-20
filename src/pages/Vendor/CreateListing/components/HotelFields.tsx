@@ -95,32 +95,40 @@ export default function HotelFields({
           name="roomTypes"
           control={control}
           defaultValue={[] as ListingFormData["roomTypes"]}
+          rules={{ validate: (v) => (v && v.length > 0) || "Select at least one room type" }}
           render={({ field }) => (
-            <Stack
-              direction="row"
-              spacing={1}
-              flexWrap="wrap"
-              useFlexGap
-              sx={{ gap: 1 }}
-            >
-              {roomTypes.map((type) => (
-                <Chip
-                  key={type}
-                  label={type}
-                  clickable
-                  variant={field.value?.includes(type) ? "filled" : "outlined"}
-                  color={field.value?.includes(type) ? "primary" : "default"}
-                  onClick={() => {
-                    const current = field.value ?? [];
-                    field.onChange(
-                      current.includes(type)
-                        ? current.filter((v) => v !== type)
-                        : [...current, type],
-                    );
-                  }}
-                />
-              ))}
-            </Stack>
+            <>
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                sx={{ gap: 1 }}
+              >
+                {roomTypes.map((type) => (
+                  <Chip
+                    key={type}
+                    label={type}
+                    clickable
+                    variant={field.value?.includes(type) ? "filled" : "outlined"}
+                    color={field.value?.includes(type) ? "primary" : "default"}
+                    onClick={() => {
+                      const current = field.value ?? [];
+                      field.onChange(
+                        current.includes(type)
+                          ? current.filter((v) => v !== type)
+                          : [...current, type],
+                      );
+                    }}
+                  />
+                ))}
+              </Stack>
+              {errors.roomTypes && (
+                <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
+                  {errors.roomTypes.message}
+                </Typography>
+              )}
+            </>
           )}
         />
       </Box>
@@ -134,32 +142,40 @@ export default function HotelFields({
           name="amenities"
           control={control}
           defaultValue={[] as ListingFormData["amenities"]}
+          rules={{ validate: (v) => (v && v.length > 0) || "Select at least one amenity" }}
           render={({ field }) => (
-            <Stack
-              direction="row"
-              spacing={1}
-              flexWrap="wrap"
-              useFlexGap
-              sx={{ gap: 1 }}
-            >
-              {amenities.map((item) => (
-                <Chip
-                  key={item}
-                  label={item}
-                  clickable
-                  variant={field.value?.includes(item) ? "filled" : "outlined"}
-                  color={field.value?.includes(item) ? "primary" : "default"}
-                  onClick={() => {
-                    const current = field.value ?? [];
-                    field.onChange(
-                      current.includes(item)
-                        ? current.filter((v) => v !== item)
-                        : [...current, item],
-                    );
-                  }}
-                />
-              ))}
-            </Stack>
+            <>
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                sx={{ gap: 1 }}
+              >
+                {amenities.map((item) => (
+                  <Chip
+                    key={item}
+                    label={item}
+                    clickable
+                    variant={field.value?.includes(item) ? "filled" : "outlined"}
+                    color={field.value?.includes(item) ? "primary" : "default"}
+                    onClick={() => {
+                      const current = field.value ?? [];
+                      field.onChange(
+                        current.includes(item)
+                          ? current.filter((v) => v !== item)
+                          : [...current, item],
+                      );
+                    }}
+                  />
+                ))}
+              </Stack>
+              {errors.amenities && (
+                <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
+                  {errors.amenities.message}
+                </Typography>
+              )}
+            </>
           )}
         />
       </Box>

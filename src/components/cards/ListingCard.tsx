@@ -28,6 +28,7 @@ interface ListingCardProps {
   rating: number;
   location: string;
   badge?: "Featured" | "Popular" | "New";
+  offerLabel?: string;
   onClick?: () => void;
 }
 
@@ -44,6 +45,7 @@ const ListingCard = ({
   rating,
   location,
   badge,
+  offerLabel,
   onClick,
 }: ListingCardProps) => {
   const navigate = useNavigate();
@@ -135,6 +137,24 @@ const ListingCard = ({
             }}
           />
         )}
+
+        {/* Offer badge - top-right, distinct from Featured/Popular/New (top-left) */}
+        {offerLabel && (
+          <Chip
+            label={offerLabel}
+            size="small"
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              backgroundColor: "#E85D3D",
+              color: "#ffffff",
+              fontWeight: 700,
+              fontSize: "0.7rem",
+              height: "24px",
+            }}
+          />
+        )}
       </Box>
 
       {/* Content */}
@@ -173,10 +193,34 @@ const ListingCard = ({
           {title}
         </Typography>
 
-        {/* Location */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}>
+        {/* Location - opens the real address in Google Maps, not just
+            static text. Stops propagation so it doesn't also trigger the
+            card's own click-through to the listing. */}
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(
+              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`,
+              "_blank",
+              "noopener,noreferrer"
+            );
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            mb: 1,
+            width: "fit-content",
+            cursor: "pointer",
+            "&:hover .listing-card-location-text": { textDecoration: "underline" },
+          }}
+        >
           <LocationOnIcon sx={{ fontSize: "0.9rem", color: "text.secondary" }} />
-          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
+          <Typography
+            variant="body2"
+            className="listing-card-location-text"
+            sx={{ color: "text.secondary", fontSize: "0.8rem" }}
+          >
             {location}
           </Typography>
         </Box>

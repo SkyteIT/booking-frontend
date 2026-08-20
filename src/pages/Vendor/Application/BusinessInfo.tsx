@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
+import { vendorBusinessInfoSchema } from "../../../utils/validationSchemas";
+import { zodErrorToFieldErrors } from "../../../utils/zodUtils";
 import "./application.css";
 
 interface BusinessFormData {
@@ -11,14 +13,6 @@ interface BusinessFormData {
   taxId: string;
   website: string;
   address: string;
-}
-
-interface BusinessErrors {
-  businessName?: string;
-  businessType?: string;
-  taxId?: string;
-  website?: string;
-  address?: string;
 }
 
 const BusinessInfo = (): JSX.Element => {
@@ -33,7 +27,7 @@ const BusinessInfo = (): JSX.Element => {
     address: data.businessInfo.address || "",
   });
 
-  const [errors, setErrors] = useState<BusinessErrors>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // --- BACK BUTTON HANDLER ---
   useEffect(() => {
@@ -59,51 +53,22 @@ const BusinessInfo = (): JSX.Element => {
       [field]: value,
     }));
 
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
-
-  const validate = (): BusinessErrors => {
-    const newErrors: BusinessErrors = {};
-
-    const name = formData.businessName.trim();
-    const type = formData.businessType.trim();
-    const taxId = formData.taxId.trim();
-    const website = formData.website.trim();
-    const address = formData.address.trim();
-
-    if (!name) newErrors.businessName = "Business name is required";
-    else if (name.length < 3)
-      newErrors.businessName = "Business name must be at least 3 characters";
-
-    if (!type) newErrors.businessType = "Business type is required";
-    if (!taxId) newErrors.taxId = "Tax ID / EIN is required";
-
-    if (
-      website &&
-      !/^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(website)
-    ) {
-      newErrors.website = "Enter a valid website URL";
-    }
-
-    if (!address) newErrors.address = "Business address is required";
-    else if (address.length < 5) newErrors.address = "Address is too short";
-
-    return newErrors;
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   // --- CONTINUE ---
   const handleContinue = () => {
-    const validationErrors = validate();
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length === 0) {
-      // Save to context
-      setData((prev) => ({
-        ...prev,
-        businessInfo: formData,
-      }));
-      navigate("/vendor/contactinfo");
+    const result = vendorBusinessInfoSchema.safeParse(formData);
+    if (!result.success) {
+      setErrors(zodErrorToFieldErrors(result.error));
+      return;
     }
+    setErrors({});
+    setData((prev) => ({
+      ...prev,
+      businessInfo: formData,
+    }));
+    navigate("/vendor/contactinfo");
   };
 
   return (
@@ -183,7 +148,9 @@ const BusinessInfo = (): JSX.Element => {
 
           {/* BUTTONS */}
           <Box className="vendor-actions">
-            <Button className="back">Back</Button>
+            <Button className="back" onClick={() => navigate("/")}>
+              Back
+            </Button>
             <Button className="continue" onClick={handleContinue}>
               Continue
             </Button>

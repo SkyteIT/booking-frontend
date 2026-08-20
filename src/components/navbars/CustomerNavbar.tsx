@@ -1,3 +1,4 @@
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -11,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import CartButton from "../buttons/CartButton";
+import UbeLogo from "../common/UbeLogo";
 import { useNotifications } from "../../hooks/useNotifications";
 
 const NAV_LINKS = [
@@ -79,7 +81,12 @@ export default function CustomerNavbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isVendor = String(user?.role ?? "").toLowerCase() === "vendor";
+  const role = String(user?.role ?? "").toLowerCase();
+  const isVendor = role === "vendor";
+  // Admin/Finance/SuperAdmin are just customers on this side of the app -
+  // the badge below always reads "Customer" for them - but same as a
+  // vendor gets a way back to their portal, they need one too.
+  const isStaff = role === "admin" || role === "finance" || role === "superadmin";
   const displayName = [user?.firstName, user?.lastName?.[0] ? `${user.lastName[0]}.` : ""]
     .filter(Boolean)
     .join(" ");
@@ -122,56 +129,7 @@ export default function CustomerNavbar() {
       }}
     >
         {/* Logo */}
-        <Box
-          component={Link}
-          to="/"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            textDecoration: "none",
-            flexShrink: 0,
-            "&:hover .ube-logo-ring": { transform: "rotate(90deg)" },
-          }}
-        >
-          <Box
-            className="ube-logo-ring"
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              border: "2px solid",
-              borderColor: "primary.main",
-              display: "grid",
-              placeItems: "center",
-              position: "relative",
-              transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1)",
-            }}
-          >
-            <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "primary.main" }} />
-            <Box
-              sx={{
-                position: "absolute",
-                inset: "-6px",
-                border: "1px solid",
-                borderColor: alpha(theme.palette.primary.main, 0.35),
-                borderRadius: "50%",
-                transform: "rotateX(65deg)",
-              }}
-            />
-          </Box>
-          <Typography
-            sx={{
-              fontFamily: "'Syne', sans-serif",
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              color: "text.primary",
-              letterSpacing: "0.03em",
-            }}
-          >
-            UBE
-          </Typography>
-        </Box>
+        <UbeLogo />
 
         {/* Nav links */}
         <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 3 }}>
@@ -361,7 +319,7 @@ export default function CustomerNavbar() {
                     label="Settings"
                     accent={theme.palette.primary.main}
                     component={Link}
-                    to="/settings"
+                    to="/customer/settings"
                     onClick={() => setAnchorEl(null)}
                   />
                   {isVendor && !isVendorRoute && (
@@ -371,6 +329,16 @@ export default function CustomerNavbar() {
                       accent={theme.palette.primary.main}
                       component={Link}
                       to="/vendor/dashboard"
+                      onClick={() => setAnchorEl(null)}
+                    />
+                  )}
+                  {isStaff && !location.pathname.startsWith("/admin") && (
+                    <ProfileMenuItem
+                      icon={<AdminPanelSettingsOutlinedIcon sx={{ fontSize: 16 }} />}
+                      label="Admin portal"
+                      accent={theme.palette.primary.main}
+                      component={Link}
+                      to="/admin/dashboard"
                       onClick={() => setAnchorEl(null)}
                     />
                   )}

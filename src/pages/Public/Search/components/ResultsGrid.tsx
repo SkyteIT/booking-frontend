@@ -75,6 +75,7 @@ export default function ResultsGrid({ listings, loading, error }: Props) {
             rating={listing.averageRating}
             location={listing.location}
             badge={listing.isFeatured ? "Featured" : undefined}
+            offerLabel={listing.hasActiveOffer ? listing.offerBadgeText ?? "Special Offer" : undefined}
           />
         </Grid>
       ))}

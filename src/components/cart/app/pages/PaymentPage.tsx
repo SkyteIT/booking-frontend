@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { Lock, CreditCard } from '@mui/icons-material';
 import {
   Box,
   Typography,
@@ -10,19 +10,26 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Lock, CreditCard } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { checkout } from '../../../../services/Customer/checkoutService';
+import ToastAlert from '../../../common/ToastAlert';
+import { getApiErrorMessage } from '../../../../utils/getApiErrorMessage';
+import { paymentSchema } from '../../../../utils/validationSchemas';
+import { zodErrorToFieldErrors } from '../../../../utils/zodUtils';
 import { useCart } from '../contexts/CartContext';
-//import { Footer } from '../components/Footer';
-//import { toast } from 'sonner';
 
-
-
-
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    backgroundColor: 'rgba(0,119,182,0.04)',
+    '&.Mui-focused': { backgroundColor: 'transparent' },
+  },
+};
 
 export const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal, clearCart } = useCart();
+  const { selectedCart, getSelectedTotal, removeCartItems } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [paymentData, setPaymentData] = useState({
@@ -33,6 +40,7 @@ export const PaymentPage: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if checkout data exists
@@ -54,8 +62,8 @@ export const PaymentPage: React.FC = () => {
     }
 
     if (name === 'cardName') {
-    formattedValue = value.replace(/[^a-zA-Z\s]/g, '');
-  }
+      formattedValue = value.replace(/[^a-zA-Z\s]/g, '');
+    }
 
     // Format expiry date
     if (name === 'expiryDate') {
@@ -82,75 +90,66 @@ export const PaymentPage: React.FC = () => {
   };
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!paymentData.cardNumber.replace(/\s/g, '')) {
-      newErrors.cardNumber = 'Card number is required';
-    } else if (paymentData.cardNumber.replace(/\s/g, '').length < 13) {
-      newErrors.cardNumber = 'Invalid card number';
+    const result = paymentSchema.safeParse(paymentData);
+    if (!result.success) {
+      setErrors(zodErrorToFieldErrors(result.error));
+      return false;
     }
-
-    if (!paymentData.cardName.trim()) {
-      newErrors.cardName = 'Cardholder name is required';
-    }
-
-    if (!paymentData.expiryDate) {
-      newErrors.expiryDate = 'Expiry date is required';
-    }
-
-    if (!paymentData.cvv) {
-      newErrors.cvv = 'CVV is required';
-    } else if (paymentData.cvv.length < 3) {
-      newErrors.cvv = 'CVV must be 3 digits';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
   };
 
   const handleConfirmPayment = async () => {
-    if (!validate()) {
-      //toast.error('Please fill in all payment details correctly');
-      alert('Please fill in all required fields correctly');
-      return;
-    }
+    if (!validate()) return;
 
+    setCheckoutError(null);
     setIsProcessing(true);
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const idempotencyKey = crypto.randomUUID();
+      const items = selectedCart.map((item) => ({
+        listingId: item.id,
+        quantity: item.quantity,
+        startDateTime: item.startDate,
+        endDateTime: item.endDate,
+        listingUnitId: item.listingUnitId ?? null,
+      }));
 
-    // Generate order ID
-    const orderId = 'UBE-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+      const result = await checkout(items, idempotencyKey);
 
-    // Store order data
-    const checkoutData = JSON.parse(sessionStorage.getItem('checkoutData') || '{}');
-    const orderData = {
-      orderId,
-      checkoutData,
-      cart: [...cart],
-      total: getCartTotal() * 1.1 + 25,
-      timestamp: new Date().toISOString(),
-    };
-
-    sessionStorage.setItem('orderData', JSON.stringify(orderData));
-
-    setIsProcessing(false);
-    navigate('/confirmation');
-    clearCart();
-    //toast.success('Payment successful!');
-      alert('Payment successful!');
-    
+      sessionStorage.setItem('orderData', JSON.stringify(result));
+      // Only remove the lines that were actually just checked out - any
+      // unselected cart lines stay put for a later checkout.
+      removeCartItems(selectedCart);
+      navigate('/confirmation');
+    } catch (err) {
+      // All-or-nothing on the backend: nothing was booked or charged, so
+      // the cart stays untouched and the user can adjust and retry.
+      setCheckoutError(getApiErrorMessage(err, 'Checkout failed. Please try again.'));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const subtotal = getCartTotal();
-  const tax = subtotal * 0.1;
-  const serviceFee = 25;
-  const total = subtotal + tax + serviceFee;
+  // No backend tax/fee concept exists - this is the cart's own client-side
+  // estimate (price * quantity * days per item), the real total (which may
+  // differ per category's pricing unit / per-unit price overrides) is
+  // computed server-side during checkout and shown on the confirmation page.
+  const total = getSelectedTotal();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
-      <Container maxWidth="md" sx={{ flex: 1, py: 6 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: 'background.default',
+        backgroundImage:
+          'radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <Container maxWidth="md" sx={{ flex: 1, pt: 16, pb: 8 }}>
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Box
@@ -158,17 +157,18 @@ export const PaymentPage: React.FC = () => {
               width: 80,
               height: 80,
               borderRadius: '50%',
-              bgcolor: '#E0F2FE',
+              background: 'linear-gradient(160deg, #005a8d, #0077b6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto',
               mb: 2,
+              boxShadow: '0 12px 28px rgba(0,119,182,0.32)',
             }}
           >
-            <Lock sx={{ fontSize: 40, color: '#0891B2' }} />
+            <Lock sx={{ fontSize: 36, color: '#fff' }} />
           </Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          <Typography variant="h3" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, mb: 1, fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
             Payment Information
           </Typography>
           <Typography variant="body1" color="text.secondary">
@@ -177,18 +177,17 @@ export const PaymentPage: React.FC = () => {
         </Box>
 
         {/* Payment Form */}
-        <Paper sx={{ p: 4, maxWidth: 500, margin: '0 auto' }}>
+        <Paper sx={{ p: 4, maxWidth: 500, margin: '0 auto', borderRadius: '24px', boxShadow: '0 20px 48px rgba(15,27,45,0.1)' }}>
           {/* Secure Payment Banner */}
           <Alert
             icon={<Lock />}
             severity="info"
             sx={{
               mb: 3,
-              bgcolor: '#E0F2FE',
-              color: '#0C4A6E',
-              '& .MuiAlert-icon': {
-                color: '#0891B2',
-              },
+              borderRadius: '14px',
+              bgcolor: 'rgba(0,119,182,0.08)',
+              color: 'primary.dark',
+              '& .MuiAlert-icon': { color: 'primary.main' },
             }}
           >
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -213,10 +212,11 @@ export const PaymentPage: React.FC = () => {
                 onChange={handleInputChange}
                 error={!!errors.cardNumber}
                 helperText={errors.cardNumber}
-                InputProps={{
-                  startAdornment: (
-                    <CreditCard sx={{ mr: 1, color: '#94A3B8', fontSize: 20 }} />
-                  ),
+                sx={fieldSx}
+                slotProps={{
+                  input: {
+                    startAdornment: <CreditCard sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />,
+                  },
                 }}
               />
             </Grid>
@@ -234,6 +234,7 @@ export const PaymentPage: React.FC = () => {
                 onChange={handleInputChange}
                 error={!!errors.cardName}
                 helperText={errors.cardName}
+                sx={fieldSx}
               />
             </Grid>
 
@@ -250,6 +251,7 @@ export const PaymentPage: React.FC = () => {
                 onChange={handleInputChange}
                 error={!!errors.expiryDate}
                 helperText={errors.expiryDate}
+                sx={fieldSx}
               />
             </Grid>
 
@@ -266,6 +268,7 @@ export const PaymentPage: React.FC = () => {
                 error={!!errors.cvv}
                 helperText={errors.cvv}
                 type="password"
+                sx={fieldSx}
               />
             </Grid>
           </Grid>
@@ -275,8 +278,8 @@ export const PaymentPage: React.FC = () => {
             sx={{
               mt: 3,
               p: 2,
-              bgcolor: '#F8FAFC',
-              borderRadius: 1,
+              bgcolor: 'rgba(0,119,182,0.06)',
+              borderRadius: '14px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -285,13 +288,13 @@ export const PaymentPage: React.FC = () => {
             <Typography variant="body2" color="text.secondary">
               Amount to pay
             </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#0891B2' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
               ${total.toFixed(2)}
             </Typography>
           </Box>
 
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-            Includes all taxes and fees
+            Estimated total — final amount is confirmed after payment
           </Typography>
 
           {/* Confirm Payment Button */}
@@ -302,13 +305,19 @@ export const PaymentPage: React.FC = () => {
             onClick={handleConfirmPayment}
             disabled={isProcessing}
             sx={{
-              bgcolor: '#0891B2',
-              '&:hover': { bgcolor: '#0E7490' },
+              borderRadius: '999px',
               textTransform: 'none',
               py: 1.5,
               fontSize: '1rem',
-              fontWeight: 600,
+              fontWeight: 700,
               mt: 3,
+              color: '#fff',
+              background: 'linear-gradient(160deg, #005a8d, #0077b6)',
+              '&:hover': {
+                background: 'linear-gradient(160deg, #004a75, #005a8d)',
+                boxShadow: '0 12px 28px rgba(0,119,182,0.32)',
+              },
+              '&.Mui-disabled': { color: 'rgba(255,255,255,0.7)', background: 'rgba(0,119,182,0.4)' },
             }}
           >
             {isProcessing ? (
@@ -333,61 +342,35 @@ export const PaymentPage: React.FC = () => {
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               We accept
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  px: 2,
-                  py: 0.5,
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                VISA
-              </Box>
-              <Box
-                sx={{
-                  px: 2,
-                  py: 0.5,
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                MC
-              </Box>
-              <Box
-                sx={{
-                  px: 2,
-                  py: 0.5,
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                AMEX
-              </Box>
-              <Box
-                sx={{
-                  px: 2,
-                  py: 0.5,
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                DISC
-              </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5 }}>
+              {['VISA', 'MC', 'AMEX', 'DISC'].map((brand) => (
+                <Box
+                  key={brand}
+                  sx={{
+                    px: 2,
+                    py: 0.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '999px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: 'text.secondary',
+                  }}
+                >
+                  {brand}
+                </Box>
+              ))}
             </Box>
           </Box>
         </Paper>
       </Container>
 
-      {/*<Footer />*/}
+      <ToastAlert
+        open={!!checkoutError}
+        onClose={() => setCheckoutError(null)}
+        severity="error"
+        message={checkoutError ?? ""}
+      />
     </Box>
   );
 };

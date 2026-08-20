@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { VendorManagementTab } from "../../components/Admin/VendorManagement/VendorManagementTabs";
-import type { VendorApplication } from "../../services/Admin/vendor";
+import type { VendorApplicationDetail, VendorApplicationListItem } from "../../services/Admin/vendor";
 import {getVendorApplications, getVendorApplicationById, reviewVendorApplication } from "../../services/Admin/vendor";
 
 type SnackbarState = {
@@ -11,7 +11,7 @@ type SnackbarState = {
 
 export function useVendorManagement() {
   const [activeTab, setActiveTab] = useState<VendorManagementTab>("pending");
-  const [vendors, setVendors] = useState<VendorApplication[]>([]);
+  const [vendors, setVendors] = useState<VendorApplicationListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -19,7 +19,7 @@ export function useVendorManagement() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
 
-  const [selectedVendor, setSelectedVendor] = useState<VendorApplication | null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorApplicationDetail | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   const [rejectMode, setRejectMode] = useState(false);
@@ -38,23 +38,7 @@ export function useVendorManagement() {
   const selectedStatusLabel =
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
 
-  const normalizeVendorStatus = (value: unknown) => {
-    const status = String(value ?? "").trim().toLowerCase();
-
-    if (status.includes("approve")) return "approved";
-    if (status.includes("reject")) return "rejected";
-    if (status.includes("pending") || status.includes("submit") || status.includes("review")) return "pending";
-
-    return status;
-  };
-
-  const normalizeVendorApplication = (vendor: VendorApplication): VendorApplication => ({
-    ...vendor,
-    status: normalizeVendorStatus(vendor.status),
-  });
-
-  const getVendorId = (vendor: VendorApplication | null) =>
-    vendor?.id ?? vendor?.applicationId ?? vendor?.vendorApplicationId ?? "";
+  const getVendorId = (vendor: { id?: string } | null) => vendor?.id ?? "";
 
   const refreshDashboard = () => {
     window.dispatchEvent(new Event("admin-dashboard-refresh"));
@@ -77,14 +61,12 @@ export function useVendorManagement() {
         if (cancelled) return;
 
         if (Array.isArray(data)) {
-          const normalizedItems = data.map(normalizeVendorApplication);
-          setVendors(normalizedItems);
-          setTotalCount(normalizedItems.length);
+          setVendors(data);
+          setTotalCount(data.length);
         } else {
-          const items = (data.items ?? data.data ?? data.results ?? []) as VendorApplication[];
-          const normalizedItems = items.map(normalizeVendorApplication);
-          setVendors(normalizedItems);
-          setTotalCount(Number(data.totalCount ?? data.count ?? normalizedItems.length ?? 0));
+          const items = (data.items ?? data.data ?? data.results ?? []) as VendorApplicationListItem[];
+          setVendors(items);
+          setTotalCount(Number(data.totalCount ?? data.count ?? items.length ?? 0));
         }
       } catch (error) {
         console.error("Error fetching vendor applications:", error);
@@ -117,7 +99,7 @@ export function useVendorManagement() {
     try {
       setLoadingDetails(true);
       const data = await getVendorApplicationById(id);
-      setSelectedVendor(normalizeVendorApplication(data));
+      setSelectedVendor(data);
     } catch (err) {
       console.error("Failed to fetch vendor details", err);
     } finally {
@@ -147,7 +129,7 @@ export function useVendorManagement() {
 
       setVendors((prev) =>
         prev.map((v) =>
-          getVendorId(v) === selectedId ? { ...v, status: "approved" } : v
+          getVendorId(v) === selectedId ? { ...v, status: "Approved" } : v
         )
       );
       refreshDashboard();
@@ -179,7 +161,7 @@ export function useVendorManagement() {
 
       setVendors((prev) =>
         prev.map((v) =>
-          getVendorId(v) === selectedId ? { ...v, status: "rejected" } : v
+          getVendorId(v) === selectedId ? { ...v, status: "Rejected" } : v
         )
       );
       refreshDashboard();

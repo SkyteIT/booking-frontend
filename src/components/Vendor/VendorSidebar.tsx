@@ -1,11 +1,11 @@
 
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import BarChartIcon from "@mui/icons-material/BarChart";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
-import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
 import StarIcon from "@mui/icons-material/Star";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -25,9 +25,9 @@ const menuItems = [
   { path: "/vendor/listings", label: "Listings", icon: Inventory2Icon },
   { path: "/vendor/availability", label: "Availability", icon: AccessTimeIcon },
   { path: "/vendor/reviews", label: "Reviews", icon: StarIcon },
+  { path: "/vendor/payouts", label: "Earnings", icon: AccountBalanceWalletIcon },
   { path: "/vendor/pricing", label: "Pricing & Promotions", icon: LocalOfferIcon },
-  { path: "/vendor/reports", label: "Reports", icon: BarChartIcon },
-  { path: "/vendor/notifications", label: "Notifications", icon: NotificationsActiveIcon },
+  { path: "/vendor/notifications", label: "Notifications", icon: NotificationsIcon },
   { path: "/vendor/settings", label: "Settings", icon: SettingsIcon },
   { path: "/vendor/support", label: "Support", icon: SupportAgentIcon },
 ];
@@ -40,7 +40,7 @@ export default function VendorSidebar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
 // MOBILE VERSION
-  
+
   if (isMobile) {
     return (
       <Paper
@@ -82,7 +82,7 @@ export default function VendorSidebar() {
   }
 
   //DESKTOP VERSION
-  
+
   return (
    <Box
       sx={{
@@ -93,7 +93,7 @@ export default function VendorSidebar() {
         height: "calc(100vh - 150px)",
         width: 260,
         borderRadius: 3,
-        boxShadow: "0 12px 24px rgba(0,0,0,0.12)", 
+        boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
         overflowY: "auto",
         scrollbarWidth: "none",
         msOverflowStyle: "none",
@@ -101,7 +101,7 @@ export default function VendorSidebar() {
           display: "none",
         },
         background: "linear-gradient(to bottom, #0077b6, #005a8d)",
-        p: 1.5, 
+        p: 1.5,
       }}
     >
 
@@ -117,7 +117,7 @@ export default function VendorSidebar() {
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1.5, 
+          gap: 1.5,
           px: 2,
           py: 1.2,
           mb: 0.6,
@@ -129,9 +129,9 @@ export default function VendorSidebar() {
 
           ...(isActive
                 ? {
-                    backgroundColor: "secondary.main", 
+                    backgroundColor: "secondary.main",
                     color: "primary.main",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)", 
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   }
                 : {
                     color: "rgba(255,255,255,0.85)",
@@ -142,7 +142,7 @@ export default function VendorSidebar() {
                   }),
             }}
           >
-            <Icon sx={{ fontSize: 18 }} /> 
+            <Icon sx={{ fontSize: 18 }} />
 
             {item.label}
           </Box>

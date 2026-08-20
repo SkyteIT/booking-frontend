@@ -5,17 +5,23 @@ import type { VendorBookingDto } from "./BookingTypes";
 type Props = {
   booking: VendorBookingDto;
   onClick?: () => void;
+  // Vendors see who booked (customerName, the default); a customer
+  // looking at their own bookings needs the listing/venue name instead -
+  // pass it explicitly rather than repurposing customerName's meaning.
+  primaryLabel?: string;
 };
 
-export default function BookingCard({ booking, onClick }: Props) {
+export default function BookingCard({ booking, onClick, primaryLabel }: Props) {
   return (
     <Card
       onClick={onClick}
       sx={{
         borderRadius: 4,
 
-        // glass surface
-        bgcolor: "rgba(255,255,255,0.85)",
+        // glass surface - a soft gradient tint instead of flat white, so
+        // it doesn't look like a stark cutout against the page's blue
+        // radial-glow background.
+        background: "linear-gradient(160deg, rgba(255,255,255,0.92), rgba(224,242,254,0.55))",
         backdropFilter: "blur(10px)",
 
         border: "1px solid rgba(0,0,0,0.04)",
@@ -55,14 +61,14 @@ export default function BookingCard({ booking, onClick }: Props) {
             />
           </Stack>
 
-          {/* CUSTOMER */}
+          {/* Customer name (vendor view) or listing title (customer view) */}
           <Typography
             sx={{
               fontWeight: 600,
               fontSize: "0.95rem",
             }}
           >
-            {booking.customerName}
+            {primaryLabel ?? booking.customerName}
           </Typography>
 
           {/* DATE */}

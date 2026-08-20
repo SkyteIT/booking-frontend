@@ -6,12 +6,12 @@ import {
   Container,
   Divider,
   FormControlLabel,
-  Snackbar,
   Typography,
 } from "@mui/material";
 import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import { useAuth } from "../../../context/useAuth";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
@@ -27,6 +27,8 @@ const Review = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    setSubmitError(null);
+    setSubmitting(true);
     try {
       setSubmitting(true);
       setSubmitError(null);
@@ -60,28 +62,29 @@ const Review = () => {
         formData.append("taxDocument", data.documents.taxDocument);
       }
 
-      await api.post("/vendor-register/submit", formData);
+      // API CALL — routed through our shared api instance so the auth
+      // token (and its automatic refresh-on-401) is handled consistently
+      // with the rest of the app, instead of reading localStorage directly.
+      // Content-Type must be set explicitly here - the api instance's
+      // default "application/json" header otherwise wins over FormData's
+      // own multipart boundary, which is what was causing the 415.
+      await api.post("/vendor-register/submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       markVendorApplicationSubmitted();
       resetApplication();
       setOpenSnackbar(true);
 
       setTimeout(() => {
-        navigate("/customer/dashboard");
+        navigate("/vendor/application-status");
       }, 2000);
     } catch (err) {
-      if (isAxiosError(err)) {
-        const message =
-          (err.response?.data as { message?: string } | undefined)?.message ??
-          err.message ??
-          "Vendor application submission failed";
-        setSubmitError(message);
-        console.error("Submission failed:", err.response?.data ?? err.message);
-      } else {
-        setSubmitError("Vendor application submission failed");
-        console.error("Submission failed:", err);
-        alert("Submission failed. Check the browser console.");
-      }
+      const serverMsg = isAxiosError(err)
+        ? (err.response?.data as { message?: string; error?: string } | undefined)?.message ??
+          (err.response?.data as { message?: string; error?: string } | undefined)?.error
+        : undefined;
+      setSubmitError(serverMsg ?? "Couldn't submit your application. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -213,6 +216,13 @@ const Review = () => {
             />
           </Box>
 
+          {submitError && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: "14px" }}>
+              {submitError}
+            </Alert>
+          )}
+
+          {/* ================= BUTTONS ================= */}
           <Box className="vendor-actions">
             <Button
               className="back"
@@ -225,31 +235,21 @@ const Review = () => {
 
             <Button
               className="continue"
-              type="button"
               disabled={!checked || submitting}
               onClick={handleSubmit}
             >
               {submitting ? "Submitting..." : "Submit Application"}
             </Button>
           </Box>
-
-          {submitError && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {submitError}
-            </Alert>
-          )}
         </Box>
 
-        <Snackbar
+        {/* ================= SUCCESS ================= */}
+        <SnackbarAlert
           open={openSnackbar}
-          autoHideDuration={2000}
           onClose={() => setOpenSnackbar(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity="success" sx={{ width: "100%" }}>
-            Submitted Successfully!
-          </Alert>
-        </Snackbar>
+          severity="success"
+          message="Application submitted successfully!"
+        />
       </Container>
     </ApplicationLayout>
   );

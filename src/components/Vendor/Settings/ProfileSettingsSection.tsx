@@ -3,6 +3,7 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { Avatar, Box, Button, Stack, TextField, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type { ChangeEvent } from "react";
+import SelfServiceEmailChangeSection from "../../common/SelfServiceEmailChangeSection";
 import type { ProfileForm } from "./types";
 
 type ProfileSettingsSectionProps = {
@@ -106,24 +107,7 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 				/>
 			</Box>
 
-			<TextField
-				label="Email"
-				value={form.email}
-				onChange={(e) => onFieldChange("email", e.target.value)}
-				fullWidth
-				size="small"
-				margin="dense"
-				error={!!errors.email}
-				helperText={errors.email}
-				InputProps={{ readOnly: true }}
-				InputLabelProps={{
-					sx: {
-						color: "text.secondary",
-						"&.Mui-focused": { color: "text.primary" },
-					},
-				}}
-				sx={{ "& .MuiInputBase-input": { color: "text.primary" } }}
-			/>
+			<SelfServiceEmailChangeSection currentEmail={form.email} />
 
 			<TextField
 				label="Phone"

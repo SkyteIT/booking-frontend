@@ -58,9 +58,22 @@ export default function BaseFields({ register, control, errors, categories }: Ba
         type="number"
         label="Base Price"
         placeholder="Enter price"
-        {...register("price", { valueAsNumber: true })}
+        {...register("price", {
+          required: "Base price is required",
+          valueAsNumber: true,
+          min: { value: 1, message: "Base price must be greater than 0" },
+        })}
         error={!!errors.price}
         helperText={errors.price?.message}
+      />
+
+      <TextField
+        fullWidth
+        label="Currency"
+        placeholder="e.g. LKR, USD"
+        helperText="Defaults to your Settings > Localization currency"
+        {...register("currency", { required: "Currency is required" })}
+        error={!!errors.currency}
       />
 
       <Box sx={{ gridColumn: "1 / -1" }}>
@@ -71,15 +84,6 @@ export default function BaseFields({ register, control, errors, categories }: Ba
           label="Description"
           placeholder="Enter listing description"
           {...register("description")}
-        />
-      </Box>
-
-      <Box sx={{ gridColumn: "1 / -1" }}>
-        <TextField
-          fullWidth
-          label="Image URLs"
-          placeholder="Paste comma-separated image URLs"
-          {...register("imageUrls")}
         />
       </Box>
 

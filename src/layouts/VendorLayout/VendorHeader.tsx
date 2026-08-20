@@ -6,11 +6,16 @@ import icon2 from "../../assets/icons/icon2.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
+import { belongsToPortal } from "../../utils/notificationPortals";
 
 export default function VendorHeader() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { unreadCount } = useNotifications(user?.userId ?? user?.id ?? null);
+  const userId = user?.userId ?? user?.id ?? null;
+  const { notifications } = useNotifications(userId);
+  // Same account can also hold customer-context notifications - the bell
+  // badge only ever counts this account's vendor-context ones.
+  const unreadCount = notifications.filter((n) => !n.isRead && belongsToPortal(n.type, "vendor")).length;
   return (
     <Box
       sx={{

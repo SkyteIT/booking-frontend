@@ -5,14 +5,16 @@ import {
   TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions,
   DialogContentText, Divider, Select, FormControl,
-  InputLabel, MenuItem, Alert,
+  InputLabel, MenuItem, Menu,
 } from '@mui/material';
 import { Search, FilterList, Visibility, Edit, Close, FileDownload } from '@mui/icons-material';
 import {
   getAllBookings,
   updateBookingStatus,
+  exportBookingsCsv,
   type AdminBookingDto,
 } from '../../services/Admin/adminService';
+import SnackbarAlert from '../../components/common/SnackbarAlert';
 
 const TAB_STATUSES = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
 
@@ -33,6 +35,9 @@ export const BookingOversightPage: React.FC = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editStatus, setEditStatus] = useState<string>('Pending');
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
 
   const refreshDashboard = () => {
     window.dispatchEvent(new Event("admin-dashboard-refresh"));
@@ -62,6 +67,8 @@ export const BookingOversightPage: React.FC = () => {
     cancelled: bookings.filter((b) => b.status === 'Cancelled').length,
   };
 
+  const categoryOptions = ['All', ...Array.from(new Set(bookings.map((b) => b.listingCategory)))];
+
   const filteredBookings = bookings.filter((booking) => {
     const tabStatus = TAB_STATUSES[activeTab];
     const matchesTab = tabStatus === 'All' || booking.status === tabStatus;
@@ -69,7 +76,8 @@ export const BookingOversightPage: React.FC = () => {
       booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.listingTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
+    const matchesCategory = categoryFilter === 'All' || booking.listingCategory === categoryFilter;
+    return matchesTab && matchesSearch && matchesCategory;
   });
 
   const showSuccess = (msg: string) => {
@@ -125,21 +133,22 @@ export const BookingOversightPage: React.FC = () => {
     }
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['Booking ID', 'Customer', 'Service', 'Start', 'End', 'Amount', 'Status'],
-      ...bookings.map((b) => [
-        b.id, b.customerName, b.listingTitle, b.startDateTime, b.endDateTime,
-        `${b.currency} ${b.totalAmount}`, b.status,
-      ]),
-    ].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'bookings.csv';
-    a.click();
-    showSuccess('Bookings exported successfully');
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportBookingsCsv();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bookings-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showSuccess('Bookings exported successfully');
+    } catch {
+      setErrorMsg('Failed to export bookings.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -158,41 +167,75 @@ export const BookingOversightPage: React.FC = () => {
 
   return (
     <Box>
-      {successMsg && (
-        <Box sx={{ mb: 2, p: 2, bgcolor: '#D1FAE5', color: '#059669', borderRadius: 1 }}>
-          {successMsg}
-        </Box>
-      )}
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg('')}>{errorMsg}</Alert>
-      )}
+      <SnackbarAlert
+        open={!!successMsg}
+        onClose={() => setSuccessMsg('')}
+        severity="success"
+        message={successMsg}
+      />
+      <SnackbarAlert
+        open={!!errorMsg}
+        onClose={() => setErrorMsg('')}
+        severity="error"
+        message={errorMsg}
+      />
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>Booking Oversight</Typography>
-          <Typography variant="body2" color="text.secondary">View, modify, and manage all platform bookings</Typography>
+          <Typography
+            variant="h5"
+            sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          >
+            Booking Oversight
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>View, modify, and manage all platform bookings</Typography>
         </Box>
-        <Button variant="contained" startIcon={<FileDownload />} onClick={handleExport}
-          sx={{ bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' }, textTransform: 'none', px: 3 }}>
-          Export Bookings
+        <Button variant="contained" startIcon={<FileDownload />} onClick={handleExport} disabled={exporting}
+          sx={{
+            background: 'linear-gradient(160deg, #005a8d, #0077b6)',
+            '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' },
+            textTransform: 'none',
+            px: 3,
+            borderRadius: '999px',
+          }}>
+          {exporting ? 'Exporting...' : 'Export Bookings'}
         </Button>
       </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: '1fr 1fr 1fr 1fr' }, gap: 2, mb: 3 }}>
         {[
-          { label: 'Total Bookings', value: stats.total, color: '#0891B2' },
+          { label: 'Total Bookings', value: stats.total, color: '#0077b6' },
           { label: 'Confirmed', value: stats.confirmed, color: '#059669' },
           { label: 'Pending', value: stats.pending, color: '#D97706' },
           { label: 'Cancelled', value: stats.cancelled, color: '#DC2626' },
         ].map((stat) => (
-          <Paper key={stat.label} sx={{ p: 2.5 }}>
+          <Paper
+            key={stat.label}
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              border: "1px solid rgba(15,27,45,0.06)",
+              background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            }}
+          >
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{stat.label}</Typography>
             <Typography variant="h4" sx={{ fontWeight: 700, color: stat.color }}>{stat.value}</Typography>
           </Paper>
         ))}
       </Box>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          mb: 3,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+        }}
+      >
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)}>
             {TAB_STATUSES.map((label) => (
@@ -203,16 +246,48 @@ export const BookingOversightPage: React.FC = () => {
             <TextField fullWidth size="small" placeholder="Search bookings..."
               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#94A3B8' }} /></InputAdornment> }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '999px', bgcolor: '#fff' } }}
             />
           </Box>
-          <Button variant="outlined" startIcon={<FilterList />} sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B' }}>
-            More Filters
+          <Button
+            variant="outlined"
+            startIcon={<FilterList />}
+            onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+            sx={{ textTransform: 'none', borderColor: '#E2E8F0', color: '#64748B', borderRadius: '999px' }}
+          >
+            More Filters{categoryFilter !== 'All' ? ' (1)' : ''}
           </Button>
+          <Menu anchorEl={filterAnchorEl} open={!!filterAnchorEl} onClose={() => setFilterAnchorEl(null)}>
+            <Box sx={{ px: 2, py: 1.5, minWidth: 220 }}>
+              <FormControl fullWidth size="small" sx={{ mb: categoryFilter !== 'All' ? 1.5 : 0 }}>
+                <InputLabel>Category</InputLabel>
+                <Select label="Category" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                  {categoryOptions.map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {categoryFilter !== 'All' && (
+                <Button size="small" onClick={() => setCategoryFilter('All')} sx={{ textTransform: 'none' }}>
+                  Clear filter
+                </Button>
+              )}
+            </Box>
+          </Menu>
         </Box>
       </Paper>
 
       <Box sx={{ flex: 1 }}>
-        <Paper>
+        <Paper
+          sx={{
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+            background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
+            overflow: "hidden",
+          }}
+        >
           <TableContainer>
             <Table>
               <TableHead>
@@ -261,7 +336,7 @@ export const BookingOversightPage: React.FC = () => {
                           <Typography variant="caption" sx={{ display: 'block' }}>End: {formatDate(booking.endDateTime)}</Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body1" sx={{ fontWeight: 700, color: '#0891B2' }}>{booking.currency} {booking.totalAmount}</Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 700, color: '#0077b6' }}>{booking.currency} {booking.totalAmount}</Typography>
                         </TableCell>
                         <TableCell>
                           <Chip label={booking.status} sx={{ bgcolor: statusStyle.bg, color: statusStyle.color, fontWeight: 600, fontSize: '0.75rem' }} />
@@ -292,7 +367,7 @@ export const BookingOversightPage: React.FC = () => {
       </Box>
 
       {/* View Dialog */}
-      <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Booking Details
           <IconButton onClick={() => setViewOpen(false)}><Close /></IconButton>
@@ -301,7 +376,7 @@ export const BookingOversightPage: React.FC = () => {
           {selectedBooking && (
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#0891B2' }}>{selectedBooking.id.slice(0, 8)}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#0077b6' }}>{selectedBooking.id.slice(0, 8)}</Typography>
                 <Chip label={selectedBooking.status} sx={{ ...getStatusColor(selectedBooking.status), fontWeight: 600 }} />
               </Box>
               <Divider sx={{ mb: 2 }} />
@@ -326,14 +401,19 @@ export const BookingOversightPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setViewOpen(false)} sx={{ textTransform: 'none' }}>Close</Button>
           <Button variant="contained" onClick={() => { setViewOpen(false); if (selectedBooking) handleEditOpen(selectedBooking); }}
-            sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+            sx={{
+              textTransform: 'none',
+              background: 'linear-gradient(160deg, #005a8d, #0077b6)',
+              borderRadius: '999px',
+              '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' },
+            }}>
             Update Status
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Edit (status-only — the backend has no endpoint to edit dates/amount/customer) */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Update Booking Status
           <IconButton onClick={() => setEditOpen(false)}><Close /></IconButton>
@@ -356,14 +436,19 @@ export const BookingOversightPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setEditOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
           <Button variant="contained" disabled={saving} onClick={handleEditSave}
-            sx={{ textTransform: 'none', bgcolor: '#0891B2', '&:hover': { bgcolor: '#0E7490' } }}>
+            sx={{
+              textTransform: 'none',
+              background: 'linear-gradient(160deg, #005a8d, #0077b6)',
+              borderRadius: '999px',
+              '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' },
+            }}>
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Cancel Confirm Dialog */}
-      <Dialog open={cancelOpen} onClose={() => setCancelOpen(false)}>
+      <Dialog open={cancelOpen} onClose={() => setCancelOpen(false)} PaperProps={{ sx: { borderRadius: '20px' } }}>
         <DialogTitle>Cancel Booking</DialogTitle>
         <DialogContent>
           <DialogContentText>

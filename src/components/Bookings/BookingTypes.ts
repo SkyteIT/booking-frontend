@@ -1,18 +1,3 @@
-export type StatusCategory =
-  | "Pending"
-  | "Confirmed"
-  | "Cancelled"
-  | "Completed"
-  | "Unknown";
-
-  export type BookingStatus =
-  | "Pending"
-  | "Confirmed"
-  | "ModifiedPendingVendor"
-  | "CancelledByUser"
-  | "CancelledByVendorEmergency"
-  | "Completed";
-
 export type VendorBookingDto = {
   bookingId: string;
   bookingNumber: string;

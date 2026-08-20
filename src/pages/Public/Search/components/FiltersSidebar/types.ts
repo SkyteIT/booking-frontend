@@ -7,10 +7,12 @@ export interface FiltersSidebarProps {
   maxPrice?: number;
   minRating?: number;
   ratingOptions: readonly number[];
+  hasOffer?: boolean;
   onClearAll: () => void;
   onClearCategories: () => void;
   onToggleCategory: (category: string) => void; // ← was (category: ListingCategory)
   onMinPriceChange: (value: string) => void;
   onMaxPriceChange: (value: string) => void;
   onMinRatingChange: (value?: number) => void;
+  onToggleHasOffer: () => void;
 }

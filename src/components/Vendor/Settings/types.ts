@@ -1,7 +1,6 @@
 export type SettingSection =
   | "profile"
   | "payout"
-  | "team"
   | "security"
   | "localization"
   | "notifications";

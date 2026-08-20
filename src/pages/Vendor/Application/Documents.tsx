@@ -1,3 +1,4 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { Container, Typography, Box, Button } from "@mui/material";
 import { useState, useEffect } from "react";
@@ -13,6 +14,13 @@ const Documents = () => {
   const { businessLicense, insuranceCertificate, taxDocument } = data.documents;
 
   const [error, setError] = useState<string>("");
+
+  // Official documents only - PDF or DOCX. Matches the backend's own
+  // check (VendorRegisterController.ValidateDocument) - this is a UX
+  // shortcut, not the real enforcement, since a client-side check alone
+  // is trivially bypassed.
+  const ALLOWED_TYPES = [".pdf", ".docx"];
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
   /* =======================
      BACK BUTTON HANDLER
@@ -36,19 +44,29 @@ const Documents = () => {
     e: React.ChangeEvent<HTMLInputElement>,
     field: "businessLicense" | "insuranceCertificate" | "taxDocument",
   ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]; //file upload
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
 
-      setData((prev) => ({
-        ...prev,
-        documents: {
-          ...prev.documents,
-          [field]: file,
-        },
-      }));
-
-      setError("");
+    const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!ALLOWED_TYPES.includes(extension)) {
+      setError("Only PDF or DOCX files are allowed");
+      return;
     }
+    if (file.size > MAX_SIZE) {
+      setError("File must not exceed 5MB");
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      documents: {
+        ...prev.documents,
+        [field]: file,
+      },
+    }));
+
+    setError("");
   };
 
   /* =======================
@@ -69,11 +87,15 @@ const Documents = () => {
         <Typography className="vendor-title">Required Documents</Typography>
 
         <Box className="vendor-form-card">
+          <Typography className="category-description">
+            PDF or DOCX only, up to 5MB each.
+          </Typography>
           {/* Hidden Inputs */}
           <input
             type="file"
             hidden
             id="businessLicenseInput"
+            accept=".pdf,.docx"
             onChange={(e) => handleFileChange(e, "businessLicense")}
           />
 
@@ -81,6 +103,7 @@ const Documents = () => {
             type="file"
             hidden
             id="insuranceInput"
+            accept=".pdf,.docx"
             onChange={(e) => handleFileChange(e, "insuranceCertificate")}
           />
 
@@ -88,6 +111,7 @@ const Documents = () => {
             type="file"
             hidden
             id="taxInput"
+            accept=".pdf,.docx"
             onChange={(e) => handleFileChange(e, "taxDocument")}
           />
 
@@ -99,9 +123,14 @@ const Documents = () => {
               onClick={() =>
                 document.getElementById("businessLicenseInput")?.click()
               }
+              sx={businessLicense ? { borderColor: "success.main", borderStyle: "solid", background: "rgba(16,185,129,0.06)" } : undefined}
             >
-              <DescriptionIcon />
-              <Typography>
+              {businessLicense ? (
+                <CheckCircleIcon className="upload-icon" sx={{ color: "success.main !important" }} />
+              ) : (
+                <DescriptionIcon className="upload-icon" />
+              )}
+              <Typography className="upload-text">
                 {businessLicense
                   ? businessLicense.name
                   : "Upload Business License"}
@@ -112,9 +141,14 @@ const Documents = () => {
             <Box
               className="upload-box"
               onClick={() => document.getElementById("insuranceInput")?.click()}
+              sx={insuranceCertificate ? { borderColor: "success.main", borderStyle: "solid", background: "rgba(16,185,129,0.06)" } : undefined}
             >
-              <DescriptionIcon />
-              <Typography>
+              {insuranceCertificate ? (
+                <CheckCircleIcon className="upload-icon" sx={{ color: "success.main !important" }} />
+              ) : (
+                <DescriptionIcon className="upload-icon" />
+              )}
+              <Typography className="upload-text">
                 {insuranceCertificate
                   ? insuranceCertificate.name
                   : "Upload Insurance Certificate"}
@@ -125,9 +159,14 @@ const Documents = () => {
             <Box
               className="upload-box"
               onClick={() => document.getElementById("taxInput")?.click()}
+              sx={taxDocument ? { borderColor: "success.main", borderStyle: "solid", background: "rgba(16,185,129,0.06)" } : undefined}
             >
-              <DescriptionIcon />
-              <Typography>
+              {taxDocument ? (
+                <CheckCircleIcon className="upload-icon" sx={{ color: "success.main !important" }} />
+              ) : (
+                <DescriptionIcon className="upload-icon" />
+              )}
+              <Typography className="upload-text">
                 {taxDocument ? taxDocument.name : "Upload Tax Document"}
               </Typography>
             </Box>
