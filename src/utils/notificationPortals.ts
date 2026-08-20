@@ -40,5 +40,21 @@ export type NotificationPortal = "vendor" | "customer";
 
 export function belongsToPortal(type: string, portal: NotificationPortal): boolean {
   if (SHARED_NOTIFICATION_TYPES.has(type)) return true;
-  return portal === "vendor" ? VENDOR_NOTIFICATION_TYPES.has(type) : CUSTOMER_NOTIFICATION_TYPES.has(type);
+  if (VENDOR_NOTIFICATION_TYPES.has(type)) return portal === "vendor";
+  if (CUSTOMER_NOTIFICATION_TYPES.has(type)) return portal === "customer";
+
+  // The explicit sets above only cover the legacy NotificationType range
+  // (Ube.Domain.Enums.Notifications.NotificationType, values 1-21) and go
+  // stale the moment a new type is added. Every type added since then
+  // (the Admin*/Vendor*/Customer* 100+/200+/300+ series - VendorAccountApproved,
+  // CustomerBookingConfirmed, etc.) follows a strict role-prefix naming
+  // convention, so fall back to that instead of silently dropping it from
+  // every portal.
+  if (type.startsWith("Vendor")) return portal === "vendor";
+  if (type.startsWith("Customer")) return portal === "customer";
+  if (type.startsWith("Admin")) return false;
+
+  // Unrecognized/ungrouped type - fail open rather than silently hiding a
+  // real notification from every portal.
+  return true;
 }
