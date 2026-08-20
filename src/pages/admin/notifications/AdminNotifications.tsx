@@ -530,6 +530,8 @@ export default function AdminNotifications() {
           sx: {
             width: { xs: "100%", sm: 440 },
             background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+            borderTopLeftRadius: "20px",
+            borderBottomLeftRadius: "20px",
           },
         }}
       >
