@@ -26,7 +26,7 @@ const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          pt: "100px",
+
         }}
       >
         <Outlet />
