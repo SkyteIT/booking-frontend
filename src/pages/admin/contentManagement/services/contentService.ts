@@ -13,6 +13,7 @@ export const getCategories = async (): Promise<Category[]> => {
   return data.map((c: any) => ({
     id: String(c.id),
     name: c.name,
+    description: c.description ?? "",
     listings: c.listingCount ?? 0,
     status: c.status === "Active",
     icon: c.icon ?? "",
@@ -62,6 +63,7 @@ export const createCategory = async (payload: {
   return {
     id: String(data.id),
     name: data.name,
+    description: data.description ?? "",
     listings: data.listingCount ?? 0,
     status: data.status === "Active",
     icon: data.icon ?? "",
@@ -77,6 +79,7 @@ export const updateCategory = async (
   return {
     id: String(data.id),
     name: data.name,
+    description: data.description ?? "",
     listings: data.listingCount ?? 0,
     status: data.status === "Active",
     icon: data.icon ?? "",
@@ -98,6 +101,7 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
     return {
       id: String(data.id),
       name: data.name ?? "",
+      description: data.description ?? "",
       listings: data.listingCount ?? 0,
       status: data.status === "Active",
       icon: data.icon ?? "",
@@ -188,6 +192,28 @@ export const createBanner = async (payload: {
     endDate:   payload.endDate,
   });
   return normalizeBanner(data);
+};
+
+export const uploadBannerImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("File", file);
+
+  try {
+    const { data } = await api.post<{ imageUrl: string }>("/banners/upload-image", formData);
+    return data.imageUrl;
+  } catch (err: any) {
+    const status = err?.response?.status;
+    if (status !== 405) throw err;
+
+    // Fallback for running backend instances that have not picked up the
+    // dedicated banner upload endpoint yet. Reuse the already-working
+    // authenticated image upload route and extract the returned URL.
+    const fallbackFormData = new FormData();
+    fallbackFormData.append("File", file);
+
+    const { data } = await api.post("/auth/profile/upload-image", fallbackFormData);
+    return data?.imageUrl ?? data?.profileImageUrl ?? data?.ProfileImageUrl ?? "";
+  }
 };
 
 export const updateBanner = async (

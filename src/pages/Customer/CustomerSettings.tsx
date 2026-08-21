@@ -27,7 +27,6 @@ import { getCurrentUser, updateProfile, uploadProfileImage } from "../../service
 import { changePassword } from "../../services/Vendor/settings";
 import { resolveAssetUrl } from "../Vendor/Settings/vendorSettings";
 import CustomerPageLayout from "./CustomerPageLayout";
-import { size } from "zod";
 
 // Only customer-facing events that actually exist in the backend enum
 // (Ube.Domain.Enums.Notifications.NotificationType) - kept in sync with
@@ -58,6 +57,7 @@ const CUSTOMER_PREFERENCE_GROUPS: PreferenceGroup[] = [
     items: [
       { key: "security", label: "Security alerts", notificationType: 9 }, // SecurityAlert
       { key: "acc_updates", label: "Account updates", notificationType: 10 }, // AccountUpdate
+      { key: "vendor_application", label: "Vendor application updates", notificationType: 20 }, // VendorApplicationSubmitted
     ],
   },
 ];

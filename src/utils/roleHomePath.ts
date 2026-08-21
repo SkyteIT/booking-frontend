@@ -10,7 +10,7 @@ export function getRoleHomePath(role: string): string {
   // the first real page their role can actually load.
   if (normalizedRole === "finance") return "/admin/disputes";
   if (normalizedRole === "vendor") return "/vendor/dashboard";
-  if (normalizedRole === "customer" || normalizedRole === "user") return "/";
+  if (normalizedRole === "customer" || normalizedRole === "user") return "/customer/dashboard";
 
   return "/";
 }

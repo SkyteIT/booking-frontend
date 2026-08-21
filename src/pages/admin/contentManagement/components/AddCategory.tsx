@@ -11,7 +11,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
 import type { ListingType } from "../../../../services/Vendor/listingService";
-import { createCategory } from "../services/contentService";
+import { createCategory, uploadBannerImage } from "../services/contentService";
 import { EMOJI_GROUPS } from "../utils/emojiOptions";
 
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Types Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
@@ -84,34 +84,57 @@ export default function AddCategory() {
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   // Ã¢â€â‚¬Ã¢â€â‚¬ Handlers Ã¢â€â‚¬Ã¢â€â‚¬
   const set = (field: string, value: string | boolean) => {
     setForm((p) => ({ ...p, [field]: value }));
     setErrors((p) => ({ ...p, [field]: "" }));
   };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleBannerChange = async (file: File) => {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 2 * 1024 * 1024) {
       setBannerPreview(null);
       setBannerName(null);
       setForm((prev) => ({ ...prev, bannerImageUrl: "" }));
       setErrors((prev) => ({
         ...prev,
-        bannerImageUrl: "Banner image must be 10 MB or smaller",
+        bannerImageUrl: "Banner image must be 2 MB or smaller",
       }));
       return;
     }
-    setBannerName(file.name);
+
+    const allowedTypes = ["image/jpeg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, bannerImageUrl: "Only JPG/PNG files are allowed" }));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
       setBannerPreview(result);
-      setForm((prev) => ({ ...prev, bannerImageUrl: result }));
-      setErrors((prev) => ({ ...prev, bannerImageUrl: "" }));
     };
     reader.readAsDataURL(file);
+
+    setBannerName(file.name);
+    setUploadingBanner(true);
+    try {
+      const uploadedUrl = await uploadBannerImage(file);
+      setForm((prev) => ({ ...prev, bannerImageUrl: uploadedUrl }));
+      setErrors((prev) => ({ ...prev, bannerImageUrl: "" }));
+    } catch (err: any) {
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Failed to upload banner image.";
+      setForm((prev) => ({ ...prev, bannerImageUrl: "" }));
+      setErrors((prev) => ({ ...prev, bannerImageUrl: serverMsg }));
+    } finally {
+      setUploadingBanner(false);
+    }
   };
 
   const addField = () => {
@@ -540,7 +563,14 @@ export default function AddCategory() {
                 transition: "all 0.2s",
               }}
             >
-              {bannerPreview ? (
+              {uploadingBanner ? (
+                <Box>
+                  <Typography fontSize={34} mb={1}>⏳</Typography>
+                  <Typography color="text.secondary" fontSize={14}>
+                    Uploading banner image...
+                  </Typography>
+                </Box>
+              ) : bannerPreview ? (
                 <img
                   src={bannerPreview} alt="preview"
                   style={{ maxWidth: "100%", maxHeight: 180, borderRadius: 8, objectFit: "cover" }}
@@ -552,13 +582,17 @@ export default function AddCategory() {
                     Click to upload or drag and drop
                   </Typography>
                   <Typography color="text.disabled" fontSize={12} mt={0.5}>
-                    PNG, JPG up to 10MB
+                    PNG, JPG up to 2MB
                   </Typography>
                 </Box>
               )}
               <input
                 id="category-banner-input" hidden type="file" accept="image/*"
-                onChange={handleBannerChange}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleBannerChange(file);
+                  e.target.value = "";
+                }}
               />
             </Box>
 
