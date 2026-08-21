@@ -66,7 +66,10 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
 
   Object.entries(rest).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
-      qs.set(key, String(value));
+      // The search API accepts page sizes from 1 through 50. Keep every caller
+      // within that contract even if it passes a stale or user-derived value.
+      const queryValue = key === "pageSize" ? Math.min(50, Math.max(1, Number(value))) : value;
+      qs.set(key, String(queryValue));
     }
   });
 

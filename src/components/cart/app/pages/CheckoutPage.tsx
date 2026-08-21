@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '../../../../context/useAuth';
 import { checkoutSchema } from '../../../../utils/validationSchemas';
 import { zodErrorToFieldErrors } from '../../../../utils/zodUtils';
+import ToastAlert from '../../../common/ToastAlert';
 import { useCart } from '../contexts/CartContext';
 
 const fieldSx = {
@@ -51,6 +52,7 @@ export const CheckoutPage: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showBookingToast, setShowBookingToast] = useState(false);
 
   useEffect(() => {
     // Reached directly via URL rather than the Cart page's own guarded
@@ -94,8 +96,13 @@ export const CheckoutPage: React.FC = () => {
   const handleContinueToPayment = () => {
     if (validate()) {
       sessionStorage.setItem('checkoutData', JSON.stringify(formData));
-      navigate('/payment');
+      setShowBookingToast(true);
     }
+  };
+
+  const handleBookingToastClose = () => {
+    setShowBookingToast(false);
+    navigate('/payment');
   };
 
   const subtotal = getSelectedTotal();
@@ -427,6 +434,7 @@ export const CheckoutPage: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={handleContinueToPayment}
+                  disabled={showBookingToast}
                   sx={{
                     borderRadius: '999px',
                     textTransform: 'none',
@@ -470,6 +478,14 @@ export const CheckoutPage: React.FC = () => {
           </Box>
         </Box>
       </Container>
+
+      <ToastAlert
+        open={showBookingToast}
+        onClose={handleBookingToastClose}
+        severity="success"
+        duration={1800}
+        message={`${selectedCart.length} booking${selectedCart.length === 1 ? '' : 's'} ready. Taking you to secure payment...`}
+      />
     </Box>
   );
 };
