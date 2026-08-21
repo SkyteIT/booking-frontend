@@ -77,6 +77,10 @@ export const useSearchResults = () => {
           maxPrice: filters.maxPrice,
           minRating: filters.minRating,
           hasActiveOffer: filters.hasOffer,
+          // Explore has no pagination control, so it must not silently use the
+          // backend's small default page (which is commonly filled by seeds).
+          page: 1,
+          pageSize: 100,
         });
 
         if (cancelled) return;

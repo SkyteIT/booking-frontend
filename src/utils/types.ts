@@ -26,7 +26,6 @@ export interface ListingFormData {
     // fixed ListingType and determines which detail-fields section renders.
     categoryId: string;
     images: string[];
-    imageUrls?: string;
     description?: string;
     price?: number;
     currency?: string;
