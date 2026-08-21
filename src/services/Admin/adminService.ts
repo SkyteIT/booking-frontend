@@ -1,4 +1,5 @@
 import api from "../api";
+import type { VendorApplicationListItem } from "./vendor";
 
 export interface DashboardStatsDto {
   totalUsers: number;
@@ -8,6 +9,7 @@ export interface DashboardStatsDto {
   pendingBookings: number;
   cancelledBookings: number;
   pendingApprovals?: number;
+  pendingApprovalItems?: VendorApplicationListItem[];
   totalRevenue: number;
   currency: string;
   totalListings: number;

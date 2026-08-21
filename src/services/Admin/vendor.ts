@@ -79,6 +79,16 @@ export const getVendorApplications = async ({
   return res.data;
 };
 
+export const normalizeVendorApplications = (
+  data: VendorApplicationListItem[] | RawApiRecord
+): VendorApplicationListItem[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return (data.items ?? data.data ?? data.results ?? []) as VendorApplicationListItem[];
+};
+
 export const normalizeVendorApplicationsResponse = (
   data: VendorApplicationListItem[] | RawApiRecord
 ): { items: VendorApplicationListItem[]; totalCount: number } => {

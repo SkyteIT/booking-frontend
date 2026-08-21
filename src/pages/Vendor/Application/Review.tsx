@@ -73,11 +73,12 @@ const Review = () => {
       });
 
       markVendorApplicationSubmitted();
+
       resetApplication();
       setOpenSnackbar(true);
 
       setTimeout(() => {
-        navigate("/vendor/application-status");
+        navigate("/customer/notifications");
       }, 2000);
     } catch (err) {
       const serverMsg = isAxiosError(err)
