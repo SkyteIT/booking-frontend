@@ -276,8 +276,10 @@ export default function Dashboard() {
       const nextUsers = usersRes.status === "fulfilled" ? usersRes.value : current.users;
       const nextBookings = bookingsRes.status === "fulfilled" ? bookingsRes.value : current.bookings;
       const nextVendorApplications =
-        vendorAppsRes.status === "fulfilled" && Array.isArray(vendorAppsRes.value)
-          ? vendorAppsRes.value
+        vendorAppsRes.status === "fulfilled"
+          ? Array.isArray(vendorAppsRes.value)
+            ? vendorAppsRes.value
+            : ((vendorAppsRes.value.items ?? vendorAppsRes.value.data ?? vendorAppsRes.value.results ?? []) as VendorApplicationListItem[])
           : current.vendorApplications;
       const nextListings = listingsRes.status === "fulfilled" ? listingsRes.value : current.listings;
 
