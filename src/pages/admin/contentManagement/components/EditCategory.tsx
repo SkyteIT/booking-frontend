@@ -54,7 +54,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
         if (!cat) return;
         setForm({
           name: cat.name ?? "",
-          description: "",
+          description: cat.description ?? "",
           icon: cat.icon ?? "",
           status: cat.status ?? true,
           type: cat.type ?? "",

@@ -7,6 +7,8 @@ export interface Notification {
   title: string;
   message: string;
   type: string;
+  displayLabel?: string;
+  iconKey?: string;
   isRead: boolean;
   createdAtUtc: string;
   readAtUtc: string | null;

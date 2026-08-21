@@ -79,6 +79,28 @@ export const getVendorApplications = async ({
   return res.data;
 };
 
+export const normalizeVendorApplications = (
+  data: VendorApplicationListItem[] | RawApiRecord
+): VendorApplicationListItem[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return (data.items ?? data.data ?? data.results ?? []) as VendorApplicationListItem[];
+};
+
+export const normalizeVendorApplicationsResponse = (
+  data: VendorApplicationListItem[] | RawApiRecord
+): { items: VendorApplicationListItem[]; totalCount: number } => {
+  if (Array.isArray(data)) {
+    return { items: data, totalCount: data.length };
+  }
+
+  const items = (data.items ?? data.data ?? data.results ?? []) as VendorApplicationListItem[];
+  const totalCount = Number(data.totalCount ?? data.count ?? items.length ?? 0);
+  return { items, totalCount };
+};
+
 export const reviewVendorApplication = async (id: string, status: "Approved" | "Rejected", reason?: string) => {
   const action = status === "Approved" ? "approve" : "reject";
 

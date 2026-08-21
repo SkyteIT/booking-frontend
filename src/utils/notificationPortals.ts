@@ -31,6 +31,7 @@ const CUSTOMER_NOTIFICATION_TYPES = new Set([
   "ReviewResponse",
   "RefundPending",
   "PaymentFailed",
+  "VendorApplicationSubmitted",
 ]);
 
 // Account-level events relevant regardless of which portal you're in.

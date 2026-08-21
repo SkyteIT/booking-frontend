@@ -67,6 +67,7 @@ const CUSTOMER_PREFERENCE_GROUPS: PreferenceGroup[] = [
     items: [
       { key: "security", label: "Security alerts", notificationType: 9 }, // SecurityAlert
       { key: "acc_updates", label: "Account updates", notificationType: 10 }, // AccountUpdate
+      { key: "vendor_application", label: "Vendor application updates", notificationType: 20 }, // VendorApplicationSubmitted
     ],
   },
 ];

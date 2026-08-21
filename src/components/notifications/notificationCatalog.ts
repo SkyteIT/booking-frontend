@@ -265,11 +265,11 @@ export const NOTIFICATION_ROLE_CONFIGS: Record<NotificationRole, NotificationRol
       makeGroup(
         "account",
         "Account and offers",
-        "Verification, announcements, and promotions.",
+        "Verification, vendor application updates, announcements, and promotions.",
         "#7c3aed",
         AnnouncementOutlinedIcon,
-        ["account verification", "system announcement", "promotion", "offer available", "promotion/ offer available"],
-        ["verification", "announcement", "promotion", "offer", "available"],
+        ["account verification", "vendor application submitted", "system announcement", "promotion", "offer available", "promotion/ offer available"],
+        ["verification", "vendor application", "application submitted", "announcement", "promotion", "offer", "available", "application"],
         "info"
       ),
     ],
@@ -277,7 +277,8 @@ export const NOTIFICATION_ROLE_CONFIGS: Record<NotificationRole, NotificationRol
       { key: "bookings", title: "Bookings", description: "Booking updates and reminders", notificationType: 0 },
       { key: "payments", title: "Payments", description: "Payment and refund notifications", notificationType: 1 },
       { key: "reviews", title: "Reviews", description: "Review reminders and submissions", notificationType: 2 },
-      { key: "account", title: "Account and offers", description: "Verification, announcements, and promotions", notificationType: 3 },
+      { key: "account", title: "Account and offers", description: "Verification, application updates, announcements, and promotions", notificationType: 3 },
+      { key: "vendor_application", title: "Vendor application", description: "Vendor application submission updates", notificationType: 20 },
     ],
   },
 };
@@ -318,7 +319,7 @@ export function resolveNotificationMatch(
       continue;
     }
 
-    if (group.key === "account" && (haystack.includes("account") || haystack.includes("verification") || haystack.includes("announcement"))) {
+    if (group.key === "account" && (haystack.includes("account") || haystack.includes("verification") || haystack.includes("announcement") || haystack.includes("application"))) {
       return { groupKey: group.key, label: group.title, severity: group.severity };
     }
 
@@ -420,6 +421,8 @@ const EVENT_META: Partial<Record<NotificationRole, Record<string, NotificationEv
     customerreviewsubmitted: { icon: ReviewsOutlinedIcon, accent: "#7c3aed", label: "Review submitted" },
     customerbookingstatuschanged: { icon: SwapHorizOutlinedIcon, accent: "#0f766e", label: "Status changed" },
     customeraccountverification: { icon: VerifiedUserOutlinedIcon, accent: "#2563eb", label: "Account verification" },
+    customerapplicationsubmitted: { icon: AddBusinessOutlinedIcon, accent: "#7c3aed", label: "Vendor application submitted" },
+    vendorapplicationsubmitted: { icon: AddBusinessOutlinedIcon, accent: "#7c3aed", label: "Vendor application submitted" },
     customersystemannouncement: { icon: CampaignOutlinedIcon, accent: "#7c3aed", label: "System announcement" },
     customerpromotionandofferavailable: { icon: LocalOfferOutlinedIcon, accent: "#d97706", label: "Offer available" },
   },
@@ -514,7 +517,11 @@ export function resolveNotificationDestination(
 
     if (match.groupKey === "account") {
       if (containsAny(haystack, ["verification"])) {
-        return buildDestination("/customer/settings", "Open account settings", "Review verification and account status details.");
+        return buildDestination("/customer/notifications", "Open customer notifications", "Return to your customer notification inbox.");
+      }
+
+      if (containsAny(haystack, ["application"])) {
+        return buildDestination("/customer/notifications", "Open customer notifications", "Return to your customer notification inbox.");
       }
 
       return buildDestination("/customer/dashboard", "Open customer dashboard", "Review announcements, offers, and account updates.");

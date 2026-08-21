@@ -37,7 +37,11 @@ import {
   type AdminUserDto,
   type DashboardStatsDto,
 } from "../../services/Admin/adminService";
-import { getVendorApplications, type VendorApplicationListItem } from "../../services/Admin/vendor";
+import {
+  getVendorApplications,
+  normalizeVendorApplicationsResponse,
+  type VendorApplicationListItem,
+} from "../../services/Admin/vendor";
 import { getListings, type ListingResponse } from "../../services/Vendor/listingService";
 import { useRealtimeHub } from "../../hooks/useRealtimeHub";
 
@@ -76,6 +80,8 @@ type DashboardSnapshot = {
   users: AdminUserDto[];
   bookings: AdminBookingDto[];
   vendorApplications: VendorApplicationListItem[];
+  pendingVendorApplications: VendorApplicationListItem[];
+  pendingVendorApplicationsCount: number;
   listings: ListingResponse[];
 };
 
@@ -242,6 +248,8 @@ export default function Dashboard() {
     users: [],
     bookings: [],
     vendorApplications: [],
+    pendingVendorApplications: [],
+    pendingVendorApplicationsCount: 0,
     listings: [],
   });
   const [previousSummary, setPreviousSummary] = useState<SummarySnapshot | null>(null);
@@ -263,11 +271,17 @@ export default function Dashboard() {
         setLoading(true);
       }
 
-      const [dashboardRes, usersRes, bookingsRes, vendorAppsRes, listingsRes] = await Promise.allSettled([
+      const [dashboardRes, usersRes, bookingsRes, vendorAppsRes, pendingVendorAppsRes, listingsRes] = await Promise.allSettled([
         getDashboardStats(),
         getAllUsers(),
         getAllBookings(),
         getVendorApplications(),
+        getVendorApplications({
+          status: "pending",
+          sortOptions: "SubmittedAtDesc",
+          pageNumber: 1,
+          pageSize: 6,
+        }),
         getListings(),
       ]);
 
@@ -281,6 +295,15 @@ export default function Dashboard() {
             ? vendorAppsRes.value
             : ((vendorAppsRes.value.items ?? vendorAppsRes.value.data ?? vendorAppsRes.value.results ?? []) as VendorApplicationListItem[])
           : current.vendorApplications;
+      const nextPendingVendorResponse =
+        pendingVendorAppsRes.status === "fulfilled"
+          ? normalizeVendorApplicationsResponse(pendingVendorAppsRes.value)
+          : {
+              items: nextVendorApplications.filter((vendor) => isReviewQueueStatus(vendor.status)),
+              totalCount: nextVendorApplications.filter((vendor) => isReviewQueueStatus(vendor.status)).length,
+            };
+      const nextPendingVendorApplications = nextPendingVendorResponse.items;
+      const nextPendingVendorApplicationsCount = nextPendingVendorResponse.totalCount;
       const nextListings = listingsRes.status === "fulfilled" ? listingsRes.value : current.listings;
 
       const activeUsers = nextUsers.filter((user) => String(user.status).toLowerCase() === "active").length;
@@ -307,6 +330,8 @@ export default function Dashboard() {
         users: nextUsers,
         bookings: nextBookings,
         vendorApplications: nextVendorApplications,
+        pendingVendorApplications: nextPendingVendorApplications,
+        pendingVendorApplicationsCount: nextPendingVendorApplicationsCount,
         listings: nextListings,
       });
 
@@ -315,6 +340,7 @@ export default function Dashboard() {
         usersRes.status === "fulfilled" ||
         bookingsRes.status === "fulfilled" ||
         vendorAppsRes.status === "fulfilled" ||
+        pendingVendorAppsRes.status === "fulfilled" ||
         listingsRes.status === "fulfilled";
 
       setError(hasAnySuccess ? null : "Failed to load dashboard data.");
@@ -352,9 +378,11 @@ export default function Dashboard() {
   const approvedVendorApplications = snapshot.vendorApplications.filter(
     (vendor) => String(vendor.status).toLowerCase() === "approved"
   ).length;
-  const pendingVendorApplications = snapshot.vendorApplications
-    .filter((vendor) => isReviewQueueStatus(vendor.status))
-    .sort((a, b) => toTimestamp(b.submittedAt) - toTimestamp(a.submittedAt));
+  const pendingVendorApplications = snapshot.pendingVendorApplications.length > 0
+    ? snapshot.pendingVendorApplications
+    : snapshot.vendorApplications
+      .filter((vendor) => isReviewQueueStatus(vendor.status))
+      .sort((a, b) => toTimestamp(b.submittedAt) - toTimestamp(a.submittedAt));
   const totalVendors = snapshot.dashboardStats?.totalVendors ?? approvedVendorApplications;
   const currency = snapshot.dashboardStats?.currency ?? snapshot.bookings.find((booking) => booking.currency)?.currency ?? "LKR";
   const activeUsers = snapshot.users.filter((user) => String(user.status).toLowerCase() === "active").length;

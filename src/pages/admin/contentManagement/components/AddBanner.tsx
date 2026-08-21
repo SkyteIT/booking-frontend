@@ -1,14 +1,22 @@
 // src/pages/admin/contentManagement/components/AddBanner.tsx
 import { useState } from "react";
 import {
-  Box, Typography, TextField, Button, Paper, MenuItem,
-  FormControlLabel, Switch, IconButton, Chip,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  MenuItem,
+  FormControlLabel,
+  Switch,
+  IconButton,
+  Chip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
-import { createBanner, PLACEMENT_OPTIONS } from "../services/contentService";
+import { createBanner, PLACEMENT_OPTIONS, uploadBannerImage } from "../services/contentService";
 
 const cardStyle = {
   p: 3,
@@ -25,7 +33,6 @@ export default function AddBanner() {
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
-    // placement is now an int matching the backend enum
     placement: "" as "" | number,
     startDate: "",
     endDate: "",
@@ -33,9 +40,9 @@ export default function AddBanner() {
     openInNewTab: false,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageName, setImageName] = useState<string | null>(null);
-  // imageUrl sent to backend — empty string satisfies non-nullable requirement
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageName, setImageName] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -44,40 +51,56 @@ export default function AddBanner() {
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageChange = async (file: File) => {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setImagePreview(null);
-      setImageName(null);
-      setImageUrl("");
-      setErrors((prev) => ({
-        ...prev,
-        imageUrl: "Banner image must be 10 MB or smaller",
-      }));
+
+    const allowedTypes = ["image/jpeg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, imageUrl: "Only JPG/PNG files are allowed" }));
       return;
     }
-    setImageName(file.name);
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, imageUrl: "File size must not exceed 2MB" }));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setImagePreview(result);
-      // For now store base64 as imageUrl; replace with upload endpoint if available
-      setImageUrl(result);
-      setErrors((prev) => ({ ...prev, imageUrl: "" }));
+      setImagePreview((ev.target?.result as string) ?? null);
     };
     reader.readAsDataURL(file);
+
+    setUploadingImage(true);
+    setImageName(file.name);
+    try {
+      const uploadedUrl = await uploadBannerImage(file);
+      setImageUrl(uploadedUrl);
+      setErrors((prev) => ({ ...prev, imageUrl: "" }));
+    } catch (err: any) {
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Failed to upload image.";
+      setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.title.trim())       newErrors.title     = "Banner title is required";
-    if (!imageUrl.trim())         newErrors.imageUrl   = "Banner image is required";
-    if (form.placement === "")    newErrors.placement = "Placement is required";
-    if (!form.startDate)          newErrors.startDate = "Start date is required";
-    if (!form.endDate)            newErrors.endDate   = "End date is required";
-    if (form.startDate && form.endDate && form.endDate < form.startDate)
+    if (!form.title.trim()) newErrors.title = "Banner title is required";
+    if (!imageUrl.trim()) newErrors.imageUrl = "Banner image is required";
+    if (imageUrl.trim().length > 500) newErrors.imageUrl = "Image URL must be 500 characters or less";
+    if (form.placement === "") newErrors.placement = "Placement is required";
+    if (!form.startDate) newErrors.startDate = "Start date is required";
+    if (!form.endDate) newErrors.endDate = "End date is required";
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
       newErrors.endDate = "End date must be after start date";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,20 +109,23 @@ export default function AddBanner() {
     if (!validate()) return;
     setSaving(true);
     try {
-      // Payload matches CreateBannerDto exactly:
-      // Title (string), Subtitle (string?), ImageUrl (string),
-      // Placement (int), StartDate (DateOnly), EndDate (DateOnly)
       await createBanner({
-        title:     form.title,
-        subtitle:  form.subtitle || undefined,
-        imageUrl:  imageUrl || "",        // required non-nullable field
-        placement: form.placement as number, // int enum
-        startDate: form.startDate,           // "YYYY-MM-DD"
-        endDate:   form.endDate,             // "YYYY-MM-DD"
+        title: form.title,
+        subtitle: form.subtitle || undefined,
+        imageUrl: imageUrl.trim(),
+        placement: form.placement as number,
+        startDate: form.startDate,
+        endDate: form.endDate,
       });
       navigate("/admin/content");
-    } catch {
-      setErrors((prev) => ({ ...prev, title: "Failed to save. Please try again." }));
+    } catch (err: any) {
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Failed to save. Please try again.";
+      setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
     } finally {
       setSaving(false);
     }
@@ -115,7 +141,6 @@ export default function AddBanner() {
 
   return (
     <Box>
-      {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleCancel} size="small">
@@ -160,13 +185,8 @@ export default function AddBanner() {
         </Box>
       </Box>
 
-      {/* TWO-COLUMN GRID */}
       <Box sx={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 2, alignItems: "start" }}>
-
-        {/* ── LEFT COLUMN ── */}
         <Box display="flex" flexDirection="column" gap={2}>
-
-          {/* 1. Basic Information */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -198,7 +218,6 @@ export default function AddBanner() {
             />
           </Paper>
 
-          {/* 2. Placement & Scheduling */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -213,7 +232,6 @@ export default function AddBanner() {
               fullWidth
               required
               sx={{ mb: 2 }}
-              // value must be number or "" — keep as-is
               value={form.placement}
               onChange={(e) => handleChange("placement", Number(e.target.value))}
               error={!!errors.placement}
@@ -252,7 +270,6 @@ export default function AddBanner() {
             </Box>
           </Paper>
 
-          {/* 3. Banner Image */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -266,15 +283,25 @@ export default function AddBanner() {
               htmlFor="banner-image-input"
               sx={{
                 border: "2px dashed #b0c4d8",
-                borderRadius: 2, p: 4,
-                textAlign: "center", cursor: "pointer",
+                borderRadius: 2,
+                p: 4,
+                textAlign: "center",
+                cursor: "pointer",
                 bgcolor: imagePreview ? "transparent" : "#f8fafc",
-                display: "block", mb: 2,
+                display: "block",
+                mb: 2,
                 "&:hover": { borderColor: "#0077b6", bgcolor: "rgba(0,119,182,0.05)" },
                 transition: "all 0.2s",
               }}
             >
-              {imagePreview ? (
+              {uploadingImage ? (
+                <Box>
+                  <Typography fontSize={36} mb={1}>⏳</Typography>
+                  <Typography color="text.secondary" fontSize={14}>
+                    Uploading image...
+                  </Typography>
+                </Box>
+              ) : imagePreview ? (
                 <img
                   src={imagePreview}
                   alt="Preview"
@@ -287,7 +314,7 @@ export default function AddBanner() {
                     Click to upload or drag and drop
                   </Typography>
                   <Typography color="text.disabled" fontSize={12} mt={0.5}>
-                    PNG, JPG up to 10MB — Recommended: 1200×400px
+                    PNG, JPG up to 2MB
                   </Typography>
                 </Box>
               )}
@@ -295,15 +322,14 @@ export default function AddBanner() {
                 id="banner-image-input"
                 hidden
                 type="file"
-                accept="image/*"
-                onChange={handleImageChange}
+                accept="image/jpeg,image/png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImageChange(file);
+                  e.target.value = "";
+                }}
               />
             </Box>
-            {errors.imageUrl && (
-              <Typography fontSize={12} color="error" sx={{ mt: -1, mb: 1 }}>
-                {errors.imageUrl}
-              </Typography>
-            )}
 
             {imageName && (
               <Chip
@@ -317,9 +343,14 @@ export default function AddBanner() {
                 }}
               />
             )}
+
+            {errors.imageUrl && (
+              <Typography fontSize={12} color="error" sx={{ mt: 1 }}>
+                {errors.imageUrl}
+              </Typography>
+            )}
           </Paper>
 
-          {/* 4. Link & Behaviour */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -340,10 +371,7 @@ export default function AddBanner() {
           </Paper>
         </Box>
 
-        {/* ── RIGHT COLUMN ── */}
         <Box display="flex" flexDirection="column" gap={2}>
-
-          {/* Status */}
           <Paper sx={cardStyle}>
             <Typography fontWeight={600} mb={2}>Status & Visibility</Typography>
             <FormControlLabel
@@ -361,7 +389,9 @@ export default function AddBanner() {
             />
             <Box
               sx={{
-                mt: 2, p: 2, borderRadius: 2,
+                mt: 2,
+                p: 2,
+                borderRadius: 2,
                 bgcolor: form.status ? "#e6f4ea" : "#f5f5f5",
                 border: `1px solid ${form.status ? "#c8e6c9" : "#e0e0e0"}`,
               }}
@@ -376,13 +406,12 @@ export default function AddBanner() {
             </Box>
           </Paper>
 
-          {/* Preview */}
           <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(160deg, #005a8d, #0077b6)", color: "#fff" }}>
             <Typography fontWeight={600} mb={2}>Banner Preview</Typography>
             {[
-              { label: "Title",     value: form.title || "—" },
+              { label: "Title", value: form.title || "—" },
               { label: "Placement", value: previewPlacementLabel },
-              { label: "Duration",  value: form.startDate && form.endDate ? `${form.startDate} → ${form.endDate}` : "—" },
+              { label: "Duration", value: form.startDate && form.endDate ? `${form.startDate} → ${form.endDate}` : "—" },
             ].map((row) => (
               <Box key={row.label} display="flex" justifyContent="space-between" mb={1}>
                 <Typography fontSize={13} sx={{ opacity: 0.8 }}>{row.label}</Typography>
@@ -399,7 +428,6 @@ export default function AddBanner() {
             </Box>
           </Paper>
 
-          {/* Tips */}
           <Paper sx={{ ...cardStyle, bgcolor: "#fff8e1", border: "1px solid #ffe082" }}>
             <Typography fontWeight={600} mb={1} fontSize={14}>💡 Tips</Typography>
             <Typography fontSize={12} color="text.secondary" lineHeight={1.8}>
