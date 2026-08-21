@@ -1,11 +1,12 @@
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
-import { Alert, Box, Button, CircularProgress, Container, Paper, Typography } from "@mui/material";
+import { Alert, Box, Button, Container, Paper, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import MainFooter from "../../../components/footer/MainFooter";
 import CustomerNavbar from "../../../components/navbars/CustomerNavbar";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
   getMyVendorApplicationStatus,
   type MyVendorApplicationStatusDto,
@@ -66,7 +67,7 @@ export default function ApplicationStatus() {
           }}
         >
           {loading ? (
-            <CircularProgress />
+            <LoadingSpinner fullScreen={false} />
           ) : error ? (
             <Alert severity="error">{error}</Alert>
           ) : !status ? (

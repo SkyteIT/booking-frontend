@@ -1,6 +1,7 @@
 // src/pages/public/search/components/ResultsGrid.tsx
-import { Alert, Box, CircularProgress, Grid, Paper, Typography } from "@mui/material";
+import { Alert, Grid, Paper, Typography } from "@mui/material";
 import ListingCard from "../../../../components/cards/ListingCard";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import type { SearchListing } from "../../../../services/searchService";
 
 interface Props {
@@ -11,11 +12,7 @@ interface Props {
 
 export default function ResultsGrid({ listings, loading, error }: Props) {
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" py={8}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingSpinner fullScreen={false} py={8} />;
   }
 
   if (error) {

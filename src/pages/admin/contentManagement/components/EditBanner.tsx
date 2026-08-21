@@ -11,11 +11,14 @@ import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBannerById, updateBanner, PLACEMENT_OPTIONS } from "../services/contentService";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const cardStyle = {
   p: 3,
   borderRadius: 3,
-  boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+  border: "1px solid rgba(15,27,45,0.06)",
+  background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
   mb: 0,
 };
 
@@ -137,9 +140,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
   const isScheduled = form.startDate && form.startDate > today;
 
   const formContent = loading ? (
-    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-      <CircularProgress />
-    </Box>
+    <LoadingSpinner fullScreen={false} py={8} />
   ) : (
     <Box sx={{ p: open ? 0 : 3, bgcolor: open ? "transparent" : "#f4f6f8", minHeight: open ? 0 : "100vh" }}>
       {/* HEADER (standalone page only) */}
@@ -163,7 +164,13 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               startIcon={<SaveIcon />}
               onClick={handleSave}
               disabled={saving}
-              sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" } }}
+              sx={{
+                borderRadius: "999px",
+                textTransform: "none",
+                background: "linear-gradient(160deg, #005a8d, #0077b6)",
+                boxShadow: "0 4px 14px rgba(0,119,182,0.32)",
+                "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+              }}
             >
               {saving ? "Saving..." : "Save Changes"}
             </Button>
@@ -267,7 +274,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
                 textAlign: "center", cursor: "pointer",
                 bgcolor: imagePreview ? "transparent" : "#f8fafc",
                 display: "block", mb: 2,
-                "&:hover": { borderColor: "#0077B6", bgcolor: "#f0f7ff" },
+                "&:hover": { borderColor: "#0077b6", bgcolor: "rgba(0,119,182,0.05)" },
                 transition: "all 0.2s",
               }}
             >
@@ -332,8 +339,8 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
                     checked={form.status}
                     onChange={(e) => handleChange("status", e.target.checked)}
                     sx={{
-                      "& .MuiSwitch-switchBase.Mui-checked": { color: "#0077B6" },
-                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#0077B6" },
+                      "& .MuiSwitch-switchBase.Mui-checked": { color: "#0077b6" },
+                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#0077b6" },
                     }}
                   />
                 }
@@ -356,7 +363,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               </Box>
             </Paper>
 
-            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#0077B6,#00B4D8)", color: "#fff" }}>
+            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(160deg, #005a8d, #0077b6)", color: "#fff" }}>
               <Typography fontWeight={600} mb={2}>Banner Preview</Typography>
               {[
                 { label: "Title", value: form.title || "—" },
@@ -386,8 +393,14 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
   // If used as a modal
   if (open !== undefined) {
     return (
-      <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Edit Banner</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={handleCancel}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px" } }}
+      >
+        <DialogTitle sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>Edit Banner</DialogTitle>
         <DialogContent>{formContent}</DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
@@ -396,7 +409,13 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
             startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" } }}
+            sx={{
+              borderRadius: "999px",
+              textTransform: "none",
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              boxShadow: "0 4px 14px rgba(0,119,182,0.32)",
+              "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+            }}
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>

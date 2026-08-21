@@ -3,7 +3,6 @@
 .dashboard-wrapper{
   background:#f6f8fb;
   min-height:100vh;
-  padding-bottom:40px;
 }
 
 /* MAIN DASHBOARD LAYOUT */
@@ -14,11 +13,21 @@
   /* CustomerNavbar floats as position:fixed, so this can't rely on normal
      document flow to clear it - matches the pt:16 (128px) other pages
      under the same navbar (ViewProduct, Search) already use. */
-  padding:128px 60px 40px;
+  padding-top:128px;
+  padding-bottom:40px;
+  /* Matches ViewProduct's Container maxWidth="lg" + default padding. */
+  padding-left:16px;
+  padding-right:16px;
   width:100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  align-items:start;
+  max-width:1200px;
+  margin:0 auto;
+}
+
+@media (min-width: 600px) {
+  .dashboard-layout{
+    padding-left:24px;
+    padding-right:24px;
+  }
 }
 
 /* SIDEBAR WIDTH (1/4) */
@@ -37,10 +46,10 @@
 /* MAIN CONTENT WIDTH (3/4) */
 
 .dashboard-main{
+  width:75%;
   display:flex;
   flex-direction:column;
-  gap:20px;
-  min-width:0;
+  gap:24px;
 }
 
 /* SIDEBAR CARD */
@@ -132,28 +141,6 @@
 .booking-section{
   border-radius:20px !important;
   padding:20px;
-}
-
-@media (max-width: 1200px) {
-  .dashboard-layout{
-    grid-template-columns: 1fr;
-    padding: 28px 24px 36px;
-  }
-
-  .dashboard-sidebar{
-    position: static;
-  }
-}
-
-@media (max-width: 900px) {
-  .dashboard-layout{
-    padding: 24px 16px 32px;
-    gap: 18px;
-  }
-
-  .dashboard-main{
-    gap:16px;
-  }
 }
 
 .booking-card{

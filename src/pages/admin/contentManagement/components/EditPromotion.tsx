@@ -11,11 +11,14 @@ import SaveIcon from "@mui/icons-material/Save";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useParams } from "react-router-dom";
 import { getPromotionById, updatePromotion } from "../services/contentService";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const cardStyle = {
   p: 3,
   borderRadius: 3,
-  boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+  border: "1px solid rgba(15,27,45,0.06)",
+  background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
 };
 
 interface EditPromotionProps {
@@ -120,9 +123,7 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
     : `$${form.value || "0"} OFF`;
 
   const formContent = loading ? (
-    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-      <CircularProgress />
-    </Box>
+    <LoadingSpinner fullScreen={false} py={8} />
   ) : (
     <Box>
       <Box sx={{ display: "grid", gridTemplateColumns: open ? "1fr" : "2fr 1fr", gap: 2, alignItems: "start" }}>
@@ -132,7 +133,7 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
-                <LocalOfferIcon sx={{ fontSize: 18, color: "#0077B6" }} />
+                <LocalOfferIcon sx={{ fontSize: 18, color: "#0077b6" }} />
               </Box>
               <Typography fontWeight={600}>1. Promo Code & Type</Typography>
             </Box>
@@ -276,7 +277,7 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
             </Paper>
 
             {/* Preview */}
-            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#6366F1,#4F46E5)", color: "#fff" }}>
+            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(160deg, #005a8d, #0077b6)", color: "#fff" }}>
               <Typography fontWeight={600} mb={2}>Promotion Preview</Typography>
               <Box textAlign="center" py={2}>
                 <Chip
@@ -298,8 +299,14 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
   // Modal mode
   if (open !== undefined) {
     return (
-      <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Edit Promotion</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={handleCancel}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px" } }}
+      >
+        <DialogTitle sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>Edit Promotion</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           {/* Status toggle inside modal */}
           <Box mb={2}>
@@ -326,7 +333,13 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
             startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", "&:hover": { background: "linear-gradient(135deg,#4F46E5,#3730A3)" } }}
+            sx={{
+              borderRadius: "999px",
+              textTransform: "none",
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              boxShadow: "0 4px 14px rgba(0,119,182,0.32)",
+              "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+            }}
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>
@@ -355,7 +368,13 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
             startIcon={<SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", "&:hover": { background: "linear-gradient(135deg,#4F46E5,#3730A3)" } }}
+            sx={{
+              borderRadius: "999px",
+              textTransform: "none",
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              boxShadow: "0 4px 14px rgba(0,119,182,0.32)",
+              "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+            }}
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>

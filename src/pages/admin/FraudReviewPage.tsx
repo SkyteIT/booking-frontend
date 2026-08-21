@@ -1,12 +1,14 @@
 import { Close } from '@mui/icons-material';
 import {
-  Box, Typography, Button, Paper, Tabs, Tab,
+  Box, Typography, Button, Paper,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
   TextField, Chip, IconButton, Alert, Pagination,
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import SegmentedTabs from '../../components/common/SegmentedTabs';
 import SnackbarAlert from '../../components/common/SnackbarAlert';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   getFraudFlags, reviewFraudFlag,
   type AdminFraudFlagDto,
@@ -132,11 +134,12 @@ export const FraudReviewPage: React.FC = () => {
           background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
         }}
       >
-        <Tabs value={statusTab} onChange={(_, val) => { setStatusTab(val); setPage(1); }}>
-          {STATUS_TABS.map((label) => (
-            <Tab key={label} label={label === 'ConfirmedFraud' ? 'Confirmed Fraud' : label} sx={{ textTransform: 'none', fontWeight: 500 }} />
-          ))}
-        </Tabs>
+        <SegmentedTabs
+          options={STATUS_TABS}
+          value={STATUS_TABS[statusTab]}
+          labels={{ ConfirmedFraud: 'Confirmed Fraud' }}
+          onChange={(v) => { setStatusTab(STATUS_TABS.indexOf(v)); setPage(1); }}
+        />
       </Paper>
 
       <Paper
@@ -162,9 +165,7 @@ export const FraudReviewPage: React.FC = () => {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={8}>
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                      Loading fraud flags...
-                    </Typography>
+                    <LoadingSpinner fullScreen={false} size={24} py={3} />
                   </TableCell>
                 </TableRow>
               ) : flags.length === 0 ? (

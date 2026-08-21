@@ -4,10 +4,10 @@ import {
   Typography,
   Box,
   Button,
-  CircularProgress,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
@@ -103,9 +103,7 @@ const Categories = (): JSX.Element => {
           </Typography>
 
           {loadingCategories ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
+            <LoadingSpinner fullScreen={false} py={4} />
           ) : (
             <Box
               className="category-grid"

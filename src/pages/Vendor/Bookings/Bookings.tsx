@@ -14,6 +14,7 @@ import BookingsStatusTabs from "../../../components/Bookings/BookingStatusTabs";
 import BookingsToolbar from "../../../components/Bookings/BookingToolbar";
 import BookingDetailDialog from "../../../components/common/BookingDetailDialog";
 import { useVendorBookingsPage } from "./useVendorBookingsPage";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
 export default function Bookings() {
   const {
@@ -47,9 +48,17 @@ export default function Bookings() {
       <Box>
         <Typography
           variant="h5"
-          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          sx={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "2px",
+          }}
         >
           Bookings
+          <Box component="span" sx={{ width: 8, height: 8, borderRadius: "3px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Manage and track your bookings
@@ -100,9 +109,7 @@ export default function Bookings() {
               </Typography>
             </Box>
           ) : loading ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-              Loading bookings...
-            </Typography>
+            <LoadingSpinner fullScreen={false} py={3} />
           ) : filteredRows.length === 0 ? (
             <Typography
               variant="body2"

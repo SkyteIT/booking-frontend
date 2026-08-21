@@ -10,6 +10,7 @@ import {
   getEmailChangeRequests, approveEmailChangeRequest, rejectEmailChangeRequest,
   type EmailChangeRequestDto,
 } from "../../services/emailChangeService";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
 
 const STATUS_TABS = ["Pending", "Approved", "Rejected", "All"] as const;
@@ -141,9 +142,7 @@ export const EmailChangeRequestsPage: React.FC = () => {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={6}>
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
-                      Loading requests...
-                    </Typography>
+                    <LoadingSpinner fullScreen={false} size={24} py={3} />
                   </TableCell>
                 </TableRow>
               ) : requests.length === 0 ? (

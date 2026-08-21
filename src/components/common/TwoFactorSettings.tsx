@@ -1,7 +1,8 @@
-import { Alert, Box, Button, Chip, CircularProgress, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { isAxiosError } from "axios";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
+import LoadingSpinner from "./LoadingSpinner";
 import {
   confirmSelfServiceTwoFactorEnrollment,
   disableTwoFactor,
@@ -101,11 +102,7 @@ export default function TwoFactorSettings() {
   };
 
   if (state.step === "loading") {
-    return (
-      <Box display="flex" justifyContent="center" py={2}>
-        <CircularProgress size={20} />
-      </Box>
-    );
+    return <LoadingSpinner fullScreen={false} size={20} py={2} />;
   }
 
   if (state.step === "backupCodes") {

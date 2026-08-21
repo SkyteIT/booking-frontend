@@ -1,8 +1,9 @@
 // Screen component: wires hook data/actions into presentational components.
 // It coordinates layout only and avoids business logic.
-import { Alert, Box, CircularProgress, Container, Grid } from "@mui/material";
+import { Alert, Box, Container, Grid } from "@mui/material";
 import FiltersSidebar from "../components/FiltersSidebar";
 import ResultsGrid from "../components/ResultsGrid";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import SearchToolbar from "../components/SearchToolbar";
 import { useSearchResults } from "../hooks/useSearchResults";
 
@@ -26,18 +27,18 @@ const SearchResultsScreen = () => {
   } = useSearchResults();
 
   return (
-        <Box
-          sx={{
-            backgroundColor: "background.default",
-            backgroundImage:
-              "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
-            backgroundRepeat: "no-repeat",
-            minHeight: "70vh",
-            pt: { xs: 4, md: 8 },
-            pb: { xs: 4, md: 6 },
-          }}
-        >
-      <Container maxWidth="xl" sx={{ px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
+    <Box
+      sx={{
+        backgroundColor: "background.default",
+        backgroundImage:
+          "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
+        backgroundRepeat: "no-repeat",
+        minHeight: "70vh",
+        pt: { xs: 16, md: 18 },
+        pb: { xs: 4, md: 6 },
+      }}
+    >
+      <Container maxWidth="lg">
         <SearchToolbar query={filters.q} total={listings.length} onQueryChange={setQuery} />
 
         {error && (
@@ -68,9 +69,7 @@ const SearchResultsScreen = () => {
 
           <Grid size={{ xs: 12, md: 9 }}>
             {loading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
-                <CircularProgress sx={{ color: "primary.main" }} />
-              </Box>
+              <LoadingSpinner fullScreen={false} py={10} />
             ) : (
               <ResultsGrid listings={filteredListings} />
             )}

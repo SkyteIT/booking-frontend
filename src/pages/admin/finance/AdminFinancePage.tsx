@@ -6,20 +6,19 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Divider,
   Stack,
-  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
+import SegmentedTabs from "../../../components/common/SegmentedTabs";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useAuth } from "../../../context/useAuth";
 import {
   approvePayoutExport,
@@ -143,11 +142,14 @@ export default function AdminFinancePage() {
         </Alert>
       )}
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3, borderBottom: "1px solid", borderColor: "divider" }}>
-        <Tab label="Payout Batches" value="payouts" />
-        <Tab label="Vendor Invoices" value="invoices" />
-        <Tab label="Commission Policy" value="commission" />
-      </Tabs>
+      <Box sx={{ mb: 3 }}>
+        <SegmentedTabs
+          options={["payouts", "invoices", "commission"] as const}
+          value={tab}
+          labels={{ payouts: "Payout Batches", invoices: "Vendor Invoices", commission: "Commission Policy" }}
+          onChange={setTab}
+        />
+      </Box>
 
       {!canManageFinance && (
         <Alert severity="info" sx={{ mb: 3 }}>
@@ -362,7 +364,7 @@ function PayoutBatchesTab({ vendor, canManage, onError, onNotice }: TabProps) {
             )}
 
             {loading ? (
-              <CircularProgress size={24} />
+              <LoadingSpinner fullScreen={false} size={24} py={2} />
             ) : batches.length === 0 ? (
               <Typography color="text.secondary">No payout batches for this vendor yet.</Typography>
             ) : (
@@ -421,7 +423,7 @@ function PayoutBatchesTab({ vendor, canManage, onError, onNotice }: TabProps) {
         )}
 
         {exportRunsLoading ? (
-          <CircularProgress size={20} />
+          <LoadingSpinner fullScreen={false} size={20} py={2} />
         ) : exportRuns.length === 0 ? (
           <Typography color="text.secondary">No export runs awaiting approval.</Typography>
         ) : (
@@ -624,7 +626,7 @@ function VendorInvoicesTab({ vendor, canManage, onError, onNotice }: TabProps) {
             )}
 
             {loading ? (
-              <CircularProgress size={24} />
+              <LoadingSpinner fullScreen={false} size={24} py={2} />
             ) : invoices.length === 0 ? (
               <Typography color="text.secondary">No invoices for this vendor yet.</Typography>
             ) : (
@@ -832,7 +834,7 @@ function CommissionPolicyTab({ vendor, canManage, onError, onNotice }: TabProps)
             )}
 
             {loading ? (
-              <CircularProgress size={24} />
+              <LoadingSpinner fullScreen={false} size={24} py={2} />
             ) : overrides.length === 0 ? (
               <Typography color="text.secondary">No commission overrides for this vendor.</Typography>
             ) : (
@@ -906,7 +908,7 @@ function CommissionPolicyTab({ vendor, canManage, onError, onNotice }: TabProps)
         )}
 
         {tiersLoading ? (
-          <CircularProgress size={24} />
+          <LoadingSpinner fullScreen={false} size={24} py={2} />
         ) : tiers.length === 0 ? (
           <Typography color="text.secondary">No loyalty tiers configured.</Typography>
         ) : (

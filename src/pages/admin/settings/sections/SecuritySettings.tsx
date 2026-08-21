@@ -1,5 +1,8 @@
+import { Alert, Box, Button, Divider, Paper, Stack, TextField, Typography } from "@mui/material";
+import { isAxiosError } from "axios";
 import { useState } from "react";
-import { Box, Button, FormControlLabel, Paper, Stack, Switch, TextField, Typography } from "@mui/material";
+import TwoFactorSettings from "../../../../components/common/TwoFactorSettings";
+import { changePassword } from "../../../../services/Vendor/settings";
 
 const cardSx = {
   p: 3,
@@ -8,17 +11,40 @@ const cardSx = {
   boxShadow: "0 12px 30px rgba(15,23,42,0.05)",
 };
 
-export default function SecuritySettings() {
-  const [form, setForm] = useState({
-    require2FA: true,
-    sessionTimeout: "30",
-    passwordRotation: true,
-    loginAlerts: true,
-    apiAccessEnabled: false,
-  });
+const getApiErrorMessage = (error: unknown): string => {
+  if (!isAxiosError(error)) return "Something went wrong.";
+  const data = error.response?.data;
+  if (typeof data === "string") return data;
+  if (data && typeof data === "object") {
+    return (data as { message?: string }).message ?? "Something went wrong.";
+  }
+  return "Something went wrong.";
+};
 
-  const set = (field: keyof typeof form, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+export default function SecuritySettings() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || newPassword !== confirmPassword) return;
+    setSaving(true);
+    setError("");
+    setSaved(false);
+    try {
+      await changePassword({ currentPassword, newPassword, confirmPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setSaved(true);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -28,43 +54,69 @@ export default function SecuritySettings() {
           Security
         </Typography>
         <Typography color="text.secondary">
-          Protect privileged access, sessions, and login activity.
+          Protect your account and privileged access.
         </Typography>
       </Box>
 
       <Paper sx={cardSx}>
-        <Stack spacing={1.25}>
-          <TextField
-            label="Session Timeout (minutes)"
-            type="number"
-            value={form.sessionTimeout}
-            onChange={(e) => set("sessionTimeout", e.target.value)}
-            fullWidth
-          />
-          <FormControlLabel
-            control={<Switch checked={form.require2FA} onChange={(e) => set("require2FA", e.target.checked)} />}
-            label="Require 2FA"
-          />
-          <FormControlLabel
-            control={<Switch checked={form.passwordRotation} onChange={(e) => set("passwordRotation", e.target.checked)} />}
-            label="Password rotation reminders"
-          />
-          <FormControlLabel
-            control={<Switch checked={form.loginAlerts} onChange={(e) => set("loginAlerts", e.target.checked)} />}
-            label="Login alerts"
-          />
-          <FormControlLabel
-            control={<Switch checked={form.apiAccessEnabled} onChange={(e) => set("apiAccessEnabled", e.target.checked)} />}
-            label="API access for integrations"
-          />
+        <Stack spacing={3}>
+          <Box>
+            <Typography fontWeight={700} mb={1.5}>
+              Change password
+            </Typography>
+            <Stack spacing={1.5} maxWidth={480}>
+              <TextField
+                label="Current password"
+                type="password"
+                size="small"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+              <TextField
+                label="New password"
+                type="password"
+                size="small"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <TextField
+                label="Confirm new password"
+                type="password"
+                size="small"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                error={confirmPassword.length > 0 && confirmPassword !== newPassword}
+                helperText={confirmPassword.length > 0 && confirmPassword !== newPassword ? "Passwords don't match" : " "}
+              />
+              {error && <Alert severity="error">{error}</Alert>}
+              {saved && (
+                <Alert severity="success" onClose={() => setSaved(false)}>
+                  Password updated.
+                </Alert>
+              )}
+              <Button
+                variant="contained"
+                disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword}
+                onClick={handleChangePassword}
+                sx={{ alignSelf: "flex-start" }}
+              >
+                {saving ? "Saving..." : "Update password"}
+              </Button>
+            </Stack>
+          </Box>
 
-          <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
-            <Button size="small" variant="contained" sx={{ textTransform: "none", px: 1.5, py: 0.75, fontSize: 12 }}>
-              Save Security
-            </Button>
-            <Button size="small" variant="outlined" sx={{ textTransform: "none", px: 1.5, py: 0.75, fontSize: 12 }}>
-              Reset
-            </Button>
+          <Divider />
+
+          <Box>
+            <Typography fontWeight={700} mb={1.5}>
+              Two-factor authentication
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={1.5}>
+              Required for Admin/Finance/SuperAdmin accounts - this was already
+              set up when you first logged in. Manage it here if you need to
+              reset it.
+            </Typography>
+            <TwoFactorSettings />
           </Box>
         </Stack>
       </Paper>

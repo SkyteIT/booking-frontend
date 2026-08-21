@@ -13,11 +13,11 @@ import {
   Paper,
   Button,
   IconButton,
-  CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
 import { useNotifications } from "../../../hooks/useNotifications";
 import type { Notification } from "../../../services/notificationService";
+import LoadingSpinner from "../../common/LoadingSpinner";
 import { belongsToPortal } from "../../../utils/notificationPortals";
 import SegmentedTabs from "../../common/SegmentedTabs";
 
@@ -143,9 +143,7 @@ const UserNotifications = ({ userId }: UserNotificationsProps) => {
         </Box>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" py={6}>
-            <CircularProgress color="primary" size={32} />
-          </Box>
+          <LoadingSpinner fullScreen={false} size={32} />
         ) : filtered.length === 0 ? (
           <Box py={7} textAlign="center">
             <NotificationsNoneIcon sx={{ fontSize: 44, color: "#b0bec5", mb: 1 }} />

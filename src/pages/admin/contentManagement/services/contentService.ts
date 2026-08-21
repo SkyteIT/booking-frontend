@@ -225,8 +225,10 @@ export const deleteBanner = async (id: string): Promise<void> => {
 // Derive promotion status from dates — more reliable than trusting isActive alone.
 //   endDate in the past        → "Expired"
 //   isActive explicitly false  → "Draft"
+//   startDate in the future    → "Draft"
 //   otherwise                  → "Active"
 const derivePromotionStatus = (
+  startDate: string,
   endDate: string,
   isActive: boolean | undefined
 ): "Active" | "Expired" | "Draft" => {
@@ -240,6 +242,12 @@ const derivePromotionStatus = (
   }
 
   if (isActive === false) return "Draft";
+
+  if (startDate) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    if (start > today) return "Draft";
+  }
 
   return "Active";
 };
@@ -262,7 +270,7 @@ const normalizePromotion = (p: any): Promotion => {
     usageLimit: p.usageLimit ?? null,
     startDate,
     endDate,
-    status: derivePromotionStatus(endDate, p.isActive),
+    status: derivePromotionStatus(startDate, endDate, p.isActive),
   };
 };
 

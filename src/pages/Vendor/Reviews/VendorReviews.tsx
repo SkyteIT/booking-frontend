@@ -16,6 +16,7 @@ import { alpha } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useAuth } from "../../../context/useAuth";
 import {
   getVendorReviews,
@@ -114,9 +115,17 @@ export default function VendorReviews() {
       <Box>
         <Typography
           variant="h5"
-          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          sx={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "2px",
+          }}
         >
           Reviews & Questions
+          <Box component="span" sx={{ width: 8, height: 8, borderRadius: "3px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
         </Typography>
         <Typography variant="body2" color="text.secondary">
           See what customers are saying, reply to reviews, and answer their questions
@@ -180,9 +189,7 @@ export default function VendorReviews() {
               </Typography>
             </Box>
           ) : loading ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-              Loading reviews...
-            </Typography>
+            <LoadingSpinner fullScreen={false} py={3} />
           ) : reviews.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
               No reviews yet

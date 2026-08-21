@@ -27,6 +27,7 @@ import { getCurrentUser, updateProfile, uploadProfileImage } from "../../service
 import { changePassword } from "../../services/Vendor/settings";
 import { resolveAssetUrl } from "../Vendor/Settings/vendorSettings";
 import CustomerPageLayout from "./CustomerPageLayout";
+//import { size } from "zod";
 
 // Only customer-facing events that actually exist in the backend enum
 // (Ube.Domain.Enums.Notifications.NotificationType) - kept in sync with
@@ -270,7 +271,8 @@ export default function CustomerSettings() {
   const [tab, setTab] = useState<"profile" | "security" | "notifications">("profile");
 
   return (
-    <CustomerPageLayout title="Settings" subtitle="Update your account settings.">
+  
+      <CustomerPageLayout title="Settings">
       <Card sx={{ borderRadius: "20px", border: "1px solid", borderColor: "divider", boxShadow: "0 12px 32px rgba(15,27,45,0.06)" }}>
         <Box sx={{ px: 3, pt: 2.5, pb: 2, borderBottom: "1px solid", borderColor: "divider" }}>
           <SegmentedTabs

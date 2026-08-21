@@ -1,19 +1,22 @@
 import { Close, Add } from '@mui/icons-material';
 import {
-  Box, Typography, Button, Paper, Tabs, Tab,
+  Box, Typography, Button, Paper,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
   TextField, Select, FormControl, InputLabel, MenuItem, Chip,
   IconButton, Alert, Pagination,
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import SegmentedTabs from '../../components/common/SegmentedTabs';
 import SnackbarAlert from '../../components/common/SnackbarAlert';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   getRefunds, approveRefund, rejectRefund,
   getDisputes, recordDispute, resolveDispute,
   type AdminRefundDto, type AdminDisputeDto,
 } from '../../services/Admin/paymentsService';
 
+const MAIN_TABS = ['Refunds', 'Disputes'] as const;
 const REFUND_TABS = ['All', 'Requested', 'Approved', 'Processed', 'Rejected'] as const;
 const DISPUTE_TABS = ['All', 'Opened', 'Won', 'Lost', 'Withdrawn'] as const;
 const PAGE_SIZE = 10;
@@ -214,41 +217,23 @@ export const DisputesRefundsPage: React.FC = () => {
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Review refund requests and manage payment disputes</Typography>
       </Box>
 
-      <Paper
-        sx={{
-          mb: 3,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
-        }}
-      >
-        <Tabs value={mainTab} onChange={(_, val) => setMainTab(val)} sx={{ px: 2, pt: 1 }}>
-          <Tab label="Refunds" sx={{ textTransform: 'none', fontWeight: 500 }} />
-          <Tab label="Disputes" sx={{ textTransform: 'none', fontWeight: 500 }} />
-        </Tabs>
-      </Paper>
+      <Box sx={{ mb: 3 }}>
+        <SegmentedTabs
+          options={MAIN_TABS}
+          value={MAIN_TABS[mainTab]}
+          onChange={(v) => setMainTab(MAIN_TABS.indexOf(v))}
+        />
+      </Box>
 
       {mainTab === 0 && (
         <>
-          <Paper
-            sx={{
-              p: 2,
-              mb: 3,
-              borderRadius: 3,
-              border: "1px solid",
-              borderColor: "divider",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-              background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
-            }}
-          >
-            <Tabs value={refundTab} onChange={(_, val) => { setRefundTab(val); setRefundPage(1); }}>
-              {REFUND_TABS.map((label) => (
-                <Tab key={label} label={label} sx={{ textTransform: 'none', fontWeight: 500 }} />
-              ))}
-            </Tabs>
-          </Paper>
+          <Box sx={{ mb: 3 }}>
+            <SegmentedTabs
+              options={REFUND_TABS}
+              value={REFUND_TABS[refundTab]}
+              onChange={(v) => { setRefundTab(REFUND_TABS.indexOf(v)); setRefundPage(1); }}
+            />
+          </Box>
 
           <Paper
             sx={{
@@ -273,9 +258,7 @@ export const DisputesRefundsPage: React.FC = () => {
                   {refundsLoading ? (
                     <TableRow>
                       <TableCell colSpan={8}>
-                        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                          Loading refunds...
-                        </Typography>
+                        <LoadingSpinner fullScreen={false} size={24} py={3} />
                       </TableCell>
                     </TableRow>
                   ) : refunds.length === 0 ? (
@@ -352,11 +335,11 @@ export const DisputesRefundsPage: React.FC = () => {
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-              <Tabs value={disputeTab} onChange={(_, val) => { setDisputeTab(val); setDisputePage(1); }}>
-                {DISPUTE_TABS.map((label) => (
-                  <Tab key={label} label={label} sx={{ textTransform: 'none', fontWeight: 500 }} />
-                ))}
-              </Tabs>
+              <SegmentedTabs
+                options={DISPUTE_TABS}
+                value={DISPUTE_TABS[disputeTab]}
+                onChange={(v) => { setDisputeTab(DISPUTE_TABS.indexOf(v)); setDisputePage(1); }}
+              />
               <Button variant="contained" startIcon={<Add />} onClick={() => setRecordOpen(true)}
                 sx={{ textTransform: 'none', background: 'linear-gradient(160deg, #005a8d, #0077b6)', borderRadius: '999px', '&:hover': { background: 'linear-gradient(160deg, #004a75, #005a8d)' } }}>
                 Record Dispute
@@ -387,9 +370,7 @@ export const DisputesRefundsPage: React.FC = () => {
                   {disputesLoading ? (
                     <TableRow>
                       <TableCell colSpan={8}>
-                        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                          Loading disputes...
-                        </Typography>
+                        <LoadingSpinner fullScreen={false} size={24} py={3} />
                       </TableCell>
                     </TableRow>
                   ) : disputes.length === 0 ? (

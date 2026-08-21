@@ -1,6 +1,7 @@
 import { Box, Card, CardContent, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import ListingOffersPanel from "../../../components/Vendor/Pricing/ListingOffersPanel";
 import SeasonalPricingPanel from "../../../components/Vendor/Pricing/SeasonalPricingPanel";
 import { getVendorListings, type ListingResponse } from "../../../services/Vendor/listingService";
@@ -29,9 +30,17 @@ export default function Pricing() {
       <Box>
         <Typography
           variant="h5"
-          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          sx={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "2px",
+          }}
         >
           Pricing &amp; Promotions
+          <Box component="span" sx={{ width: 8, height: 8, borderRadius: "3px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Set seasonal rate rules and post customer-facing offers for your listings.
@@ -49,7 +58,7 @@ export default function Pricing() {
       >
         <CardContent>
           {loading ? (
-            <Typography color="text.secondary">Loading your listings...</Typography>
+            <LoadingSpinner fullScreen={false} py={3} />
           ) : listings.length === 0 ? (
             <Typography color="text.secondary">You don't have any listings yet.</Typography>
           ) : (

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Box, Typography, Button, Paper, Tabs, Tab, TextField,
+  Box, Typography, Button, Paper, TextField,
   IconButton, Chip, InputAdornment, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -14,7 +14,9 @@ import {
   exportBookingsCsv,
   type AdminBookingDto,
 } from '../../services/Admin/adminService';
+import SegmentedTabs from '../../components/common/SegmentedTabs';
 import SnackbarAlert from '../../components/common/SnackbarAlert';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const TAB_STATUSES = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
 
@@ -237,11 +239,11 @@ export const BookingOversightPage: React.FC = () => {
         }}
       >
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)}>
-            {TAB_STATUSES.map((label) => (
-              <Tab key={label} label={label} sx={{ textTransform: 'none', fontWeight: 500 }} />
-            ))}
-          </Tabs>
+          <SegmentedTabs
+            options={TAB_STATUSES}
+            value={TAB_STATUSES[activeTab]}
+            onChange={(v) => setActiveTab(TAB_STATUSES.indexOf(v))}
+          />
           <Box sx={{ flex: 1, minWidth: 250 }}>
             <TextField fullWidth size="small" placeholder="Search bookings..."
               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
@@ -301,9 +303,7 @@ export const BookingOversightPage: React.FC = () => {
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={7}>
-                      <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                        Loading bookings...
-                      </Typography>
+                      <LoadingSpinner fullScreen={false} size={24} py={3} />
                     </TableCell>
                   </TableRow>
                 ) : filteredBookings.length === 0 ? (

@@ -2,6 +2,7 @@ import { Card, CardContent, Typography, Button, Box, Stack } from "@mui/material
 import { useNavigate } from "react-router-dom";
 import BookingCard from "../../Bookings/BookingCard";
 import type { CustomerBookingListItem } from "../../../services/Customer/bookingService";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 type UpcomingBookingsProps = {
   bookings: CustomerBookingListItem[];
@@ -28,7 +29,7 @@ const UpcomingBookings = ({ bookings, loading }: UpcomingBookingsProps) => {
         </Box>
 
         {loading ? (
-          <Typography color="text.secondary">Loading...</Typography>
+          <LoadingSpinner fullScreen={false} py={3} />
         ) : bookings.length === 0 ? (
           <Typography color="text.secondary">No upcoming bookings</Typography>
         ) : (

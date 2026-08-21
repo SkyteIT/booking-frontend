@@ -1,7 +1,8 @@
 // ViewProduct page — reads :id from the URL, fetches the matching
 // listing from the backend, then composes the three sub-components.
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Box, Container, Button, IconButton, Typography, CircularProgress, Alert } from "@mui/material";
+import { Box, Container, Button, IconButton, Typography, Alert } from "@mui/material";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getListingById } from "../../../services/Vendor/listingService";
@@ -67,9 +68,8 @@ const ViewProduct = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ pt: 20, pb: 8, textAlign: "center" }}>
-        <CircularProgress sx={{ color: "primary.main" }} />
-        <Typography sx={{ mt: 2, color: "text.secondary" }}>Loading details...</Typography>
+      <Container maxWidth="lg" sx={{ pt: 20, pb: 8 }}>
+        <LoadingSpinner fullScreen={false} message="Loading details..." />
       </Container>
     );
   }

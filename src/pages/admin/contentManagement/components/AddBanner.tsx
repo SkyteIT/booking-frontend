@@ -13,7 +13,9 @@ import { createBanner, PLACEMENT_OPTIONS } from "../services/contentService";
 const cardStyle = {
   p: 3,
   borderRadius: 3,
-  boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+  border: "1px solid rgba(15,27,45,0.06)",
+  background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
   mb: 0,
 };
 
@@ -112,15 +114,20 @@ export default function AddBanner() {
   const isScheduled = form.startDate && form.startDate > today;
 
   return (
-    <Box sx={{ p: 3, bgcolor: "#f4f6f8", minHeight: "100vh" }}>
+    <Box>
       {/* HEADER */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleCancel} size="small">
             <ArrowBackIcon />
           </IconButton>
           <Box>
-            <Typography variant="h5" fontWeight={700}>Add New Banner</Typography>
+            <Typography
+              variant="h5"
+              sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+            >
+              Add New Banner
+            </Typography>
             <Typography variant="body2" color="text.secondary">
               Create a promotional banner for your platform
             </Typography>
@@ -128,13 +135,25 @@ export default function AddBanner() {
         </Box>
 
         <Box display="flex" gap={1}>
-          <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
+          <Button
+            variant="outlined"
+            onClick={handleCancel}
+            sx={{ borderRadius: "999px", textTransform: "none", borderColor: "#E2E8F0", color: "#64748B" }}
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ bgcolor: "#0077B6", "&:hover": { bgcolor: "#005A8D" } }}
+            sx={{
+              borderRadius: "999px",
+              textTransform: "none",
+              background: "linear-gradient(160deg, #005a8d, #0077b6)",
+              boxShadow: "0 4px 14px rgba(0,119,182,0.32)",
+              "&:hover": { background: "linear-gradient(160deg, #004a75, #005a8d)" },
+            }}
           >
             {saving ? "Saving..." : "Save Banner"}
           </Button>
@@ -251,7 +270,7 @@ export default function AddBanner() {
                 textAlign: "center", cursor: "pointer",
                 bgcolor: imagePreview ? "transparent" : "#f8fafc",
                 display: "block", mb: 2,
-                "&:hover": { borderColor: "#0077B6", bgcolor: "#f0f7ff" },
+                "&:hover": { borderColor: "#0077b6", bgcolor: "rgba(0,119,182,0.05)" },
                 transition: "all 0.2s",
               }}
             >
@@ -333,8 +352,8 @@ export default function AddBanner() {
                   checked={form.status}
                   onChange={(e) => handleChange("status", e.target.checked)}
                   sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": { color: "#0077B6" },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#0077B6" },
+                    "& .MuiSwitch-switchBase.Mui-checked": { color: "#0077b6" },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#0077b6" },
                   }}
                 />
               }
@@ -358,7 +377,7 @@ export default function AddBanner() {
           </Paper>
 
           {/* Preview */}
-          <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg,#0077B6,#00B4D8)", color: "#fff" }}>
+          <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(160deg, #005a8d, #0077b6)", color: "#fff" }}>
             <Typography fontWeight={600} mb={2}>Banner Preview</Typography>
             {[
               { label: "Title",     value: form.title || "—" },

@@ -11,6 +11,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ListingType } from "../../../../services/Vendor/listingService";
 import { getCategoryById, updateCategoryFull } from "../services/contentService";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import { EMOJI_GROUPS } from "../utils/emojiOptions";
 
 const LISTING_TYPES: ListingType[] = ["Hotel", "Restaurant", "Event", "CarRental", "Activity"];
@@ -102,9 +103,7 @@ export default function EditCategory({ categoryId, open, onClose, onSaved }: Edi
 
   // ── Shared inner content (used in both modal + standalone) ──
   const innerContent = loading ? (
-    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-      <CircularProgress />
-    </Box>
+    <LoadingSpinner fullScreen={false} py={8} />
   ) : (
     <Box display="flex" flexDirection="column" gap={2}>
 

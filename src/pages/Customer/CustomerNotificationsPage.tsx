@@ -7,7 +7,7 @@ export default function CustomerNotificationsPage() {
   const userId = user?.userId ?? user?.id ?? null;
 
   return (
-    <CustomerPageLayout title="Notifications" subtitle="Stay updated on your bookings and account activity.">
+    <CustomerPageLayout title="Notifications" >
       <UserNotifications userId={userId} />
     </CustomerPageLayout>
   );

@@ -12,6 +12,7 @@ import {
   Chip,
 } from "@mui/material";
 import { resolveAssetUrl } from "../../../pages/Vendor/Settings/vendorSettings";
+import LoadingSpinner from "../../common/LoadingSpinner";
 import type { VendorApplicationDetail } from "../../../services/Admin/vendor";
 
 type Props = {
@@ -114,7 +115,7 @@ export default function VendorDetailsDialog({
       {/* CONTENT */}
       <DialogContent sx={{ px: 3, py: 2.5 }}>
         {loading ? (
-          <Typography color="text.secondary">Loading...</Typography>
+          <LoadingSpinner fullScreen={false} py={4} />
         ) : vendor ? (
           <Stack spacing={3}>
             {/* TOP INFO */}
