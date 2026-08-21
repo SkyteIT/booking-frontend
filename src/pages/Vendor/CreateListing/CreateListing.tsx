@@ -102,7 +102,7 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     categoryId: listing.categoryId,
     isActive: listing.isActive,
     currency: listing.currency ?? "LKR",
-    imageUrls: listing.images?.join(", ") ?? "",
+    images: listing.images ?? [],
     tagsInput: listing.tags?.join(", ") ?? "",
     cancellationPolicy: listing.cancellationPolicy ?? "",
   };
@@ -179,9 +179,7 @@ function buildCreateListingRequest(
     currency: data.currency || "LKR",
     location: data.location,
     isActive: data.isActive ?? true,
-    images: data.imageUrls
-      ? data.imageUrls.split(",").map((u) => u.trim()).filter(Boolean)
-      : data.images?.filter(Boolean) ?? [],
+    images: data.images?.filter(Boolean) ?? [],
     tags: data.tagsInput
       ? data.tagsInput.split(",").map((t) => t.trim()).filter(Boolean)
       : [],
@@ -288,6 +286,7 @@ const CreateListing = () => {
     defaultValues: {
       category: "Hotel",
       currency: "LKR",
+      images: [],
       ticketTypes: [
         { type: "General Admission", quantity: 100, price: 50 },
         { type: "VIP", quantity: 100, price: 150 },

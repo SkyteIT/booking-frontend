@@ -62,9 +62,7 @@ export default function ReviewStep({
   isEditMode,
 }: ReviewStepProps) {
   const categoryName = categories.find((c) => c.id === data.categoryId)?.name ?? data.category;
-  const imageCount = data.imageUrls
-    ? data.imageUrls.split(",").map((u) => u.trim()).filter(Boolean).length
-    : 0;
+  const imageCount = data.images?.filter(Boolean).length ?? 0;
 
   return (
     <Box>
