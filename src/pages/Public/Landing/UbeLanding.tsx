@@ -37,9 +37,9 @@ const UbeLanding = () => {
   useRevealOnScroll();
   useStageTilt(stageRef);
 
-  const chips = categories.map((c, i) => ({
+  const chips = categories.slice(0, CHIP_POS.length).map((c, i) => ({
     ...c,
-    ...CHIP_POS[i % CHIP_POS.length],
+    ...CHIP_POS[i],
     bg: GRADIENTS[i % GRADIENTS.length],
   }));
   const fanCards = categories.map((c, i) => ({
