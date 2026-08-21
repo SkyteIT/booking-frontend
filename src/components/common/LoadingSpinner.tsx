@@ -26,7 +26,9 @@ export default function LoadingSpinner({ fullScreen = true, size = 32, py = 6, m
           inset: 0,
           display: "grid",
           placeItems: "center",
-          background: "linear-gradient(160deg, #005a8d, #0077b6)",
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 40%, rgba(0,119,182,0.16), transparent 70%), rgba(255,255,255,0.72)",
+          backdropFilter: "blur(6px)",
           zIndex: (theme) => theme.zIndex.appBar + 100,
         }}
       >
@@ -41,8 +43,7 @@ export default function LoadingSpinner({ fullScreen = true, size = 32, py = 6, m
                 inset: 0,
                 borderRadius: "50%",
                 border: "5px solid",
-                borderColor: "rgba(255,255,255,0.55)",
-                boxShadow: "0 0 30px rgba(0,180,216,0.5)",
+                borderColor: "rgba(0,119,182,0.16)",
               }}
             />
             {/* Rotating orbit arc */}
@@ -52,8 +53,8 @@ export default function LoadingSpinner({ fullScreen = true, size = 32, py = 6, m
                 inset: -14,
                 borderRadius: "50%",
                 border: "5px solid transparent",
-                borderTopColor: "#00b4d8",
-                borderRightColor: "#7fe7f7",
+                borderTopColor: "#0077b6",
+                borderRightColor: "#00b4d8",
                 animation: `${orbitSpin} 1.1s linear infinite`,
               }}
             />
@@ -63,8 +64,8 @@ export default function LoadingSpinner({ fullScreen = true, size = 32, py = 6, m
                 width: 30,
                 height: 30,
                 borderRadius: "50%",
-                background: "radial-gradient(circle at 35% 30%, #7fe7f7, #ffffff 70%)",
-                boxShadow: "0 0 24px 6px rgba(0,180,216,0.6)",
+                background: "linear-gradient(160deg, #005a8d, #0077b6)",
+                boxShadow: "0 0 24px 6px rgba(0,119,182,0.4)",
                 animation: `${corePulse} 1.6s ease-in-out infinite`,
               }}
             />
@@ -78,11 +79,7 @@ export default function LoadingSpinner({ fullScreen = true, size = 32, py = 6, m
               display: "flex",
               alignItems: "baseline",
               gap: "4px",
-              background: "linear-gradient(160deg, #ffffff, #bdeaf5)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-              textShadow: "0 2px 24px rgba(0,0,0,0.3)",
+              color: "#0077b6",
             }}
           >
             UBE
@@ -93,7 +90,7 @@ export default function LoadingSpinner({ fullScreen = true, size = 32, py = 6, m
                 height: 8,
                 borderRadius: "2px",
                 background: "#00b4d8",
-                boxShadow: "0 0 10px 2px rgba(0,180,216,0.6)",
+                boxShadow: "0 0 10px 2px rgba(0,180,216,0.5)",
               }}
             />
           </Typography>
