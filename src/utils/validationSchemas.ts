@@ -169,22 +169,44 @@ export type PaymentFormData = z.infer<typeof paymentSchema>;
 
 //  Vendor Application - Business Info step
 export const vendorBusinessInfoSchema = z.object({
-  businessName: z.string().min(1, "Business name is required").min(3, "Business name must be at least 3 characters").max(200, "Business name is too long"),
-  businessType: z.string().min(1, "Business type is required").max(200, "Business type is too long"),
+  businessName: z
+    .string()
+    .min(1, "Business name is required")
+    .min(3, "Business name must be at least 3 characters")
+    .max(200, "Business name is too long"),
+
+  businessType: z
+    .string()
+    .min(1, "Business type is required")
+    .max(200, "Business type is too long"),
+
   taxId: z
     .string()
-    .min(1, "Tax ID / EIN is required")
-    .regex(/^[A-Za-z0-9-]{4,100}$/, "Tax ID must be 4-100 alphanumeric characters"),
+    .trim()
+    .max(100, "Tax ID is too long")
+    .refine(
+      (value) => value === "" || /^[A-Za-z0-9-]{4,100}$/.test(value),
+      "Tax ID must be 4-100 alphanumeric characters"
+    )
+    .optional(),
+
   website: z
     .string()
     .max(300, "Website URL is too long")
     .optional()
     .or(z.literal(""))
     .refine(
-      (v) => !v || /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v),
+      (value) =>
+        !value ||
+        /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(value),
       "Enter a valid website URL"
     ),
-  address: z.string().min(1, "Business address is required").min(5, "Address is too short").max(500, "Address is too long"),
+
+  address: z
+    .string()
+    .min(1, "Business address is required")
+    .min(5, "Address is too short")
+    .max(500, "Address is too long"),
 });
 
 export type VendorBusinessInfoFormData = z.infer<typeof vendorBusinessInfoSchema>;

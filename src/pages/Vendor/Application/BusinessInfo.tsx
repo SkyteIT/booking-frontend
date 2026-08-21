@@ -107,18 +107,21 @@ const BusinessInfo = (): JSX.Element => {
             </Box>
 
             <Box>
-              <Typography className="field-label">Tax ID / EIN</Typography>
-              <TextField
-                placeholder="12-3456789"
-                fullWidth
-                variant="outlined"
-                value={formData.taxId}
-                onChange={(e) => handleChange("taxId", e.target.value)}
-                error={!!errors.taxId}
-                helperText={errors.taxId}
-                inputProps={{ maxLength: 100 }}
-              />
-            </Box>
+  <Typography className="field-label">
+    Tax ID / EIN (optional)
+  </Typography>
+
+  <TextField
+    placeholder="12-3456789"
+    fullWidth
+    variant="outlined"
+    value={formData.taxId}
+    onChange={(e) => handleChange("taxId", e.target.value)}
+    error={!!errors.taxId}
+    helperText={errors.taxId}
+    inputProps={{ maxLength: 100 }}
+  />
+</Box>
 
             <Box>
               <Typography className="field-label">
