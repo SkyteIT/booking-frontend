@@ -27,7 +27,7 @@ import { getCurrentUser, updateProfile, uploadProfileImage } from "../../service
 import { changePassword } from "../../services/Vendor/settings";
 import { resolveAssetUrl } from "../Vendor/Settings/vendorSettings";
 import CustomerPageLayout from "./CustomerPageLayout";
-import { size } from "zod";
+//import { size } from "zod";
 
 // Only customer-facing events that actually exist in the backend enum
 // (Ube.Domain.Enums.Notifications.NotificationType) - kept in sync with

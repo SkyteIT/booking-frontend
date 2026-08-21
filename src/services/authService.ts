@@ -55,8 +55,6 @@ export const register = async (payload: {
     name: `${payload.firstName} ${payload.lastName}`,
   });
 
-  saveAuthToken(res.data);
-
   return res.data;
 };
 
@@ -121,6 +119,7 @@ export const resetPassword = async (token: string, newPassword: string) => {
 export const verifyEmail = async (token: string) => {
   const res = await api.post<{ message: string }>("/auth/verify-email", null, {
     params: { token },
+    skipAuthRedirect: true,
   });
   return res.data;
 };
