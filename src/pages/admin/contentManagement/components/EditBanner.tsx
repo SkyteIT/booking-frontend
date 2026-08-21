@@ -11,6 +11,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBannerById, updateBanner, PLACEMENT_OPTIONS } from "../services/contentService";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const cardStyle = {
   p: 3,
@@ -139,9 +140,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
   const isScheduled = form.startDate && form.startDate > today;
 
   const formContent = loading ? (
-    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-      <CircularProgress />
-    </Box>
+    <LoadingSpinner fullScreen={false} py={8} />
   ) : (
     <Box sx={{ p: open ? 0 : 3, bgcolor: open ? "transparent" : "#f4f6f8", minHeight: open ? 0 : "100vh" }}>
       {/* HEADER (standalone page only) */}

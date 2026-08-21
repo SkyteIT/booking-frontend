@@ -3,9 +3,10 @@ import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
 import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
-import { Alert, Box, Button, CircularProgress, Divider, Paper, Stack, Switch, Typography } from "@mui/material";
+import { Alert, Box, Button, Divider, Paper, Stack, Switch, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/useAuth";
+import LoadingSpinner from "./LoadingSpinner";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { NotificationPreference } from "../../services/notificationService";
 import {
@@ -96,11 +97,7 @@ export default function NotificationPreferencesSection({ groups }: NotificationP
   };
 
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" py={6}>
-        <CircularProgress size={28} />
-      </Box>
-    );
+    return <LoadingSpinner fullScreen={false} size={28} />;
   }
 
   return (

@@ -5,11 +5,11 @@ import {
   Box,
   Stack,
   Typography,
-  CircularProgress,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getBookings } from "../../../services/Bookings/booking";
 import type { VendorBookingDto } from "../../Bookings/BookingTypes";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 type Props = {
   date: string | null;
@@ -70,7 +70,7 @@ export default function BookingsByDateDialog({
 
       <DialogContent>
         {loading ? (
-          <CircularProgress />
+          <LoadingSpinner fullScreen={false} />
         ) : (
           <Stack spacing={1}>
             {data.map((b) => (

@@ -18,11 +18,11 @@ import {
   FormControl,
   InputAdornment,
   Chip,
-  CircularProgress,
 } from "@mui/material";
 import type { ListingUnitDto } from "../../../../../services/Vendor/listingUnitsService";
 import type { Listing } from "../../../Search/utils/types";
 import { getQuantityConfig } from "../../utils/quantityConfig";
+import LoadingSpinner from "../../../../../components/common/LoadingSpinner";
 
 // Shared field treatment for this section - a soft tinted fill instead of
 // a plain white outline, consistent with the rest of the redesigned page
@@ -63,11 +63,7 @@ const BookingOptions = ({
   onGuestsChange,
 }: BookingOptionsProps) => {
   if (unitsLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress size={28} />
-      </Box>
-    );
+    return <LoadingSpinner fullScreen={false} size={28} py={4} />;
   }
 
   const seatUnits = units?.filter((u) => u.kind === "Seat") ?? [];

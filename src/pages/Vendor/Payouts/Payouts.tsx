@@ -22,12 +22,12 @@ import {
   InputLabel,
   Button,
   Alert,
-  CircularProgress,
   TextField,
   Grid,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useCallback, useEffect, useState } from "react";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import SegmentedTabs from "../../../components/common/SegmentedTabs";
 import StatCard from "../../../components/Vendor/Dashboard/StatCard";
 import { getVendorListings } from "../../../services/Vendor/listingService";
@@ -185,7 +185,7 @@ function CommissionTab() {
   };
 
   if (error) return <ErrorBanner message={error} />;
-  if (categories === null || history === null) return <CircularProgress size={28} />;
+  if (categories === null || history === null) return <LoadingSpinner fullScreen={false} size={28} py={2} />;
 
   if (categories.length === 0) {
     return <EmptyState label="You don't have any listings yet, so there's no category to check a commission rate for." />;
@@ -268,7 +268,7 @@ function DisputesTab() {
   }, []);
 
   if (error) return <ErrorBanner message={error} />;
-  if (disputes === null) return <CircularProgress size={28} />;
+  if (disputes === null) return <LoadingSpinner fullScreen={false} size={28} py={2} />;
   if (disputes.length === 0) return <EmptyState label="No disputes on your bookings." />;
 
   return (
@@ -471,7 +471,7 @@ function EarningsTab() {
       {error ? (
         <ErrorBanner message={error} />
       ) : data === null ? (
-        <CircularProgress size={28} />
+        <LoadingSpinner fullScreen={false} size={28} py={2} />
       ) : (
         <>
           {/* "Your Money" - the literal gross vs UBE's cut vs net breakdown */}
@@ -592,7 +592,7 @@ function EarningsTab() {
         {ledgerError ? (
           <ErrorBanner message={ledgerError} />
         ) : ledgerEntries === null ? (
-          <CircularProgress size={28} />
+          <LoadingSpinner fullScreen={false} size={28} py={2} />
         ) : ledgerEntries.length === 0 ? (
           <EmptyState label="No ledger entries yet." />
         ) : (
@@ -633,7 +633,7 @@ function EarningsTab() {
         {payoutError ? (
           <ErrorBanner message={payoutError} />
         ) : payoutBatches === null ? (
-          <CircularProgress size={28} />
+          <LoadingSpinner fullScreen={false} size={28} py={2} />
         ) : payoutBatches.length === 0 ? (
           <EmptyState label="No payout batches yet." />
         ) : (

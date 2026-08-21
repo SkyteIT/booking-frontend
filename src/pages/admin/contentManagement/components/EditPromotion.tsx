@@ -11,6 +11,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useParams } from "react-router-dom";
 import { getPromotionById, updatePromotion } from "../services/contentService";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const cardStyle = {
   p: 3,
@@ -122,9 +123,7 @@ export default function EditPromotion({ promotionId, open, onClose, onSaved }: E
     : `$${form.value || "0"} OFF`;
 
   const formContent = loading ? (
-    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-      <CircularProgress />
-    </Box>
+    <LoadingSpinner fullScreen={false} py={8} />
   ) : (
     <Box>
       <Box sx={{ display: "grid", gridTemplateColumns: open ? "1fr" : "2fr 1fr", gap: 2, alignItems: "start" }}>

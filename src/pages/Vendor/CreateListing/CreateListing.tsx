@@ -13,13 +13,13 @@ import {
   Card,
   CardContent,
   Link as MuiLink,
-  CircularProgress,
 } from "@mui/material";
 import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import StepperBar, { type StepperStep } from "../../../components/navbars/StepperBar";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
   createListing,
   updateListing,
@@ -463,9 +463,8 @@ const CreateListing = () => {
 
   if (loading) {
     return (
-      <Container sx={{ py: 20, textAlign: "center" }}>
-        <CircularProgress />
-        <Typography sx={{ mt: 2 }}>Loading listing details...</Typography>
+      <Container sx={{ py: 20 }}>
+        <LoadingSpinner fullScreen={false} message="Loading listing details..." />
       </Container>
     );
   }

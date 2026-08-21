@@ -1,4 +1,4 @@
-import type { RefObject } from "react";
+import type { Ref } from "react";
 import type { CategoryStat } from "../useLandingListings";
 
 type DeckCard = CategoryStat & {
@@ -19,7 +19,7 @@ type ChipCard = CategoryStat & {
 };
 
 type HeroSectionProps = {
-  stageRef: RefObject<HTMLDivElement | null>;
+  stageRef: Ref<HTMLDivElement>;
   loading: boolean;
   totalListings: number;
   categoryCount: number;

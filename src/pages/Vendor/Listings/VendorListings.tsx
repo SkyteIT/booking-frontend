@@ -14,7 +14,6 @@ import {
   Select,
   MenuItem,
   Menu,
-  CircularProgress,
   Alert,
   Dialog,
   DialogTitle,
@@ -27,6 +26,7 @@ import { Link } from "react-router-dom";
 import { getVendorListings, deleteListing } from "../../../services/Vendor/listingService";
 import type { ListingResponse } from "../../../services/Vendor/listingService";
 import { imageForCategory, hashSeed } from "../../../utils/categoryImages";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import ListingCard from "./components/ListingCard";
 
 const VendorListings = () => {
@@ -122,9 +122,8 @@ const VendorListings = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
-        <CircularProgress />
-        <Typography sx={{ mt: 2, color: "text.secondary" }}>Loading your listings...</Typography>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <LoadingSpinner fullScreen={false} message="Loading your listings..." />
       </Container>
     );
   }
