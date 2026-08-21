@@ -13,6 +13,9 @@ const SearchResultsScreen = () => {
     listings = [],
     filteredListings,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     categories = [],
     ratingOptions,
@@ -71,7 +74,12 @@ const SearchResultsScreen = () => {
             {loading ? (
               <LoadingSpinner fullScreen={false} py={10} />
             ) : (
-              <ResultsGrid listings={filteredListings} />
+              <ResultsGrid
+                listings={filteredListings}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                onLoadMore={loadMore}
+              />
             )}
           </Grid>
         </Grid>

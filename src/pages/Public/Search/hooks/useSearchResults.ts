@@ -3,11 +3,13 @@
 // 2) loads active categories from the backend
 // 3) reads filters from URL params
 // 4) exposes simple handlers that update URL params
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchCategories, type ApiCategory } from "../../../../services/categoryService";
 import { searchListings, type SearchListing } from "../../../../services/searchService";
 import { parseSearchFilters } from "../utils/searchParams";
+
+const PAGE_SIZE = 12;
 
 export const useSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,7 +17,18 @@ export const useSearchResults = () => {
   const [allCategories, setAllCategories] = useState<ApiCategory[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [fetchedCount, setFetchedCount] = useState(0);
+
+  // Synchronous in-flight guard - state updates from setLoadingMore are async,
+  // so two IntersectionObserver callbacks firing back-to-back before the first
+  // re-render would both read loadingMore as false and both fire a request.
+  // This ref closes that race window: it's set the instant a request starts,
+  // before any await, so the second callback sees it immediately.
+  const loadingRef = useRef(false);
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
 
@@ -52,60 +65,108 @@ export const useSearchResults = () => {
     [categories]
   );
 
+  const selectedCategoryIds = useMemo(
+    () =>
+      filters.categories
+        .map(
+          (name) =>
+            categories.find((category) => category.name.toLowerCase() === name.toLowerCase())?.id
+        )
+        .filter((id): id is string => Boolean(id)),
+    [filters.categories, categories]
+  );
+
+  const filterByActiveCategories = useCallback(
+    (results: SearchListing[]) =>
+      activeCategoryNames.size > 0
+        ? results.filter((listing) => activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? ""))
+        : results,
+    [activeCategoryNames]
+  );
+
+  // Fresh search whenever filters/categories change - always fetches page 1
+  // and replaces the list.
   useEffect(() => {
     if (!categoriesLoaded) return;
 
     let cancelled = false;
 
-    const runSearch = async () => {
+    const run = async () => {
+      loadingRef.current = true;
       try {
         setLoading(true);
         setError(null);
 
-        const selectedCategoryIds = filters.categories
-          .map(
-            (name) =>
-              categories.find((category) => category.name.toLowerCase() === name.toLowerCase())
-                ?.id
-          )
-          .filter((id): id is string => Boolean(id));
-
-        const data = await searchListings({
+        const { items, totalCount: tc } = await searchListings({
           searchTerm: filters.q || undefined,
           categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
           minPrice: filters.minPrice,
           maxPrice: filters.maxPrice,
           minRating: filters.minRating,
           hasActiveOffer: filters.hasOffer,
+          page: 1,
+          pageSize: PAGE_SIZE,
         });
 
         if (cancelled) return;
 
-        const results = Array.isArray(data) ? data : [];
-        const filtered =
-          activeCategoryNames.size > 0
-            ? results.filter((listing) =>
-                activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
-              )
-            : results;
-
-        setListings(filtered);
+        setListings(filterByActiveCategories(items));
+        setTotalCount(tc);
+        setFetchedCount(items.length);
+        setPage(1);
       } catch (err) {
         if (cancelled) return;
         console.error("Error fetching search results:", err);
         setListings([]);
+        setTotalCount(0);
+        setFetchedCount(0);
         setError("Failed to load results. Please try again.");
       } finally {
         if (!cancelled) setLoading(false);
+        loadingRef.current = false;
       }
     };
 
-    runSearch();
+    run();
 
     return () => {
       cancelled = true;
     };
-  }, [filters, categories, categoriesLoaded, activeCategoryNames]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, categoriesLoaded, activeCategoryNames, selectedCategoryIds]);
+
+  const hasMore = fetchedCount < totalCount;
+
+  const loadMore = useCallback(async () => {
+    if (loadingRef.current || !hasMore) return;
+
+    loadingRef.current = true;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+
+    try {
+      const { items, totalCount: tc } = await searchListings({
+        searchTerm: filters.q || undefined,
+        categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        minRating: filters.minRating,
+        hasActiveOffer: filters.hasOffer,
+        page: nextPage,
+        pageSize: PAGE_SIZE,
+      });
+
+      setListings((prev) => [...prev, ...filterByActiveCategories(items)]);
+      setTotalCount(tc);
+      setFetchedCount((prev) => prev + items.length);
+      setPage(nextPage);
+    } catch (err) {
+      console.error("Error fetching more search results:", err);
+    } finally {
+      setLoadingMore(false);
+      loadingRef.current = false;
+    }
+  }, [page, hasMore, filters, selectedCategoryIds, filterByActiveCategories]);
 
   const setQuery = useCallback(
     (value: string) => {
@@ -189,6 +250,9 @@ export const useSearchResults = () => {
     listings,
     filteredListings: listings,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     categories,
     ratingOptions,

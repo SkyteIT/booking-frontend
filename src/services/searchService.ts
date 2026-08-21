@@ -31,7 +31,12 @@ export interface SearchListing {
   offerBadgeText: string | null;
 }
 
-export const searchListings = async (params: SearchParams): Promise<SearchListing[]> => {
+export interface SearchListingsResult {
+  items: SearchListing[];
+  totalCount: number;
+}
+
+export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
   const { categoryIds, ...rest } = params;
   const qs = new URLSearchParams();
 
@@ -45,9 +50,9 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
     categoryIds.forEach((id) => qs.append("categoryIds", id));
   }
 
-  const { data } = await api.get<SearchListing[]>(`/search/listings?${qs.toString()}`, {
+  const { data } = await api.get<{ items: SearchListing[]; totalCount: number }>(`/search/listings?${qs.toString()}`, {
     headers: { "Content-Type": "application/json" },
     skipAuthRedirect: true,
   });
-  return data;
+  return { items: data.items, totalCount: data.totalCount };
 };
