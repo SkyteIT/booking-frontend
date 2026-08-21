@@ -77,6 +77,10 @@ export const useSearchResults = () => {
           maxPrice: filters.maxPrice,
           minRating: filters.minRating,
           hasActiveOffer: filters.hasOffer,
+          // Explore has no pagination control, so request the largest page the
+          // backend allows instead of its smaller default page.
+          page: 1,
+          pageSize: 50,
         });
 
         if (cancelled) return;
