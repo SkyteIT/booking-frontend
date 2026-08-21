@@ -1,4 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -17,6 +19,8 @@ function Register(): JSX.Element {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
   const [error, setError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -94,23 +98,33 @@ function Register(): JSX.Element {
 
           <div className="input-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Create a password"
-              {...register("password")}
-              className={errors.password ? "input-error" : ""}
-            />
+            <div className="password-wrapper styled">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a password"
+                {...register("password")}
+                className={errors.password ? "input-error" : ""}
+              />
+              <span className="eye-icon" onClick={() => setShowPassword((p) => !p)}>
+                {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              </span>
+            </div>
             {errors.password && <p className="error-text">{errors.password.message}</p>}
           </div>
 
           <div className="input-group">
             <label>Confirm Password</label>
-            <input
-              type="password"
-              placeholder="Confirm your password"
-              {...register("confirmPassword")}
-              className={errors.confirmPassword ? "input-error" : ""}
-            />
+            <div className="password-wrapper styled">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm your password"
+                {...register("confirmPassword")}
+                className={errors.confirmPassword ? "input-error" : ""}
+              />
+              <span className="eye-icon" onClick={() => setShowConfirmPassword((p) => !p)}>
+                {showConfirmPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              </span>
+            </div>
             {errors.confirmPassword && (
               <p className="error-text">{errors.confirmPassword.message}</p>
             )}
@@ -129,20 +143,25 @@ function Register(): JSX.Element {
           </button>
         </form>
 
-        <div style={{ margin: "16px 0", textAlign: "center", color: "#888" }}>OR</div>
+        <div className="divider">
+          <span>OR CONTINUE WITH</span>
+        </div>
 
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div className="google-login-container">
           <GoogleLogin
             onSuccess={(credentialResponse) => handleGoogleSignUp(credentialResponse.credential)}
             onError={() => setError("Google sign-up failed. Please try again.")}
+            text="signup_with"
+            width="400"
           />
         </div>
 
-        <div style={{ marginTop: "16px", textAlign: "center" }}>
-          <p className="subtitle">
-            Already have an account? <Link to="/login">Login</Link>
-          </p>
-        </div>
+        <p className="bottom-text">
+          Already have an account?{" "}
+          <Link to="/login" className="bold-link">
+            Sign in
+          </Link>
+        </p>
       </div>
 
       <ToastAlert

@@ -88,6 +88,7 @@ const BusinessInfo = (): JSX.Element => {
                 onChange={(e) => handleChange("businessName", e.target.value)}
                 error={!!errors.businessName}
                 helperText={errors.businessName}
+                inputProps={{ maxLength: 200 }}
               />
             </Box>
 
@@ -101,6 +102,7 @@ const BusinessInfo = (): JSX.Element => {
                 onChange={(e) => handleChange("businessType", e.target.value)}
                 error={!!errors.businessType}
                 helperText={errors.businessType}
+                inputProps={{ maxLength: 200 }}
               />
             </Box>
 
@@ -114,6 +116,7 @@ const BusinessInfo = (): JSX.Element => {
                 onChange={(e) => handleChange("taxId", e.target.value)}
                 error={!!errors.taxId}
                 helperText={errors.taxId}
+                inputProps={{ maxLength: 100 }}
               />
             </Box>
 
@@ -129,6 +132,7 @@ const BusinessInfo = (): JSX.Element => {
                 onChange={(e) => handleChange("website", e.target.value)}
                 error={!!errors.website}
                 helperText={errors.website}
+                inputProps={{ maxLength: 300 }}
               />
             </Box>
 
@@ -142,6 +146,7 @@ const BusinessInfo = (): JSX.Element => {
                 onChange={(e) => handleChange("address", e.target.value)}
                 error={!!errors.address}
                 helperText={errors.address}
+                inputProps={{ maxLength: 500 }}
               />
             </Box>
           </Box>

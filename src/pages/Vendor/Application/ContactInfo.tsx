@@ -21,6 +21,13 @@ const FIELD_LABELS: Record<keyof ContactFormData, string> = {
   phone: "Phone",
 };
 
+const MAX_LENGTHS: Record<keyof ContactFormData, number> = {
+  firstName: 100,
+  lastName: 100,
+  email: 256,
+  phone: 20,
+};
+
 const ContactInfo = (): JSX.Element => {
   const navigate = useNavigate();
   const { data, setData } = useVendorApplication();
@@ -69,6 +76,7 @@ const ContactInfo = (): JSX.Element => {
                   onChange={(e) => handleChange(key, e.target.value)}
                   error={!!errors[key]}
                   helperText={errors[key]}
+                  inputProps={{ maxLength: MAX_LENGTHS[key] }}
                 />
               </Box>
             ))}
