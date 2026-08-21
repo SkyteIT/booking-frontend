@@ -120,6 +120,8 @@ export const useSearchResults = () => {
   );
 
   useEffect(() => {
+    if (!categoriesLoaded) return;
+
     let cancelled = false;
 
     const runSearch = async () => {
@@ -130,9 +132,7 @@ export const useSearchResults = () => {
       await fetchPage(1, true);
     };
 
-    if (categoriesLoaded) {
-      void runSearch();
-    }
+    runSearch();
 
     return () => {
       cancelled = true;
