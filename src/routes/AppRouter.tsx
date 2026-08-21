@@ -41,6 +41,7 @@ import Login from "../pages/Public/Auth/Login";
 import Register from "../pages/Public/Auth/Register";
 import ResetPassword from "../pages/Public/Auth/ResetPassword";
 import VerifyEmail from "../pages/Public/Auth/VerifyEmail";
+import CheckEmail from "../pages/Public/Auth/CheckEmail";
 import TwoFactorEnroll from "../pages/Public/Auth/TwoFactorEnroll";
 import TwoFactorVerify from "../pages/Public/Auth/TwoFactorVerify";
 import LandingPage from "../pages/Public/LandingPage";
@@ -138,6 +139,7 @@ function AppRouter() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/check-email" element={<CheckEmail />} />
         <Route path="/2fa-enroll" element={<TwoFactorEnroll />} />
         <Route path="/2fa-verify" element={<TwoFactorVerify />} />
 

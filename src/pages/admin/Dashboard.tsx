@@ -14,7 +14,6 @@ import {
   IconButton,
   Button,
   Alert,
-  Chip,
 } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
@@ -40,7 +39,6 @@ import {
 } from "../../services/Admin/adminService";
 import {
   getVendorApplications,
-  normalizeVendorApplications,
   normalizeVendorApplicationsResponse,
   type VendorApplicationListItem,
 } from "../../services/Admin/vendor";
@@ -54,6 +52,12 @@ interface StatCard {
   icon: React.ReactNode;
   iconBg: string;
   iconColor: string;
+}
+
+interface PendingItem {
+  id: string;
+  name: string;
+  subtitle: string;
 }
 
 interface ActivityItem {
@@ -86,7 +90,6 @@ type SummarySnapshot = {
   activeUsers: number;
   totalBookings: number;
   activeVendors: number;
-  pendingApprovals: number;
 };
 
 const POLL_INTERVAL_MS = 15000;
@@ -99,6 +102,9 @@ const formatCompact = (value: number) =>
 
 const formatCurrency = (currency: string, value: number) =>
   `${currency} ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value)}`;
+
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
 const formatDateTime = (value: string) =>
   new Date(value).toLocaleString("en-US", {
@@ -171,10 +177,10 @@ function StatCardItem({ card }: { card: StatCard }) {
 
 function ActivityIcon({ status }: { status: ActivityItem["status"] }) {
   const map = {
-    success: { icon: <CheckCircleIcon sx={{ fontSize: 20, color: "#005f99" }} />, bg: "#dceffd" },
-    warning: { icon: <WarningAmberIcon sx={{ fontSize: 20, color: "#0077b6" }} />, bg: "#e3f1fc" },
-    error: { icon: <CancelIcon sx={{ fontSize: 20, color: "#0d5c8f" }} />, bg: "#cfe8f9" },
-    info: { icon: <AccessTimeIcon sx={{ fontSize: 20, color: "#4ea3d8" }} />, bg: "#eef7fd" },
+    success: { icon: <CheckCircleIcon sx={{ fontSize: 20, color: "#2e7d32" }} />, bg: "#e6f4ea" },
+    warning: { icon: <WarningAmberIcon sx={{ fontSize: 20, color: "#e65100" }} />, bg: "#fff3e0" },
+    error: { icon: <CancelIcon sx={{ fontSize: 20, color: "#c62828" }} />, bg: "#fdecea" },
+    info: { icon: <AccessTimeIcon sx={{ fontSize: 20, color: "#0077b6" }} />, bg: "#e3f1fc" },
   };
 
   return (
@@ -201,54 +207,6 @@ function SectionHeader({ title, onViewAll }: { title: string; onViewAll?: () => 
       <Typography sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>
         {title}
       </Typography>
-      {onViewAll && (
-        <Button
-          size="small"
-          endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
-          onClick={onViewAll}
-          sx={{ fontSize: 13, color: "#0077b6", textTransform: "none", p: 0, minWidth: 0 }}
-        >
-          View All
-        </Button>
-      )}
-    </Box>
-  );
-}
-
-function PendingApprovalsHeader({
-  title,
-  count,
-  onViewAll,
-}: {
-  title: string;
-  count: number;
-  onViewAll?: () => void;
-}) {
-  return (
-    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-      <Box display="flex" alignItems="center" gap={1}>
-        <Typography sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>
-          {title}
-        </Typography>
-        <Box
-          sx={{
-            minWidth: 28,
-            height: 22,
-            px: 1,
-            borderRadius: 999,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "rgba(0,119,182,0.14)",
-            color: "#0077b6",
-            fontSize: 12,
-            fontWeight: 700,
-            lineHeight: 1,
-          }}
-        >
-          {count}
-        </Box>
-      </Box>
       {onViewAll && (
         <Button
           size="small"
@@ -333,7 +291,9 @@ export default function Dashboard() {
       const nextBookings = bookingsRes.status === "fulfilled" ? bookingsRes.value : current.bookings;
       const nextVendorApplications =
         vendorAppsRes.status === "fulfilled"
-          ? normalizeVendorApplications(vendorAppsRes.value)
+          ? Array.isArray(vendorAppsRes.value)
+            ? vendorAppsRes.value
+            : ((vendorAppsRes.value.items ?? vendorAppsRes.value.data ?? vendorAppsRes.value.results ?? []) as VendorApplicationListItem[])
           : current.vendorApplications;
       const nextPendingVendorResponse =
         pendingVendorAppsRes.status === "fulfilled"
@@ -354,15 +314,12 @@ export default function Dashboard() {
         ?? nextBookings
           .filter((booking) => ["confirmed", "completed"].includes(String(booking.status).toLowerCase()))
           .reduce((sum, booking) => sum + Number(booking.totalAmount || 0), 0);
-      const pendingApprovals = nextPendingVendorApplicationsCount
-        || nextDashboardStats?.pendingApprovals
-        || nextPendingVendorApplications.length;
+
       const nextSummary: SummarySnapshot = {
         totalRevenue: bookingRevenue,
         activeUsers,
         totalBookings: nextBookings.length,
         activeVendors: nextDashboardStats?.totalVendors ?? approvedVendorCount,
-        pendingApprovals,
       };
 
       setPreviousSummary(previousSummaryRef.current);
@@ -423,14 +380,10 @@ export default function Dashboard() {
   ).length;
   const pendingVendorApplications = snapshot.pendingVendorApplications.length > 0
     ? snapshot.pendingVendorApplications
-    : snapshot.dashboardStats?.pendingApprovalItems?.length
-      ? snapshot.dashboardStats.pendingApprovalItems
-      : snapshot.vendorApplications.filter((vendor) => isReviewQueueStatus(vendor.status))
-        .sort((a, b) => toTimestamp(b.submittedAt) - toTimestamp(a.submittedAt));
+    : snapshot.vendorApplications
+      .filter((vendor) => isReviewQueueStatus(vendor.status))
+      .sort((a, b) => toTimestamp(b.submittedAt) - toTimestamp(a.submittedAt));
   const totalVendors = snapshot.dashboardStats?.totalVendors ?? approvedVendorApplications;
-  const pendingApprovalItems = pendingVendorApplications;
-  const pendingApprovalCount =
-    snapshot.pendingVendorApplicationsCount || snapshot.dashboardStats?.pendingApprovals || pendingApprovalItems.length;
   const currency = snapshot.dashboardStats?.currency ?? snapshot.bookings.find((booking) => booking.currency)?.currency ?? "LKR";
   const activeUsers = snapshot.users.filter((user) => String(user.status).toLowerCase() === "active").length;
   const bookingRevenue =
@@ -438,6 +391,16 @@ export default function Dashboard() {
     ?? snapshot.bookings
       .filter((booking) => ["confirmed", "completed"].includes(String(booking.status).toLowerCase()))
       .reduce((sum, booking) => sum + Number(booking.totalAmount || 0), 0);
+
+  const pendingItems: PendingItem[] = useMemo(
+    () =>
+      pendingVendorApplications.slice(0, 4).map((item) => ({
+        id: item.id,
+        name: item.businessName,
+        subtitle: `${item.applicantName} • ${formatDate(item.submittedAt)}`,
+      })),
+    [pendingVendorApplications]
+  );
 
   const activityItems: ActivityItem[] = useMemo(() => {
     const bookingEvents = snapshot.bookings.map((booking) => ({
@@ -509,11 +472,6 @@ export default function Dashboard() {
 
   const prev = previousSummary;
 
-  const pendingItems: VendorApplicationListItem[] = useMemo(
-    () => pendingApprovalItems.slice(0, 6),
-    [pendingApprovalItems]
-  );
-
   const statCards: StatCard[] = [
     {
       label: "Total Revenue",
@@ -546,14 +504,6 @@ export default function Dashboard() {
       icon: <StorefrontIcon sx={{ fontSize: 24, color: "#6A1B9A" }} />,
       iconBg: "linear-gradient(135deg,#F3E5F5,#E1BEE7)",
       iconColor: "#6A1B9A",
-    },
-    {
-      label: "Pending Approvals",
-      value: formatNumber(pendingApprovalCount),
-      change: calculateChange(pendingApprovalCount, prev?.pendingApprovals ?? null),
-      icon: <WarningAmberIcon sx={{ fontSize: 24, color: "#E65100" }} />,
-      iconBg: "linear-gradient(135deg,#FFF3E0,#FFE0B2)",
-      iconColor: "#E65100",
     },
   ];
 
@@ -591,7 +541,7 @@ export default function Dashboard() {
           </Grid>
         ) : (
           statCards.map((card) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={card.label}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={card.label}>
               <StatCardItem card={card} />
             </Grid>
           ))
@@ -610,85 +560,54 @@ export default function Dashboard() {
               height: "100%",
             }}
           >
-            <PendingApprovalsHeader
-              title="Pending Approvals"
-              count={pendingApprovalCount}
-              onViewAll={() => navigate("/admin/vendors")}
-            />
-            <Box display="flex" flexDirection="column" gap={1.25}>
+            <SectionHeader title="Pending Approvals" onViewAll={() => navigate("/admin/vendors")} />
+            <Box display="flex" flexDirection="column" gap={1.5}>
               {pendingItems.map((item) => (
                 <Box
                   key={item.id}
                   onClick={() => navigate(`/admin/vendors?applicationId=${item.id}`)}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
                   sx={{
                     p: 1.5,
-                    borderRadius: 2.5,
+                    borderRadius: 2,
                     border: "1px solid rgba(15,27,45,0.06)",
-                    background: "rgba(255,255,255,0.72)",
+                    background: "rgba(255,255,255,0.6)",
                     cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": { background: "rgba(0,119,182,0.08)", transform: "translateY(-1px)" },
+                    transition: "background-color 0.15s ease",
+                    "&:hover": { background: "rgba(0,119,182,0.08)" },
                   }}
                 >
-                  <Box display="flex" alignItems="flex-start" justifyContent="space-between" gap={2}>
-                    <Box display="flex" alignItems="flex-start" gap={1.5} minWidth={0}>
-                      <Avatar
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          bgcolor: "rgba(0,119,182,0.16)",
-                          color: "#0077b6",
-                          fontWeight: 700,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {item.businessName.charAt(0)}
-                      </Avatar>
-                      <Box
-                        minWidth={0}
-                        sx={{
-                          "& > .MuiTypography-root:nth-of-type(3)": {
-                            display: "none",
-                          },
-                        }}
-                      >
-                        <Typography fontSize={14} fontWeight={700} noWrap>
-                          {item.businessName}
-                        </Typography>
-                        <Typography fontSize={12} color="text.secondary" noWrap>
-                          {item.applicantName} · {item.businessType}
-                        </Typography>
-                        <Typography fontSize={12} color="text.secondary" noWrap>
-                          {item.email}
-                        </Typography>
-                        <Typography fontSize={12} color="text.secondary">
-                          Submitted {formatDateTime(item.submittedAt)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Chip
-                        label={item.status}
-                        size="small"
-                        sx={{
-                          fontWeight: 700,
-                          bgcolor: "rgba(0,119,182,0.12)",
-                          color: "#0077b6",
-                          textTransform: "capitalize",
-                        }}
-                      />
-                      <IconButton
-                        size="small"
-                        sx={{ color: "#0077b6" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/vendors?applicationId=${item.id}`);
-                        }}
-                      >
-                        <ChevronRightIcon fontSize="small" />
-                      </IconButton>
+                  <Box display="flex" alignItems="center" gap={1.5}>
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        bgcolor: "#F59E0B",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Box>
+                      <Typography fontSize={14} fontWeight={600}>
+                        {item.name}
+                      </Typography>
+                      <Typography fontSize={12} color="text.secondary">
+                        {item.subtitle}
+                      </Typography>
                     </Box>
                   </Box>
+                  <IconButton
+                    size="small"
+                    sx={{ color: "#0077b6" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/vendors?applicationId=${item.id}`);
+                    }}
+                  >
+                    <ChevronRightIcon fontSize="small" />
+                  </IconButton>
                 </Box>
               ))}
               {!loading && pendingItems.length === 0 && (
@@ -820,7 +739,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-
-
-
