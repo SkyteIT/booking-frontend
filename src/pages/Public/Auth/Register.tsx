@@ -129,12 +129,16 @@ function Register(): JSX.Element {
           </button>
         </form>
 
-        <div style={{ margin: "16px 0", textAlign: "center", color: "#888" }}>OR</div>
+        <div className="divider">
+          <span>OR</span>
+        </div>
 
         <div style={{ display: "flex", justifyContent: "center" }}>
           <GoogleLogin
             onSuccess={(credentialResponse) => handleGoogleSignUp(credentialResponse.credential)}
             onError={() => setError("Google sign-up failed. Please try again.")}
+            width="320"
+            shape="pill"
           />
         </div>
 

@@ -7,13 +7,17 @@ import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 
+
 type UbeLogoProps = {
   to?: string;
   subtitle?: string;
   size?: number;
+  // For use on dark/photo backgrounds (e.g. the auth pages' hero) where
+  // the default theme.palette.text.* colors would be unreadable.
+  light?: boolean;
 };
 
-export default function UbeLogo({ to = "/", subtitle, size = 32 }: UbeLogoProps) {
+export default function UbeLogo({ to = "/", subtitle, size = 32, light = false }: UbeLogoProps) {
   const theme = useTheme();
 
   return (
@@ -60,17 +64,24 @@ export default function UbeLogo({ to = "/", subtitle, size = 32 }: UbeLogoProps)
         <Typography
           sx={{
             fontFamily: "'Syne', sans-serif",
-            fontSize: "1.1rem",
+            fontSize: "100",
             fontWeight: 700,
-            color: "text.primary",
+            color: light ? "#fff" : "text.primary",
             letterSpacing: "0.03em",
             lineHeight: 1.2,
           }}
         >
-          UBE
+          UBE <Typography component="span" sx={{ fontWeight: 400, color: "primary.main" }}>.</Typography>
         </Typography>
         {subtitle && (
-          <Typography sx={{ fontSize: "0.6rem", fontWeight: 500, color: "text.secondary", lineHeight: 1 }}>
+          <Typography
+            sx={{
+              fontSize: "0.6rem",
+              fontWeight: 500,
+              color: light ? "rgba(255,255,255,0.75)" : "text.secondary",
+              lineHeight: 1,
+            }}
+          >
             {subtitle}
           </Typography>
         )}

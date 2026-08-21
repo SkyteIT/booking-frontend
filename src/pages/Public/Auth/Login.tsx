@@ -178,7 +178,8 @@ function Login(): JSX.Element {
               handleGoogleLogin(credentialResponse.credential)
             }
             onError={() => setError("Google login failed. Please try again.")}
-            width="400"
+            width="320"
+            shape="pill"
           />
         </div>
 
