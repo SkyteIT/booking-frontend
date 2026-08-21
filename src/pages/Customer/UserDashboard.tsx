@@ -45,7 +45,7 @@ const UserDashboard = () => {
   const upcomingBookingsPreview = allUpcomingBookings.slice(0, 5);
 
   return (
-    <CustomerPageLayout title="Dashboard" subtitle="Your account at a glance.">
+    <CustomerPageLayout title="Dashboard" >
       <WelcomeCard firstName={user?.firstName} />
 
       <VendorBanner />

@@ -20,11 +20,11 @@ export default function VendorLayout() {
     >
       {loading && <LoadingSpinner />}
 
-      {/* 🔹 Navbar */}
+      {/*  Navbar */}
       <VendorNavbar />
 
-      {/* 🔹 Content Area */}
-      <Container maxWidth="xl" sx={{ py: 4, px: { xs: 3, sm: 5, md: 8, lg: 12 } }}>
+      {/* Content Area */}
+      <Container maxWidth="xl" sx={{ py: 4, px: { xs: 3, sm: 5, md: 8, lg: 4 } }}>
         <Box
           sx={{
             display: "grid",
@@ -33,25 +33,25 @@ export default function VendorLayout() {
             alignItems: "start",
           }}
         >
-          {/* 🔹 Sidebar (STICKY like your image) */}
+          {/* Sidebar (STICKY like your image) */}
           <Box
             sx={{
               position: { lg: "sticky" },
-              top: 80, // 👈 adjust based on navbar height
+              top: 80, // 
               alignSelf: "start",
             }}
           >
             <VendorSidebar />
           </Box>
 
-          {/* 🔹 Main Content */}
-          <Box sx={{ px : { xs: 1, lg: 2 } }}>
+          {/* Main Content */}
+          <Box sx={{ px : { xs: 2, lg: 2 } }}>
             <Outlet />
           </Box>
         </Box>
       </Container>
 
-      {/* 🔹 Footer (natural bottom like screenshot) */}
+      {/* Footer (natural bottom like screenshot) */}
       <MainFooter />
     </Box>
   );

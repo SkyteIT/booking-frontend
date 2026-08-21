@@ -37,7 +37,7 @@ export default function CustomerBookings() {
   } = useCustomerBookingsPage();
 
   return (
-    <CustomerPageLayout title="My Bookings" subtitle="View and manage your bookings.">
+    <CustomerPageLayout title="My Bookings">
       <Card
         sx={{
           borderRadius: 3,

@@ -122,7 +122,7 @@ export default function CustomerReviews() {
   };
 
   return (
-    <CustomerPageLayout title="My Reviews" subtitle="See and manage the reviews you've left.">
+    <CustomerPageLayout title="My Reviews">
       <Card
         sx={{
           borderRadius: 3,
