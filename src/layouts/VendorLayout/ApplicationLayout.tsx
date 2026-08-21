@@ -1,5 +1,5 @@
-import { Box, Container } from "@mui/material";
 import type { ReactNode } from "react";
+import { Box, Container } from "@mui/material";
 import MainFooter from "../../components/footer/MainFooter";
 import MainNavbar from "../../components/navbars/CustomerNavbar";
 import StepperBar from "../../components/navbars/StepperBar";
@@ -9,7 +9,10 @@ interface ApplicationLayoutProps {
   activeStep: number;
 }
 
-const ApplicationLayout = ({ children, activeStep }: ApplicationLayoutProps) => {
+const ApplicationLayout = ({
+  children,
+  activeStep,
+}: ApplicationLayoutProps) => {
   return (
     <Box
       sx={{
@@ -27,9 +30,7 @@ const ApplicationLayout = ({ children, activeStep }: ApplicationLayoutProps) => 
       <Container maxWidth="md" sx={{ pt: 16, pb: 5 }}>
         <StepperBar activeStep={activeStep} />
 
-        <Box sx={{ mt: 3 }}>
-          {children}
-        </Box>
+        <Box sx={{ mt: 3 }}>{children}</Box>
       </Container>
 
       <MainFooter />

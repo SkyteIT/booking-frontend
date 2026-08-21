@@ -31,6 +31,9 @@ export interface ListingFormData {
     price?: number;
     currency?: string;
     tagsInput?: string;
+    tags?: string | string[];
+    status?: string;
+    isAvailable?: boolean;
     isActive?: boolean;
 
     // Hotel fields

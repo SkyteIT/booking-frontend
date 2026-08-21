@@ -1,6 +1,6 @@
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -22,11 +22,31 @@ const DashboardSidebar = () => {
 
   // BASE MENU
   const menuItems = [
-    { label: "Dashboard", icon: <DashboardIcon fontSize="small" />, path: "/customer/dashboard" },
-    { label: "My Bookings", icon: <CalendarMonthIcon fontSize="small" />, path: "/customer/bookings" },
-    { label: "My Reviews", icon: <StarIcon fontSize="small" />, path: "/customer/reviews" },
-    { label: "Notifications", icon: <NotificationsIcon fontSize="small" />, path: "/customer/notifications" },
-    { label: "Settings", icon: <SettingsIcon fontSize="small" />, path: "/customer/settings" },
+    {
+      label: "Dashboard",
+      icon: <DashboardIcon fontSize="small" />,
+      path: "/customer/dashboard",
+    },
+    {
+      label: "My Bookings",
+      icon: <CalendarMonthIcon fontSize="small" />,
+      path: "/customer/bookings",
+    },
+    {
+      label: "My Reviews",
+      icon: <StarIcon fontSize="small" />,
+      path: "/customer/reviews",
+    },
+    {
+      label: "Notifications",
+      icon: <NotificationsIcon fontSize="small" />,
+      path: "/customer/notifications",
+    },
+    {
+      label: "Settings",
+      icon: <SettingsIcon fontSize="small" />,
+      path: "/customer/settings",
+    },
   ];
 
   //ADD VENDOR DASHBOARD ONLY IF ROLE = VENDOR
@@ -61,7 +81,10 @@ const DashboardSidebar = () => {
         }}
       >
         <Avatar
-          src={resolveAssetUrl(user?.profileImageUrl as string | undefined) || undefined}
+          src={
+            resolveAssetUrl(user?.profileImageUrl as string | undefined) ||
+            undefined
+          }
           sx={{
             width: 64,
             height: 64,

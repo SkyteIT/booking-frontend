@@ -1,9 +1,14 @@
 import api from "../api";
 
-// The backend serializes all enums as their string name globally
-// (Program.cs: AddJsonOptions -> JsonStringEnumConverter()), so this is
-// always e.g. "Hotel", never the underlying numeric value.
-export type ListingType = "Hotel" | "Restaurant" | "Event" | "CarRental" | "Activity";
+// The backend serializes these enum values using their string names.
+export const ListingType = {
+  Hotel: "Hotel",
+  Restaurant: "Restaurant",
+  Event: "Event",
+  CarRental: "CarRental",
+  Activity: "Activity",
+} as const;
+export type ListingType = (typeof ListingType)[keyof typeof ListingType];
 
 export interface HotelDetailsDto {
   pricePerNight: number;
@@ -57,7 +62,7 @@ export interface ActivityDetailsDto {
 export interface TicketTypeDto {
   type: string;
   quantity: number;
-  price: number;
+  price?: number;
 }
 
 export interface EventDetailsDto {
@@ -78,16 +83,21 @@ export interface EventDetailsDto {
 // category's Type — a listing can't be created under a category that has
 // no Type configured (backend returns a 400 naming the category).
 export interface CreateListingRequest {
+  vendorId?: string;
   categoryId: string;
+  type?: ListingType;
 
   title: string;
   description: string;
 
   price: number;
+  basePrice?: number;
   currency: string;
   location: string;
 
-  isActive: boolean;
+  status: string;
+  isActive?: boolean;
+  isAvailable?: boolean;
 
   images: string[];
   tags: string[];
@@ -120,17 +130,29 @@ export const getCategories = async (): Promise<CategoryDto[]> => {
   return res.data;
 };
 
+export interface VendorDto {
+  id: string;
+  businessName: string;
+}
+
+export const getCurrentVendor = async (): Promise<VendorDto> => {
+  const res = await api.get<VendorDto>("/vendors/me");
+  return res.data;
+};
+
 // Matches Ube.Application.Features.Listings.ListingResponse
 export interface ListingResponse {
   id: string;
   vendorProfileId: string;
+  vendorId?: string;
   categoryId: string;
   title: string;
   description?: string;
   price: number;
+  basePrice: number;
   currency: string;
   location?: string;
-  isActive: boolean;
+  status: string;
   categoryName: string;
   vendorName: string;
   // PerNight | PerHour | PerPerson | PerDay | FixedPrice, from the
@@ -139,11 +161,15 @@ export interface ListingResponse {
   type: ListingType;
   averageRating: number;
   totalReviews: number;
+  rating: number;
+  bookingsCount: number;
   primaryImage?: string;
   images: string[];
   tags: string[];
   cancellationPolicy?: string;
-  hasActiveOffer: boolean;
+  isActive: boolean;
+  isAvailable: boolean;
+  hasActiveOffer?: boolean;
   offerBadgeText?: string | null;
 
   hotelDetails?: HotelDetailsDto;
@@ -164,18 +190,24 @@ const normalizeListing = (raw: any): ListingResponse => {
   return {
     id: String(raw?.id ?? ""),
     vendorProfileId: String(raw?.vendorProfileId ?? raw?.vendorId ?? ""),
+    vendorId: raw?.vendorId,
     categoryId: String(raw?.categoryId ?? ""),
     title: raw?.title ?? raw?.name ?? "",
     description: raw?.description ?? "",
     price: Number(raw?.price ?? 0),
+    basePrice: Number(raw?.basePrice ?? raw?.price ?? 0),
     currency: raw?.currency ?? "LKR",
     location: raw?.location ?? "",
+    status: raw?.status ?? (isActive ? "Active" : "Inactive"),
+    isAvailable: typeof raw?.isAvailable === "boolean" ? raw.isAvailable : isActive,
     isActive,
     categoryName: raw?.categoryName ?? raw?.category?.name ?? "",
     vendorName: raw?.vendorName ?? raw?.vendor?.name ?? "",
     type: raw?.type ?? "Hotel",
     averageRating: Number(raw?.averageRating ?? 0),
     totalReviews: Number(raw?.totalReviews ?? 0),
+    rating: Number(raw?.rating ?? raw?.averageRating ?? 0),
+    bookingsCount: Number(raw?.bookingsCount ?? 0),
     primaryImage: raw?.primaryImage ?? raw?.imageUrl ?? raw?.coverImage ?? undefined,
     images: raw?.images ?? [],
     tags: raw?.tags ?? [],
