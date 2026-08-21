@@ -86,11 +86,12 @@ export const useSearchResults = () => {
           pageSize: 12,
         });
 
-        const results = activeCategoryNames.size > 0
-          ? data.items.filter((listing) =>
-              activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
-            )
-          : data.items;
+        const results =
+          activeCategoryNames.size > 0
+            ? data.items.filter((listing) =>
+                activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
+              )
+            : data.items;
 
         setListings((current) => (replace ? results : [...current, ...results]));
         setTotalCount(data.totalCount);
@@ -106,12 +107,19 @@ export const useSearchResults = () => {
         replace ? setLoading(false) : setLoadingMore(false);
       }
     },
-    [activeCategoryNames, categoriesLoaded, filters.hasOffer, filters.maxPrice, filters.minRating, filters.minPrice, filters.q, selectedCategoryIds]
+    [
+      activeCategoryNames,
+      categoriesLoaded,
+      filters.hasOffer,
+      filters.maxPrice,
+      filters.minRating,
+      filters.minPrice,
+      filters.q,
+      selectedCategoryIds,
+    ]
   );
 
   useEffect(() => {
-    if (!categoriesLoaded) return;
-
     let cancelled = false;
 
     const runSearch = async () => {
@@ -122,12 +130,14 @@ export const useSearchResults = () => {
       await fetchPage(1, true);
     };
 
-    runSearch();
+    if (categoriesLoaded) {
+      void runSearch();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [filters, categoriesLoaded, fetchPage]);
+  }, [categoriesLoaded, fetchPage, filters]);
 
   const setQuery = useCallback(
     (value: string) => {

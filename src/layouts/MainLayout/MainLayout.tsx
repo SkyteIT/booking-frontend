@@ -13,9 +13,8 @@ const MainLayout = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        flex: 1,
-        minHeight: "100%",
         width: "100%",
+        minHeight: "100vh",
         backgroundColor: "background.default",
       }}
     >
@@ -31,7 +30,6 @@ const MainLayout = () => {
           display: "flex",
           flexDirection: "column",
           flexGrow: 1,
-          flexShrink: 0,
           width: "100%",
           backgroundColor: "background.default",
         }}
@@ -39,9 +37,7 @@ const MainLayout = () => {
         <Outlet />
       </Box>
 
-      <Box sx={{ mt: "auto" }}>
-        <MainFooter />
-      </Box>
+      <MainFooter />
     </Box>
   );
 };

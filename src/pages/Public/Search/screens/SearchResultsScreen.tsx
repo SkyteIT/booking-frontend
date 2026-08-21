@@ -40,7 +40,6 @@ const SearchResultsScreen = () => {
         backgroundImage:
           "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
         backgroundRepeat: "no-repeat",
-        minHeight: "100%",
         pt: { xs: 16, md: 18 },
         pb: { xs: 4, md: 6 },
       }}
