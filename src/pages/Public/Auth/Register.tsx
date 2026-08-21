@@ -44,8 +44,11 @@ function Register(): JSX.Element {
         password: data.password,
       });
 
-      await refreshUser();
-      navigate("/", { replace: true });
+      sessionStorage.setItem("pendingVerificationEmail", data.email);
+      navigate("/check-email", {
+        replace: true,
+        state: { email: data.email },
+      });
     } catch (error) {
       setError(getApiErrorMessage(error, "Unable to create your account. Please try again."));
     }

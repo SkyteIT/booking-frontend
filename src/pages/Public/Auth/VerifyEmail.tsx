@@ -1,3 +1,5 @@
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
@@ -18,7 +20,10 @@ function VerifyEmail(): JSX.Element {
     ranOnce.current = true;
 
     verifyEmail(token)
-      .then(() => setStatus("success"))
+      .then(() => {
+        sessionStorage.removeItem("pendingVerificationEmail");
+        setStatus("success");
+      })
       .catch((err) => {
         setStatus("error");
         setError(getApiErrorMessage(err, "Failed to verify email. The link may have expired."));
@@ -27,7 +32,7 @@ function VerifyEmail(): JSX.Element {
 
   return (
     <AuthLayout>
-      <div className="auth-card">
+      <div className="auth-card email-status-card">
         {status === "verifying" && (
           <>
             <h2 className="title center">Verifying your email...</h2>
@@ -37,10 +42,13 @@ function VerifyEmail(): JSX.Element {
 
         {status === "success" && (
           <>
+            <div className="email-status-icon success" aria-hidden="true">
+              <CheckCircleOutlineIcon />
+            </div>
             <h2 className="title center">Email verified</h2>
-            <p className="subtitle center">Your email has been verified successfully.</p>
-            <div style={{ marginTop: "16px", textAlign: "center" }}>
-              <Link to="/login" className="back-link">
+            <p className="subtitle center">Your account is ready. You can now sign in.</p>
+            <div className="email-action-wrap">
+              <Link to="/login" className="primary-btn email-action-button">
                 Continue to login
               </Link>
             </div>
@@ -49,6 +57,9 @@ function VerifyEmail(): JSX.Element {
 
         {status === "error" && (
           <>
+            <div className="email-status-icon error" aria-hidden="true">
+              <ErrorOutlineIcon />
+            </div>
             <h2 className="title center">Verification failed</h2>
             <p className="subtitle center">{error}</p>
             <div style={{ marginTop: "16px", textAlign: "center" }}>
