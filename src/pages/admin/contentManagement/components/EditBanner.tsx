@@ -1,16 +1,27 @@
 // src/pages/admin/contentManagement/components/EditBanner.tsx
 import { useState, useEffect } from "react";
 import {
-  Box, Typography, TextField, Button, Paper, MenuItem,
-  FormControlLabel, Switch, IconButton, Chip,
-  Dialog, DialogTitle, DialogContent, DialogActions,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  MenuItem,
+  FormControlLabel,
+  Switch,
+  IconButton,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate, useParams } from "react-router-dom";
-import { getBannerById, updateBanner, PLACEMENT_OPTIONS } from "../services/contentService";
+import { getBannerById, updateBanner, PLACEMENT_OPTIONS, uploadBannerImage } from "../services/contentService";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const cardStyle = {
@@ -44,8 +55,9 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     openInNewTab: false,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageName, setImageName] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageName, setImageName] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,9 +68,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     getBannerById(id)
       .then((banner) => {
         if (!banner) return;
-        const placementNum = PLACEMENT_OPTIONS.find(
-          (p) => p.label === banner.placement
-        )?.value ?? 1;
+        const placementNum = PLACEMENT_OPTIONS.find((p) => p.label === banner.placement)?.value ?? 1;
         setForm({
           title: banner.title,
           subtitle: banner.description,
@@ -68,10 +78,8 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
           status: banner.status === "Active",
           openInNewTab: false,
         });
-        if (banner.imageUrl) {
-          setImagePreview(banner.imageUrl);
-          setImageUrl(banner.imageUrl);
-        }
+        setImagePreview(banner.imageUrl || null);
+        setImageUrl(banner.imageUrl || "");
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -81,27 +89,56 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageChange = async (file: File) => {
     if (!file) return;
-    setImageName(file.name);
+
+    const allowedTypes = ["image/jpeg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, imageUrl: "Only JPG/PNG files are allowed" }));
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, imageUrl: "File size must not exceed 2MB" }));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setImagePreview(result);
-      setImageUrl(result);
+      setImagePreview((ev.target?.result as string) ?? null);
     };
     reader.readAsDataURL(file);
+
+    setUploadingImage(true);
+    setImageName(file.name);
+    try {
+      const uploadedUrl = await uploadBannerImage(file);
+      setImageUrl(uploadedUrl);
+      setErrors((prev) => ({ ...prev, imageUrl: "" }));
+    } catch (err: any) {
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Failed to upload image.";
+      setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!form.title.trim()) newErrors.title = "Banner title is required";
+    if (!imageUrl.trim()) newErrors.imageUrl = "Banner image is required";
+    if (imageUrl.trim().length > 500) newErrors.imageUrl = "Image URL must be 500 characters or less";
     if (form.placement === "") newErrors.placement = "Placement is required";
     if (!form.startDate) newErrors.startDate = "Start date is required";
     if (!form.endDate) newErrors.endDate = "End date is required";
-    if (form.startDate && form.endDate && form.endDate < form.startDate)
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
       newErrors.endDate = "End date must be after start date";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -113,7 +150,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
       await updateBanner(id, {
         title: form.title,
         subtitle: form.subtitle || undefined,
-        imageUrl: imageUrl || "",
+        imageUrl: imageUrl.trim(),
         placement: form.placement as number,
         startDate: form.startDate,
         endDate: form.endDate,
@@ -121,8 +158,14 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
       });
       if (onSaved) onSaved();
       else navigate("/admin/content");
-    } catch {
-      setErrors((prev) => ({ ...prev, title: "Failed to save. Please try again." }));
+    } catch (err: any) {
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Failed to save. Please try again.";
+      setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
     } finally {
       setSaving(false);
     }
@@ -133,8 +176,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     else navigate("/admin/content");
   };
 
-  const previewPlacementLabel =
-    PLACEMENT_OPTIONS.find((p) => p.value === form.placement)?.label ?? "—";
+  const previewPlacementLabel = PLACEMENT_OPTIONS.find((p) => p.value === form.placement)?.label ?? "—";
   const previewStatus = form.status ? "Active" : "Inactive";
   const today = new Date().toISOString().split("T")[0];
   const isScheduled = form.startDate && form.startDate > today;
@@ -143,7 +185,6 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     <LoadingSpinner fullScreen={false} py={8} />
   ) : (
     <Box sx={{ p: open ? 0 : 3, bgcolor: open ? "transparent" : "#f4f6f8", minHeight: open ? 0 : "100vh" }}>
-      {/* HEADER (standalone page only) */}
       {!open && (
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center" gap={1}>
@@ -152,9 +193,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
             </IconButton>
             <Box>
               <Typography variant="h5" fontWeight={700}>Edit Banner</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Update banner details
-              </Typography>
+              <Typography variant="body2" color="text.secondary">Update banner details</Typography>
             </Box>
           </Box>
           <Box display="flex" gap={1}>
@@ -179,9 +218,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
       )}
 
       <Box sx={{ display: "grid", gridTemplateColumns: open ? "1fr" : "2fr 1fr", gap: 2, alignItems: "start" }}>
-        {/* ── LEFT COLUMN ── */}
         <Box display="flex" flexDirection="column" gap={2}>
-          {/* 1. Basic Information */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e3f0fb", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -209,7 +246,6 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
             />
           </Paper>
 
-          {/* 2. Placement & Scheduling */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#e8f5e9", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -226,6 +262,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               value={form.placement}
               onChange={(e) => handleChange("placement", Number(e.target.value))}
               error={!!errors.placement}
+              helperText={errors.placement}
             >
               {PLACEMENT_OPTIONS.map((p) => (
                 <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>
@@ -257,7 +294,6 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
             </Box>
           </Paper>
 
-          {/* 3. Banner Image */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fff3e0", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -265,20 +301,31 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               </Box>
               <Typography fontWeight={600}>3. Banner Image</Typography>
             </Box>
+
             <Box
               component="label"
               htmlFor="edit-banner-image-input"
               sx={{
                 border: "2px dashed #b0c4d8",
-                borderRadius: 2, p: 4,
-                textAlign: "center", cursor: "pointer",
+                borderRadius: 2,
+                p: 4,
+                textAlign: "center",
+                cursor: "pointer",
                 bgcolor: imagePreview ? "transparent" : "#f8fafc",
-                display: "block", mb: 2,
+                display: "block",
+                mb: 2,
                 "&:hover": { borderColor: "#0077b6", bgcolor: "rgba(0,119,182,0.05)" },
                 transition: "all 0.2s",
               }}
             >
-              {imagePreview ? (
+              {uploadingImage ? (
+                <Box>
+                  <Typography fontSize={36} mb={1}>⏳</Typography>
+                  <Typography color="text.secondary" fontSize={14}>
+                    Uploading image...
+                  </Typography>
+                </Box>
+              ) : imagePreview ? (
                 <img
                   src={imagePreview}
                   alt="Preview"
@@ -287,28 +334,45 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               ) : (
                 <Box>
                   <UploadIcon sx={{ fontSize: 36, color: "#90a4ae", mb: 1 }} />
-                  <Typography color="text.secondary" fontSize={14}>Click to upload or drag and drop</Typography>
-                  <Typography color="text.disabled" fontSize={12} mt={0.5}>PNG, JPG up to 10MB</Typography>
+                  <Typography color="text.secondary" fontSize={14}>
+                    Click to upload or drag and drop
+                  </Typography>
+                  <Typography color="text.disabled" fontSize={12} mt={0.5}>
+                    PNG, JPG up to 2MB
+                  </Typography>
                 </Box>
               )}
               <input
                 id="edit-banner-image-input"
                 hidden
                 type="file"
-                accept="image/*"
-                onChange={handleImageChange}
+                accept="image/jpeg,image/png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImageChange(file);
+                  e.target.value = "";
+                }}
               />
             </Box>
             {imageName && (
               <Chip
                 label={imageName}
                 size="small"
-                onDelete={() => { setImagePreview(null); setImageName(null); setImageUrl(""); }}
+                onDelete={() => {
+                  setImagePreview(null);
+                  setImageName(null);
+                  setImageUrl("");
+                  setErrors((prev) => ({ ...prev, imageUrl: "" }));
+                }}
               />
+            )}
+            {errors.imageUrl && (
+              <Typography fontSize={12} color="error" sx={{ mt: 1 }}>
+                {errors.imageUrl}
+              </Typography>
             )}
           </Paper>
 
-          {/* 4. Link & Behaviour */}
           <Paper sx={cardStyle}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Box sx={{ bgcolor: "#fce4ec", borderRadius: "50%", p: 0.8, display: "flex" }}>
@@ -328,7 +392,6 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
           </Paper>
         </Box>
 
-        {/* ── RIGHT COLUMN ── */}
         {!open && (
           <Box display="flex" flexDirection="column" gap={2}>
             <Paper sx={cardStyle}>
@@ -348,7 +411,9 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               />
               <Box
                 sx={{
-                  mt: 2, p: 2, borderRadius: 2,
+                  mt: 2,
+                  p: 2,
+                  borderRadius: 2,
                   bgcolor: form.status ? "#e6f4ea" : "#f5f5f5",
                   border: `1px solid ${form.status ? "#c8e6c9" : "#e0e0e0"}`,
                 }}
@@ -390,16 +455,9 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     </Box>
   );
 
-  // If used as a modal
   if (open !== undefined) {
     return (
-      <Dialog
-        open={open}
-        onClose={handleCancel}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "20px" } }}
-      >
+      <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: "20px" } }}>
         <DialogTitle sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>Edit Banner</DialogTitle>
         <DialogContent>{formContent}</DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>

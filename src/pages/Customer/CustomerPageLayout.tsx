@@ -9,9 +9,10 @@ type CustomerPageLayoutProps = {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  showHeading?: boolean;
 };
 
-export default function CustomerPageLayout({ title, subtitle, children }: CustomerPageLayoutProps) {
+export default function CustomerPageLayout({ title, subtitle, children, showHeading = true }: CustomerPageLayoutProps) {
   return (
     <Box
       className="dashboard-wrapper"
@@ -33,35 +34,39 @@ export default function CustomerPageLayout({ title, subtitle, children }: Custom
           </Box>
 
           <Box className="dashboard-main">
-            <Typography
-              variant="h4"
-              sx={{
-                fontFamily: "'Syne', sans-serif",
-                fontWeight: 700,
-                mb: 1,
-                letterSpacing: "-0.02em",
-                display: "flex",
-                alignItems: "baseline",
-                gap: "2px",
-              }}
-            >
-              {title}
-              <Box
-                component="span"
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "3px",
-                  backgroundColor: "primary.main",
-                  display: "inline-block",
-                  ml: 0.5,
-                }}
-              />
-            </Typography>
-            {subtitle && (
-              <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
-                {subtitle}
-              </Typography>
+            {showHeading && (
+              <>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontFamily: "'Syne', sans-serif",
+                    fontWeight: 700,
+                    mb: 1,
+                    letterSpacing: "-0.02em",
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: "2px",
+                  }}
+                >
+                  {title}
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "3px",
+                      backgroundColor: "primary.main",
+                      display: "inline-block",
+                      ml: 0.5,
+                    }}
+                  />
+                </Typography>
+                {subtitle && (
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+                    {subtitle}
+                  </Typography>
+                )}
+              </>
             )}
             {children}
           </Box>

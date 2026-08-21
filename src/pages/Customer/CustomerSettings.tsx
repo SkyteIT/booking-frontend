@@ -23,15 +23,24 @@ import SegmentedTabs from "../../components/common/SegmentedTabs";
 import SelfServiceEmailChangeSection from "../../components/common/SelfServiceEmailChangeSection";
 import TwoFactorSettings from "../../components/common/TwoFactorSettings";
 import { useAuth } from "../../context/useAuth";
+import api from "../../services/api";
 import { getCurrentUser, updateProfile, uploadProfileImage } from "../../services/authService";
-import { changePassword } from "../../services/Vendor/settings";
-import { resolveAssetUrl } from "../Vendor/Settings/vendorSettings";
 import CustomerPageLayout from "./CustomerPageLayout";
-//import { size } from "zod";
+function resolveAssetUrl(value?: string | null): string {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  if (!baseUrl) return value;
+
+  return `${baseUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
+}
 
 // Only customer-facing events that actually exist in the backend enum
-// (Ube.Domain.Enums.Notifications.NotificationType) - kept in sync with
-// the same list in UserNotifications.tsx's own preferences view.
+// (Ube.Domain.Enums.Notifications.NotificationType). NOTE: the "customer"
+// preferenceGroups in notificationCatalog.ts (used by NotificationCenterPage)
+// currently use a different 0-3 bucket scheme for the same field and will
+// collide with these values until that's fixed too.
 const CUSTOMER_PREFERENCE_GROUPS: PreferenceGroup[] = [
   {
     label: "Bookings",
@@ -58,6 +67,7 @@ const CUSTOMER_PREFERENCE_GROUPS: PreferenceGroup[] = [
     items: [
       { key: "security", label: "Security alerts", notificationType: 9 }, // SecurityAlert
       { key: "acc_updates", label: "Account updates", notificationType: 10 }, // AccountUpdate
+      { key: "vendor_application", label: "Vendor application updates", notificationType: 20 }, // VendorApplicationSubmitted
     ],
   },
 ];
@@ -200,7 +210,7 @@ function SecurityTab() {
     setError("");
     setSaved(false);
     try {
-      await changePassword({ currentPassword, newPassword, confirmPassword });
+      await api.put("/security/change-password", { currentPassword, newPassword, confirmPassword });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");

@@ -1,4 +1,5 @@
 // src/pages/admin/contentManagement/components/CategoryCard.tsx
+import type { ReactNode } from "react";
 import {
   Typography,
   Switch,
@@ -11,57 +12,127 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
+import type { ListingType } from "../../../../services/Vendor/listingService";
 import type { Category } from "../types/contentType";
 
 interface IconConfig {
-  icon: React.ReactNode;
+  icon: ReactNode;
   color: string;
   bg: string;
   gradient: string;
 }
 
+type TypeTheme = {
+  gradient: string;
+  solid: string;
+  softBg: string;
+  border: string;
+  chipBg: string;
+  chipColor: string;
+  chipBorder: string;
+};
+
+const CATEGORY_CARD_THEME = {
+  gradient: "linear-gradient(135deg,#0077b6,#4ea3d8 56%,#b6e4fb)",
+  solid: "#0077b6",
+  softBg: "#F7FBFF",
+  border: "#CFE8F9",
+  surface: "linear-gradient(160deg,#FFFFFF 0%,#F7FBFF 46%,#EEF7FD 100%)",
+  shadow: "0 14px 34px rgba(15, 23, 42, 0.08)",
+  hoverShadow: "0 20px 50px rgba(0,119,182,0.16)",
+  muted: "#5B728A",
+} as const;
+
 const CATEGORY_ICON_MAP: Record<string, IconConfig> = {
   hotels: {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏨</span>,
-    color: "#1565C0",
-    bg: "#E3F2FD",
-    gradient: "linear-gradient(135deg,#1565C0,#1976D2)",
+    color: "#0077b6",
+    bg: "#E3F1FC",
+    gradient: "linear-gradient(135deg,#0077b6,#4ea3d8)",
   },
   "car rentals": {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🚗</span>,
-    color: "#6A1B9A",
-    bg: "#F3E5F5",
-    gradient: "linear-gradient(135deg,#6A1B9A,#8E24AA)",
+    color: "#0d5c8f",
+    bg: "#DCEFFD",
+    gradient: "linear-gradient(135deg,#0d5c8f,#0077b6)",
   },
   activities: {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🎫</span>,
-    color: "#2E7D32",
-    bg: "#E8F5E9",
-    gradient: "linear-gradient(135deg,#2E7D32,#388E3C)",
+    color: "#4ea3d8",
+    bg: "#EEF7FD",
+    gradient: "linear-gradient(135deg,#4ea3d8,#7cc4eb)",
   },
   restaurants: {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🍽️</span>,
-    color: "#E65100",
-    bg: "#FFF3E0",
-    gradient: "linear-gradient(135deg,#E65100,#F57C00)",
+    color: "#005f99",
+    bg: "#D7ECFA",
+    gradient: "linear-gradient(135deg,#005f99,#3b82f6)",
   },
   "event tickets": {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🎟️</span>,
-    color: "#C62828",
-    bg: "#FFEBEE",
-    gradient: "linear-gradient(135deg,#C62828,#E53935)",
+    color: "#2563eb",
+    bg: "#DBEAFE",
+    gradient: "linear-gradient(135deg,#2563eb,#60a5fa)",
   },
   flights: {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>✈️</span>,
-    color: "#00838F",
-    bg: "#E0F7FA",
-    gradient: "linear-gradient(135deg,#00838F,#00ACC1)",
+    color: "#0077b6",
+    bg: "#E3F1FC",
+    gradient: "linear-gradient(135deg,#0077b6,#4ea3d8)",
   },
   tours: {
     icon: <span style={{ fontSize: 26, lineHeight: 1 }}>🏖️</span>,
-    color: "#F9A825",
-    bg: "#FFFDE7",
-    gradient: "linear-gradient(135deg,#F9A825,#FBC02D)",
+    color: "#0d5c8f",
+    bg: "#DCEFFD",
+    gradient: "linear-gradient(135deg,#0d5c8f,#0077b6)",
+  },
+};
+
+const LISTING_TYPE_THEME: Record<ListingType, TypeTheme> = {
+  Hotel: {
+    gradient: "linear-gradient(135deg,#0077b6,#4ea3d8)",
+    solid: "#0077b6",
+    softBg: "#E3F1FC",
+    border: "#BAE6FD",
+    chipBg: "#DBEAFE",
+    chipColor: "#0077b6",
+    chipBorder: "#93C5FD",
+  },
+  Restaurant: {
+    gradient: "linear-gradient(135deg,#f59e0b,#f97316)",
+    solid: "#f59e0b",
+    softBg: "#FFFBEB",
+    border: "#FCD34D",
+    chipBg: "#FEF3C7",
+    chipColor: "#B45309",
+    chipBorder: "#FCD34D",
+  },
+  Activity: {
+    gradient: "linear-gradient(135deg,#f9a8d4,#f472b6)",
+    solid: "#f472b6",
+    softBg: "#FDF2F8",
+    border: "#FBCFE8",
+    chipBg: "#FCE7F3",
+    chipColor: "#BE185D",
+    chipBorder: "#F9A8D4",
+  },
+  Event: {
+    gradient: "linear-gradient(135deg,#94a3b8,#cbd5e1)",
+    solid: "#94a3b8",
+    softBg: "#F8FAFC",
+    border: "#E2E8F0",
+    chipBg: "#E2E8F0",
+    chipColor: "#475569",
+    chipBorder: "#CBD5E1",
+  },
+  CarRental: {
+    gradient: "linear-gradient(135deg,#8b5cf6,#a855f7)",
+    solid: "#8b5cf6",
+    softBg: "#F5F3FF",
+    border: "#DDD6FE",
+    chipBg: "#EDE9FE",
+    chipColor: "#6D28D9",
+    chipBorder: "#C4B5FD",
   },
 };
 
@@ -74,6 +145,22 @@ function getCategoryIcon(name: string): IconConfig {
       gradient: "linear-gradient(135deg,#546E7A,#607D8B)",
     }
   );
+}
+
+function getListingTypeTheme(type?: ListingType | null): TypeTheme {
+  if (!type) {
+    return {
+      gradient: "linear-gradient(135deg,#0077b6,#4ea3d8)",
+      solid: "#0077b6",
+      softBg: "#E3F1FC",
+      border: "#BFDBFE",
+      chipBg: "#E0F2FE",
+      chipColor: "#0077b6",
+      chipBorder: "#93C5FD",
+    };
+  }
+
+  return LISTING_TYPE_THEME[type] ?? LISTING_TYPE_THEME.Hotel;
 }
 
 interface Props {
@@ -92,14 +179,20 @@ export default function CategoryCard({
   onEdit,
 }: Props) {
   const fallbackIcon = getCategoryIcon(category.name);
-  const { color, gradient } = fallbackIcon;
-  const icon = category.icon?.trim() ? <Typography fontSize={26} lineHeight={1}>{category.icon}</Typography> : fallbackIcon.icon;
+  const typeTheme = getListingTypeTheme(category.type);
+  const { chipBg, chipColor, chipBorder } = typeTheme;
+  const { solid, gradient, border, surface, shadow, hoverShadow, muted } = CATEGORY_CARD_THEME;
+  const icon = category.icon?.trim() ? (
+    <Typography fontSize={26} lineHeight={1}>
+      {category.icon}
+    </Typography>
+  ) : fallbackIcon.icon;
+
   const iconTileSx = {
     position: "relative",
     overflow: "hidden",
     isolation: "isolate",
     border: "1px solid rgba(255,255,255,0.6)",
-    boxShadow: `0 16px 30px ${color}22, inset 0 1px 0 rgba(255,255,255,0.7)`,
     "&::before": {
       content: '""',
       position: "absolute",
@@ -127,43 +220,67 @@ export default function CategoryCard({
           display: "flex",
           alignItems: "center",
           gap: 2,
-          background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+          background: surface,
           backdropFilter: "blur(10px)",
-          borderRadius: "22px",
-          p: 2.75,
-          border: "1px solid rgba(0,0,0,0.04)",
-          boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
-          transition: "box-shadow .3s ease, transform .3s ease, border-color .3s ease",
+          borderRadius: "24px",
+          p: 2.5,
+          border: `1px solid ${border}`,
+          boxShadow: shadow,
+          position: "relative",
+          overflow: "hidden",
+          transition: "box-shadow .25s ease, transform .25s ease, border-color .25s ease",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(circle at top right, rgba(0,119,182,0.08), transparent 35%), linear-gradient(180deg, rgba(255,255,255,0.55), transparent 40%)",
+            pointerEvents: "none",
+          },
           "&:hover": {
-            boxShadow: "0 16px 40px rgba(15,23,42,0.1)",
-            transform: "translateY(-3px)",
-            borderColor: "#CBD5E1",
+            boxShadow: hoverShadow,
+            transform: "translateY(-4px)",
+            borderColor: "#7CC4EB",
           },
         }}
       >
         <Box
           sx={{
-            width: 52,
-            height: 52,
-            borderRadius: "16px",
+            width: 58,
+            height: 58,
+            borderRadius: "18px",
             background: gradient,
             color: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
+            boxShadow: "0 12px 24px rgba(0,119,182,0.18)",
             ...iconTileSx,
           }}
         >
           {icon}
         </Box>
 
-        <Box flex={1}>
-          <Typography fontWeight={700} fontSize={15} color="#0F172A">
-            {category.name}
-          </Typography>
-          <Typography fontSize={13} color="#94A3B8">
-            {category.listings} listings
+        <Box flex={1} minWidth={0} position="relative">
+          <Box display="flex" alignItems="center" gap={1} mb={0.4}>
+            <Typography
+              fontWeight={800}
+              fontSize={15.5}
+              color="#0F172A"
+              noWrap
+              sx={{ letterSpacing: "-0.01em" }}
+            >
+              {category.name}
+            </Typography>
+            {category.status ? (
+              <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#10B981", flexShrink: 0 }} />
+            ) : (
+              <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#94A3B8", flexShrink: 0 }} />
+            )}
+          </Box>
+          <Typography fontSize={13} color={muted} noWrap>
+            {category.description || `${category.listings} listing${category.listings !== 1 ? "s" : ""}`}
           </Typography>
         </Box>
 
@@ -175,31 +292,32 @@ export default function CategoryCard({
               fontWeight: 600,
               fontSize: 12,
               borderRadius: "8px",
-              background: "#F1F5F9",
-              color: "#475569",
-              border: "1px solid #E2E8F0",
+              background: chipBg,
+              color: chipColor,
+              border: `1px solid ${chipBorder}`,
             }}
           />
         )}
 
-        <Chip
-          label={category.status ? "Active" : "Inactive"}
-          size="small"
-          sx={{
-            fontWeight: 700,
-            fontSize: 12,
-            borderRadius: "8px",
-            background: category.status ? "#ECFDF5" : "#F8FAFC",
-            color: category.status ? "#10B981" : "#94A3B8",
-            border: `1px solid ${category.status ? "#A7F3D0" : "#E2E8F0"}`,
-          }}
-        />
-
-        <Switch
-          checked={category.status}
-          size="small"
-          onChange={(e) => onToggle(String(category.id), e.target.checked)}
-        />
+        <Box display="flex" alignItems="center" gap={1}>
+          <Chip
+            label={category.status ? "Active" : "Inactive"}
+            size="small"
+            sx={{
+              fontWeight: 700,
+              fontSize: 12,
+              borderRadius: "999px",
+              background: category.status ? "#ECFDF5" : "#F8FAFC",
+              color: category.status ? "#047857" : "#64748B",
+              border: `1px solid ${category.status ? "#A7F3D0" : "#E2E8F0"}`,
+            }}
+          />
+          <Switch
+            checked={category.status}
+            size="small"
+            onChange={(e) => onToggle(String(category.id), e.target.checked)}
+          />
+        </Box>
 
         <Box display="flex" gap={0.5}>
           <Tooltip title="Edit">
@@ -254,16 +372,18 @@ export default function CategoryCard({
   return (
     <Box
       sx={{
-        background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
+        background: surface,
         backdropFilter: "blur(10px)",
-        borderRadius: "24px",
-        border: "1px solid rgba(0,0,0,0.04)",
+        borderRadius: "28px",
+        border: `1px solid ${border}`,
         overflow: "hidden",
-        boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
-        transition: "box-shadow .3s ease, transform .3s ease",
+        boxShadow: shadow,
+        transition: "box-shadow .25s ease, transform .25s ease, border-color .25s ease",
+        position: "relative",
         "&:hover": {
-          boxShadow: `0 18px 40px ${color}24`,
-          transform: "translateY(-3px)",
+          boxShadow: hoverShadow,
+          transform: "translateY(-4px)",
+          borderColor: "#7CC4EB",
         },
         "&:hover .card-banner": {
           opacity: 1,
@@ -273,32 +393,104 @@ export default function CategoryCard({
       <Box
         className="card-banner"
         sx={{
-          height: 8,
+          height: 10,
           background: gradient,
-          opacity: 0.85,
+          opacity: 0.9,
           transition: "opacity .25s",
         }}
       />
 
-      <Box sx={{ p: 2.5 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} mb={2}>
+      <Box sx={{ p: 2.75 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" gap={2.25} mb={2.25}>
           <Box
             sx={{
-              width: 54,
-              height: 54,
-              borderRadius: "14px",
+              width: 62,
+              height: 62,
+              borderRadius: "18px",
               background: gradient,
               color: "#fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-            ...iconTileSx,
-          }}
+              boxShadow: `0 12px 24px ${solid}22`,
+              flexShrink: 0,
+              ...iconTileSx,
+            }}
           >
             {icon}
           </Box>
+        </Box>
 
-          <Box display="flex" gap={0.75}>
+        <Typography fontWeight={800} fontSize={17} color="#0F172A" mb={0.4} sx={{ letterSpacing: "-0.02em" }}>
+          {category.name}
+        </Typography>
+
+        <Typography
+          fontSize={13}
+          color={muted}
+          sx={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            minHeight: 36,
+            mb: 1.5,
+          }}
+        >
+          {category.description || "A category used to organize listings and presentation in the content management module."}
+        </Typography>
+
+        {category.type && (
+          <Chip
+            label={category.type}
+            size="small"
+            sx={{
+              fontWeight: 600,
+              fontSize: 11,
+              borderRadius: "8px",
+              background: chipBg,
+              color: chipColor,
+              border: `1px solid ${chipBorder}`,
+              mb: 1,
+            }}
+          />
+        )}
+
+        <Box display="flex" alignItems="center" justifyContent="space-between" gap={1.5} mb={2.25}>
+          <Box display="flex" alignItems="center" gap={0.6}>
+          <FormatListBulletedIcon sx={{ fontSize: 14, color: "#94A3B8" }} />
+          <Typography fontSize={13} color="#94A3B8" fontWeight={500}>
+            {category.listings} listing{category.listings !== 1 ? "s" : ""}
+          </Typography>
+          </Box>
+          <Chip
+            label={category.status ? "Active" : "Inactive"}
+            size="small"
+            sx={{
+              fontWeight: 700,
+              fontSize: 12,
+              borderRadius: "999px",
+              background: category.status ? "#ECFDF5" : "#F8FAFC",
+              color: category.status ? "#047857" : "#64748B",
+              border: `1px solid ${category.status ? "#A7F3D0" : "#E2E8F0"}`,
+            }}
+          />
+        </Box>
+
+        <Box sx={{ height: 1, background: "linear-gradient(90deg, rgba(0,119,182,0.18), rgba(148,163,184,0.15), rgba(0,119,182,0.06))", mx: -2.75, mb: 2.25 }} />
+
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Switch
+            checked={category.status}
+            onChange={(e) => onToggle(String(category.id), e.target.checked)}
+            sx={{
+              "& .MuiSwitch-switchBase.Mui-checked": { color: "#0077b6" },
+              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                background: "#0077b6",
+              },
+            }}
+          />
+          <Box display="flex" gap={0.5}>
             <Tooltip title="Edit category">
               <IconButton
                 size="small"
@@ -346,60 +538,6 @@ export default function CategoryCard({
               </IconButton>
             </Tooltip>
           </Box>
-        </Box>
-
-        <Typography fontWeight={800} fontSize={16} color="#0F172A" mb={0.5}>
-          {category.name}
-        </Typography>
-
-        {category.type && (
-          <Chip
-            label={category.type}
-            size="small"
-            sx={{
-              fontWeight: 600,
-              fontSize: 11,
-              borderRadius: "8px",
-              background: "#F1F5F9",
-              color: "#475569",
-              border: "1px solid #E2E8F0",
-              mb: 1,
-            }}
-          />
-        )}
-
-        <Box display="flex" alignItems="center" gap={0.6} mb={2.5}>
-          <FormatListBulletedIcon sx={{ fontSize: 14, color: "#94A3B8" }} />
-          <Typography fontSize={13} color="#94A3B8" fontWeight={500}>
-            {category.listings} listing{category.listings !== 1 ? "s" : ""}
-          </Typography>
-        </Box>
-
-        <Box sx={{ height: 1, background: "#F1F5F9", mx: -2.5, mb: 2 }} />
-
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Chip
-            label={category.status ? "Active" : "Inactive"}
-            size="small"
-            sx={{
-              fontWeight: 700,
-              fontSize: 12,
-              borderRadius: "8px",
-              background: category.status ? "#ECFDF5" : "#F8FAFC",
-              color: category.status ? "#10B981" : "#94A3B8",
-              border: `1px solid ${category.status ? "#A7F3D0" : "#E2E8F0"}`,
-            }}
-          />
-          <Switch
-            checked={category.status}
-            onChange={(e) => onToggle(String(category.id), e.target.checked)}
-            sx={{
-              "& .MuiSwitch-switchBase.Mui-checked": { color: "#10B981" },
-              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                background: "#10B981",
-              },
-            }}
-          />
         </Box>
       </Box>
     </Box>

@@ -11,6 +11,7 @@ import type { ListingType } from "../../../../services/Vendor/listingService";
 export interface Category {
   id: string;
   name: string;
+  description?: string;
   listings: number; // Total active listings belonging to this category
   status: boolean;  // true = Active, false = Inactive
   icon: string;     // Emoji character or empty string

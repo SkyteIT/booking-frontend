@@ -50,6 +50,7 @@ type NotificationFilter = "all" | "unread" | string;
 type NotificationCenterPageProps = {
   role: NotificationRole;
   userId?: string | null;
+  showHeaderTitle?: boolean;
   showTopCategories?: boolean;
   showPreferences?: boolean;
   allowReadActions?: boolean;
@@ -108,6 +109,7 @@ function preferenceValue(
 export default function NotificationCenterPage({
   role,
   userId: providedUserId = null,
+  showHeaderTitle = true,
   showTopCategories = true,
   showPreferences = true,
   allowReadActions = true,
@@ -312,48 +314,50 @@ export default function NotificationCenterPage({
   return (
     <Box sx={{ display: "grid", gap: 3 }}>
       <Stack spacing={2}>
-        <Box>
-          <Typography
-            variant="h5"
-            sx={{
-              fontFamily: "'Syne', sans-serif",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              display: "flex",
-              alignItems: "baseline",
-              gap: "2px",
-            }}
-          >
-            {config.title}
-            <Box
-              component="span"
+        {showHeaderTitle && (
+          <Box>
+            <Typography
+              variant="h5"
               sx={{
-                width: 8,
-                height: 8,
-                borderRadius: "3px",
-                backgroundColor: "primary.main",
-                display: "inline-block",
-                ml: 0.5,
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                display: "flex",
+                alignItems: "baseline",
+                gap: "2px",
               }}
-            />
-          </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-            {subtitle}
-          </Typography>
-          {showHeaderStats && (
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
-              <Chip label={`${summary.unread} unread`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
-              <Chip label={`${summary.total} total`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
-              <Chip label={`${summary.critical} priority`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
-              <Chip label={`${summary.activeGroups} groups active`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
-            </Stack>
-          )}
-          {showHeaderEmail && email && (
-            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 0.5 }}>
-              {email}
+            >
+              {config.title}
+              <Box
+                component="span"
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "3px",
+                  backgroundColor: "primary.main",
+                  display: "inline-block",
+                  ml: 0.5,
+                }}
+              />
             </Typography>
-          )}
-        </Box>
+            <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+              {subtitle}
+            </Typography>
+            {showHeaderStats && (
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
+                <Chip label={`${summary.unread} unread`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+                <Chip label={`${summary.total} total`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+                <Chip label={`${summary.critical} priority`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+                <Chip label={`${summary.activeGroups} groups active`} size="small" sx={{ bgcolor: "rgba(0,119,182,0.08)", color: "primary.main", fontWeight: 600 }} />
+              </Stack>
+            )}
+            {showHeaderEmail && email && (
+              <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 0.5 }}>
+                {email}
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <Stack direction="row" spacing={1.5} flexShrink={0}>
           <Button

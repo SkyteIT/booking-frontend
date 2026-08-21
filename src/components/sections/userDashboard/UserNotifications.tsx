@@ -45,6 +45,7 @@ const bgMap: Record<NotifStatus, string> = {
 function resolveStatus(type: string): NotifStatus {
   const t = type.toLowerCase();
   if (t === "3" || t.includes("account") || t.includes("security")) return "account";
+  if (t.includes("vendorapplication")) return "account";
   if (t === "0" || t.includes("book"))    return "booking";
   if (t === "1" || t.includes("pay"))     return "payment";
   if (t === "2" || t.includes("review"))  return "review";
@@ -82,7 +83,9 @@ interface UserNotificationsProps {
 // now, not here - this is just the inbox, no duplicate second copy of the
 // same controls.
 const UserNotifications = ({ userId }: UserNotificationsProps) => {
-  const { notifications: allNotifications, loading, markAsRead } = useNotifications(userId);
+  const { notifications: allNotifications, loading, markAsRead } = useNotifications(userId, {
+    refreshIntervalMs: 15000,
+  });
 
   // This account's feed may also contain vendor-context events (e.g. a
   // vendor account that visits their own customer pages) - the customer
