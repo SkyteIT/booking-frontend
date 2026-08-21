@@ -3,7 +3,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
-import { Box, IconButton, Snackbar } from "@mui/material";
+import { Box, IconButton, Portal, Snackbar } from "@mui/material";
 import Slide from "@mui/material/Slide";
 import type { SlideProps } from "@mui/material/Slide";
 import { keyframes } from "@mui/material/styles";
@@ -26,29 +26,33 @@ const SEVERITY = {
   success: {
     gradient: "linear-gradient(160deg, #005a8d, #0077b6)",
     glow: "rgba(0,119,182,0.28)",
-    surface: "linear-gradient(160deg, rgba(224,242,254,0.85), rgba(255,255,255,0.92))",
-    border: "rgba(0,119,182,0.12)",
+    surface: "linear-gradient(160deg, rgba(224,242,254,0.4), rgba(255,255,255,0.28))",
+    border: "rgba(255,255,255,0.4)",
+    textColor: "#0c2233",
     icon: <CheckRoundedIcon />,
   },
   error: {
     gradient: "linear-gradient(160deg, #B91C1C, #DC2626)",
     glow: "rgba(220,38,38,0.28)",
-    surface: "linear-gradient(160deg, rgba(254,226,226,0.85), rgba(255,255,255,0.92))",
-    border: "rgba(220,38,38,0.16)",
+    surface: "linear-gradient(160deg, rgba(254,226,226,0.4), rgba(255,255,255,0.28))",
+    border: "rgba(255,255,255,0.4)",
+    textColor: "#3a1212",
     icon: <ErrorOutlineRoundedIcon />,
   },
   warning: {
     gradient: "linear-gradient(160deg, #B45309, #F59E0B)",
     glow: "rgba(245,158,11,0.28)",
-    surface: "linear-gradient(160deg, rgba(254,243,199,0.85), rgba(255,255,255,0.92))",
-    border: "rgba(245,158,11,0.18)",
+    surface: "linear-gradient(160deg, rgba(254,243,199,0.4), rgba(255,255,255,0.28))",
+    border: "rgba(255,255,255,0.4)",
+    textColor: "#3a2a0c",
     icon: <WarningAmberRoundedIcon />,
   },
   info: {
     gradient: "linear-gradient(160deg, #005a8d, #0077b6)",
     glow: "rgba(0,119,182,0.28)",
-    surface: "linear-gradient(160deg, rgba(224,242,254,0.85), rgba(255,255,255,0.92))",
-    border: "rgba(0,119,182,0.12)",
+    surface: "linear-gradient(160deg, rgba(224,242,254,0.4), rgba(255,255,255,0.28))",
+    border: "rgba(255,255,255,0.4)",
+    textColor: "#0c2233",
     icon: <InfoOutlinedIcon />,
   },
 } as const;
@@ -65,9 +69,11 @@ export default function ToastAlert({
   duration = 3500,
   onClose,
 }: Props) {
-  const { gradient, glow, surface, border, icon } = SEVERITY[severity];
+  const { gradient, glow, surface, border, textColor, icon } = SEVERITY[severity];
 
   return (
+   
+    <Portal>
     <Snackbar
       open={open}
       autoHideDuration={duration}
@@ -92,8 +98,9 @@ export default function ToastAlert({
           border: "1px solid",
           borderColor: border,
           background: surface,
-          backdropFilter: "blur(20px)",
-          boxShadow: `0 12px 30px rgba(15,27,45,0.14), 0 0 0 1px ${glow}`,
+          backdropFilter: "blur(20px) saturate(1.6)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.6)",
+          boxShadow: `0 12px 30px rgba(15,27,45,0.18), 0 0 0 1px ${glow}, inset 0 1px 0 rgba(255,255,255,0.55), inset 0 0 2px 1px rgba(255,255,255,0.3)`,
           px: 1.5,
           py: 1.25,
         }}
@@ -117,7 +124,7 @@ export default function ToastAlert({
         </Box>
 
         <Box
-          sx={{ flex: 1, pt: 0.1, fontWeight: 600, fontSize: "0.82rem", color: "#111827", lineHeight: 1.35 }}
+          sx={{ flex: 1, pt: 0.1, fontWeight: 600, fontSize: "0.82rem", color: textColor, lineHeight: 1.35 }}
         >
           {message}
         </Box>
@@ -145,5 +152,6 @@ export default function ToastAlert({
         />
       </Box>
     </Snackbar>
+    </Portal>
   );
 }

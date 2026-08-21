@@ -75,6 +75,7 @@ function Register(): JSX.Element {
             <input
               type="text"
               placeholder="Enter your full name"
+              autoComplete="name"
               {...register("name")}
               className={errors.name ? "input-error" : ""}
             />
@@ -86,6 +87,7 @@ function Register(): JSX.Element {
             <input
               type="email"
               placeholder="Enter your email"
+              autoComplete="email"
               {...register("email")}
               className={errors.email ? "input-error" : ""}
             />
@@ -97,6 +99,7 @@ function Register(): JSX.Element {
             <input
               type="password"
               placeholder="Create a password"
+              autoComplete="new-password"
               {...register("password")}
               className={errors.password ? "input-error" : ""}
             />

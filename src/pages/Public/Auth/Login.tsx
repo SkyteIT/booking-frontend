@@ -127,6 +127,7 @@ function Login(): JSX.Element {
             <input
               type="email"
               placeholder="Enter email"
+              autoComplete="email"
               {...register("email")}
               className={errors.email ? "input-error" : ""}
             />
@@ -141,6 +142,7 @@ function Login(): JSX.Element {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
+                autoComplete="current-password"
                 {...register("password")}
                 className={errors.password ? "input-error" : ""}
               />
@@ -201,7 +203,7 @@ function Login(): JSX.Element {
           open={successSnackbar}
           onClose={() => setSuccessSnackbar(false)}
           severity="success"
-          duration={2000}
+          duration={20000}
           message="Login successful!"
         />
 

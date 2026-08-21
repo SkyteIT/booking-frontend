@@ -105,7 +105,10 @@ function AuthLayout({ children }: AuthLayoutProps) {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           style={{
-            transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+            transform:
+              tilt.x === 0 && tilt.y === 0
+                ? "none"
+                : `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
           }}
         >
           {children}
