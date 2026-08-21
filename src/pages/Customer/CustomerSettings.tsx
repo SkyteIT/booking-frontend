@@ -26,7 +26,6 @@ import { useAuth } from "../../context/useAuth";
 import api from "../../services/api";
 import { getCurrentUser, updateProfile, uploadProfileImage } from "../../services/authService";
 import CustomerPageLayout from "./CustomerPageLayout";
-
 function resolveAssetUrl(value?: string | null): string {
   if (!value) return "";
   if (/^https?:\/\//i.test(value)) return value;
@@ -36,7 +35,6 @@ function resolveAssetUrl(value?: string | null): string {
 
   return `${baseUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
 }
-
 
 // Only customer-facing events that actually exist in the backend enum
 // (Ube.Domain.Enums.Notifications.NotificationType). NOTE: the "customer"

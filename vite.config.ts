@@ -64,11 +64,14 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:5037',
+      "/api": {
+        target: "http://localhost:5037",
         changeOrigin: true,
-        secure: false
-      }
-    }
-  }
+      },
+      "/images": {
+        target: "http://localhost:5037",
+        changeOrigin: true,
+      },
+    },
+  },
 })

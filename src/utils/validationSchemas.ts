@@ -3,21 +3,25 @@ import { z } from "zod";
 //  Email validation
 export const emailSchema = z
   .string()
+  .trim()
   .min(1, "Email is required")
-  .email("Enter a valid email address");
+  .email("Enter a valid email address")
+  .max(100, "Email is too long");
 
-// Password validation (min 8, uppercase, lowercase, number)
+// Password validation (min 8, uppercase, lowercase, number, special char)
 export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
+  .max(50, "Password is too long")
   .regex(/[A-Z]/, "Password must contain an uppercase letter")
   .regex(/[a-z]/, "Password must contain a lowercase letter")
-  .regex(/\d/, "Password must contain a number");
+  .regex(/\d/, "Password must contain a number")
+  .regex(/[\W_]/, "Password must contain a special character");
 
 //  Login Schema
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Password is required").max(50, "Password is too long"),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -26,8 +30,11 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export const registerSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(1, "Full name is required")
     .min(3, "Name must be at least 3 characters")
+    .max(50, "Name is too long")
+    .regex(/^[a-zA-Z\s\-']+$/, "Name can only contain letters, spaces, hyphens, and apostrophes")
     .regex(/\s/, "Please enter both first and last name"),
   email: emailSchema,
   password: passwordSchema,
@@ -62,7 +69,7 @@ export const contactInfoSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone is required")
-    .regex(/^[\d\s+()-]+$/, "Enter a valid phone number"),
+    .regex(/^(0\d{9}|\+94\d{9})$/, "Phone must be 10 digits starting with 0, or start with +94"),
   address: z.string().min(1, "Address is required").min(5, "Address must be at least 5 characters"),
   city: z.string().min(1, "City is required"),
   zipCode: z.string().min(1, "Zip code is required").regex(/^[\d-]+$/, "Enter a valid zip code"),
@@ -76,7 +83,7 @@ export const profileSettingsSchema = z.object({
   firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
   email: emailSchema,
-  phone: z.string().min(1, "Phone is required").regex(/^[\d\s+()-]+$/, "Enter a valid phone number"),
+  phone: z.string().min(1, "Phone is required").regex(/^(0\d{9}|\+94\d{9})$/, "Phone must be 10 digits starting with 0, or start with +94"),
   businessName: z.string().min(1, "Business name is required").min(3, "Business name must be at least 3 characters"),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional().or(z.literal("")),
 });
@@ -130,7 +137,7 @@ export const checkoutSchema = z.object({
   firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
   email: emailSchema,
-  phone: z.string().min(1, "Phone is required").regex(/^[\d\s\-+()]{10,}$/, "Enter a valid phone number"),
+  phone: z.string().min(1, "Phone is required").regex(/^(0\d{9}|\+94\d{9})$/, "Phone must be 10 digits starting with 0, or start with +94"),
   address: z.string().min(1, "Address is required").min(5, "Address must be at least 5 characters"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
@@ -162,21 +169,44 @@ export type PaymentFormData = z.infer<typeof paymentSchema>;
 
 //  Vendor Application - Business Info step
 export const vendorBusinessInfoSchema = z.object({
-  businessName: z.string().min(1, "Business name is required").min(3, "Business name must be at least 3 characters"),
-  businessType: z.string().min(1, "Business type is required"),
+  businessName: z
+    .string()
+    .min(1, "Business name is required")
+    .min(3, "Business name must be at least 3 characters")
+    .max(200, "Business name is too long"),
+
+  businessType: z
+    .string()
+    .min(1, "Business type is required")
+    .max(200, "Business type is too long"),
+
   taxId: z
     .string()
-    .min(1, "Tax ID / EIN is required")
-    .regex(/^[A-Za-z0-9-]{4,100}$/, "Tax ID must be 4-100 alphanumeric characters"),
+    .trim()
+    .max(100, "Tax ID is too long")
+    .refine(
+      (value) => value === "" || /^[A-Za-z0-9-]{4,100}$/.test(value),
+      "Tax ID must be 4-100 alphanumeric characters"
+    )
+    .optional(),
+
   website: z
     .string()
+    .max(300, "Website URL is too long")
     .optional()
     .or(z.literal(""))
     .refine(
-      (v) => !v || /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v),
+      (value) =>
+        !value ||
+        /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(value),
       "Enter a valid website URL"
     ),
-  address: z.string().min(1, "Business address is required").min(5, "Address is too short"),
+
+  address: z
+    .string()
+    .min(1, "Business address is required")
+    .min(5, "Address is too short")
+    .max(500, "Address is too long"),
 });
 
 export type VendorBusinessInfoFormData = z.infer<typeof vendorBusinessInfoSchema>;
@@ -184,10 +214,10 @@ export type VendorBusinessInfoFormData = z.infer<typeof vendorBusinessInfoSchema
 //  Vendor Application - Contact Info step (previously only checked
 //  "required", not real email/phone format - a real gap, not a style choice)
 export const vendorContactInfoSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: z.string().min(1, "First name is required").max(100, "First name is too long"),
+  lastName: z.string().min(1, "Last name is required").max(100, "Last name is too long"),
   email: emailSchema,
-  phone: z.string().min(1, "Phone is required").regex(/^[\d\s\-+()]{7,20}$/, "Enter a valid phone number"),
+  phone: z.string().min(1, "Phone is required").regex(/^(0\d{9}|\+94\d{9})$/, "Phone must be 10 digits starting with 0, or start with +94"),
 });
 
 export type VendorContactInfoFormData = z.infer<typeof vendorContactInfoSchema>;
