@@ -13,6 +13,11 @@ export interface SearchParams {
   pageSize?: number;
 }
 
+export interface SearchListingsResult {
+  items: SearchListing[];
+  totalCount: number;
+}
+
 // Matches Ube.Application.Features.Search.SearchListingDto exactly — this
 // used to declare priceFrom/rating/isAvailable, none of which the backend
 // ever sends (it sends price/averageRating/isActive), so every listing
@@ -60,8 +65,8 @@ const normalizeSearchListing = (listing: SearchListingPayload): SearchListing =>
   offerBadgeText: listing.offerBadgeText ?? null,
 });
 
-export const searchListings = async (params: SearchParams): Promise<SearchListing[]> => {
-  const { categoryIds, ...rest } = params;
+export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
+  const { categoryIds, page = 1, pageSize = 12, ...rest } = params;
   const qs = new URLSearchParams();
 
   Object.entries(rest).forEach(([key, value]) => {
@@ -73,13 +78,28 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
     }
   });
 
+  qs.set("page", String(page));
+  qs.set("pageSize", String(pageSize));
+
   if (categoryIds && categoryIds.length > 0) {
     categoryIds.forEach((id) => qs.append("categoryIds", id));
   }
 
-  const { data } = await api.get<SearchListingPayload[]>(`/search/listings?${qs.toString()}`, {
+  const { data } = await api.get<SearchListingsResult | SearchListingPayload[]>(`/search/listings?${qs.toString()}`, {
     headers: { "Content-Type": "application/json" },
     skipAuthRedirect: true,
   });
-  return Array.isArray(data) ? data.map(normalizeSearchListing) : [];
+
+  if (Array.isArray(data)) {
+    const items = data.map(normalizeSearchListing);
+    return {
+      items,
+      totalCount: items.length,
+    };
+  }
+
+  return {
+    items: Array.isArray(data.items) ? data.items.map(normalizeSearchListing) : [],
+    totalCount: Number(data.totalCount ?? 0),
+  };
 };

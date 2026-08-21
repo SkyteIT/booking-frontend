@@ -10,9 +10,12 @@ import { useSearchResults } from "../hooks/useSearchResults";
 const SearchResultsScreen = () => {
   const {
     filters,
-    listings = [],
     filteredListings,
     loading,
+    loadingMore,
+    totalCount,
+    hasMore,
+    loadMore,
     error,
     categories = [],
     ratingOptions,
@@ -29,17 +32,21 @@ const SearchResultsScreen = () => {
   return (
     <Box
       sx={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        width: "100%",
         backgroundColor: "background.default",
         backgroundImage:
           "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
         backgroundRepeat: "no-repeat",
-        minHeight: "70vh",
+        minHeight: "100%",
         pt: { xs: 16, md: 18 },
         pb: { xs: 4, md: 6 },
       }}
     >
       <Container maxWidth="lg">
-        <SearchToolbar query={filters.q} total={listings.length} onQueryChange={setQuery} />
+        <SearchToolbar query={filters.q} total={totalCount} onQueryChange={setQuery} />
 
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: "12px" }}>
@@ -71,7 +78,12 @@ const SearchResultsScreen = () => {
             {loading ? (
               <LoadingSpinner fullScreen={false} py={10} />
             ) : (
-              <ResultsGrid listings={filteredListings} />
+              <ResultsGrid
+                listings={filteredListings}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                onLoadMore={loadMore}
+              />
             )}
           </Grid>
         </Grid>

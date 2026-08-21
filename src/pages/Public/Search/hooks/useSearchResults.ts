@@ -15,6 +15,9 @@ export const useSearchResults = () => {
   const [allCategories, setAllCategories] = useState<ApiCategory[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
@@ -52,23 +55,25 @@ export const useSearchResults = () => {
     [categories]
   );
 
-  useEffect(() => {
-    if (!categoriesLoaded) return;
+  const selectedCategoryIds = useMemo(
+    () =>
+      filters.categories
+        .map(
+          (name) =>
+            categories.find((category) => category.name.toLowerCase() === name.toLowerCase())
+              ?.id
+        )
+        .filter((id): id is string => Boolean(id)),
+    [filters.categories, categories]
+  );
 
-    let cancelled = false;
+  const fetchPage = useCallback(
+    async (pageToLoad: number, replace: boolean) => {
+      if (!categoriesLoaded) return;
 
-    const runSearch = async () => {
       try {
-        setLoading(true);
+        replace ? setLoading(true) : setLoadingMore(true);
         setError(null);
-
-        const selectedCategoryIds = filters.categories
-          .map(
-            (name) =>
-              categories.find((category) => category.name.toLowerCase() === name.toLowerCase())
-                ?.id
-          )
-          .filter((id): id is string => Boolean(id));
 
         const data = await searchListings({
           searchTerm: filters.q || undefined,
@@ -77,31 +82,44 @@ export const useSearchResults = () => {
           maxPrice: filters.maxPrice,
           minRating: filters.minRating,
           hasActiveOffer: filters.hasOffer,
-          // Explore has no pagination control, so request the largest page the
-          // backend allows instead of its smaller default page.
-          page: 1,
-          pageSize: 50,
+          page: pageToLoad,
+          pageSize: 12,
         });
 
-        if (cancelled) return;
+        const results = activeCategoryNames.size > 0
+          ? data.items.filter((listing) =>
+              activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
+            )
+          : data.items;
 
-        const results = Array.isArray(data) ? data : [];
-        const filtered =
-          activeCategoryNames.size > 0
-            ? results.filter((listing) =>
-                activeCategoryNames.has(listing.categoryName?.toLowerCase() ?? "")
-              )
-            : results;
-
-        setListings(filtered);
+        setListings((current) => (replace ? results : [...current, ...results]));
+        setTotalCount(data.totalCount);
+        setPage(pageToLoad);
       } catch (err) {
-        if (cancelled) return;
         console.error("Error fetching search results:", err);
-        setListings([]);
+        if (replace) {
+          setListings([]);
+          setTotalCount(0);
+        }
         setError("Failed to load results. Please try again.");
       } finally {
-        if (!cancelled) setLoading(false);
+        replace ? setLoading(false) : setLoadingMore(false);
       }
+    },
+    [activeCategoryNames, categoriesLoaded, filters.hasOffer, filters.maxPrice, filters.minRating, filters.minPrice, filters.q, selectedCategoryIds]
+  );
+
+  useEffect(() => {
+    if (!categoriesLoaded) return;
+
+    let cancelled = false;
+
+    const runSearch = async () => {
+      if (cancelled) return;
+      setPage(1);
+      setListings([]);
+      setTotalCount(0);
+      await fetchPage(1, true);
     };
 
     runSearch();
@@ -109,7 +127,7 @@ export const useSearchResults = () => {
     return () => {
       cancelled = true;
     };
-  }, [filters, categories, categoriesLoaded, activeCategoryNames]);
+  }, [filters, categoriesLoaded, fetchPage]);
 
   const setQuery = useCallback(
     (value: string) => {
@@ -187,12 +205,21 @@ export const useSearchResults = () => {
   }, [searchParams, setSearchParams]);
 
   const ratingOptions = [3, 4, 4.5] as const;
+  const hasMore = listings.length < totalCount;
+  const loadMore = useCallback(() => {
+    if (loading || loadingMore || !hasMore) return;
+    void fetchPage(page + 1, false);
+  }, [fetchPage, hasMore, loading, loadingMore, page]);
 
   return {
     filters,
     listings,
     filteredListings: listings,
     loading,
+    loadingMore,
+    totalCount,
+    hasMore,
+    loadMore,
     error,
     categories,
     ratingOptions,
