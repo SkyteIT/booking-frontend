@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/useAuth";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 import { getRoleHomePath } from "../../../utils/roleHomePath";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
   startTwoFactorEnrollment,
   confirmTwoFactorEnrollment,
@@ -138,7 +139,7 @@ function TwoFactorEnroll(): JSX.Element {
         </p>
 
         {loading ? (
-          <p className="subtitle center">Loading...</p>
+          <LoadingSpinner fullScreen={false} py={2} />
         ) : (
           <>
             {otpAuthUri && (

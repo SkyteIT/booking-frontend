@@ -16,6 +16,7 @@ import {
 } from '../../services/Admin/adminService';
 import SegmentedTabs from '../../components/common/SegmentedTabs';
 import SnackbarAlert from '../../components/common/SnackbarAlert';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const TAB_STATUSES = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
 
@@ -302,9 +303,7 @@ export const BookingOversightPage: React.FC = () => {
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={7}>
-                      <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                        Loading bookings...
-                      </Typography>
+                      <LoadingSpinner fullScreen={false} size={24} py={3} />
                     </TableCell>
                   </TableRow>
                 ) : filteredBookings.length === 0 ? (

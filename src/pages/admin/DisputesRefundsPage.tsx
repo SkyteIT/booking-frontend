@@ -9,6 +9,7 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import SegmentedTabs from '../../components/common/SegmentedTabs';
 import SnackbarAlert from '../../components/common/SnackbarAlert';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   getRefunds, approveRefund, rejectRefund,
   getDisputes, recordDispute, resolveDispute,
@@ -257,9 +258,7 @@ export const DisputesRefundsPage: React.FC = () => {
                   {refundsLoading ? (
                     <TableRow>
                       <TableCell colSpan={8}>
-                        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                          Loading refunds...
-                        </Typography>
+                        <LoadingSpinner fullScreen={false} size={24} py={3} />
                       </TableCell>
                     </TableRow>
                   ) : refunds.length === 0 ? (
@@ -371,9 +370,7 @@ export const DisputesRefundsPage: React.FC = () => {
                   {disputesLoading ? (
                     <TableRow>
                       <TableCell colSpan={8}>
-                        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                          Loading disputes...
-                        </Typography>
+                        <LoadingSpinner fullScreen={false} size={24} py={3} />
                       </TableCell>
                     </TableRow>
                   ) : disputes.length === 0 ? (

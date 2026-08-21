@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../../context/useAuth";
 import { askQuestion, getListingQuestions, type QuestionDto } from "../../../../../services/questionService";
+import LoadingSpinner from "../../../../../components/common/LoadingSpinner";
 
 const PAGE_SIZE = 5;
 
@@ -126,9 +127,7 @@ const ListingQuestions = ({ listingId }: ListingQuestionsProps) => {
       )}
 
       {loading ? (
-        <Typography variant="body2" color="text.secondary">
-          Loading questions...
-        </Typography>
+        <LoadingSpinner fullScreen={false} py={3} />
       ) : questions.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           No questions yet. Be the first to ask.

@@ -17,6 +17,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import { useCallback, useEffect, useState } from "react";
 import SnackbarAlert from "../../components/common/SnackbarAlert";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import {
   getMyReviews,
   updateReview,
@@ -147,9 +148,7 @@ export default function CustomerReviews() {
               </Typography>
             </Box>
           ) : loading ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-              Loading your reviews...
-            </Typography>
+            <LoadingSpinner fullScreen={false} py={3} />
           ) : reviews.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
               You haven't left any reviews yet.

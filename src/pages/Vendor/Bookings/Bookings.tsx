@@ -14,6 +14,7 @@ import BookingsStatusTabs from "../../../components/Bookings/BookingStatusTabs";
 import BookingsToolbar from "../../../components/Bookings/BookingToolbar";
 import BookingDetailDialog from "../../../components/common/BookingDetailDialog";
 import { useVendorBookingsPage } from "./useVendorBookingsPage";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
 export default function Bookings() {
   const {
@@ -108,9 +109,7 @@ export default function Bookings() {
               </Typography>
             </Box>
           ) : loading ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-              Loading bookings...
-            </Typography>
+            <LoadingSpinner fullScreen={false} py={3} />
           ) : filteredRows.length === 0 ? (
             <Typography
               variant="body2"

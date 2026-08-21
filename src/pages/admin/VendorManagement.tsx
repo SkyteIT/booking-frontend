@@ -6,6 +6,7 @@ import VendorManagementTabs from "../../components/Admin/VendorManagement/Vendor
 import VendorManagementToolbar from "../../components/Admin/VendorManagement/VendorManagementToolbar";
 import VendorTable from "../../components/Admin/VendorManagement/VendorTable";
 import SnackbarAlert from "../../components/common/SnackbarAlert";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useVendorManagement } from "./useVendorManagement";
 
 export default function VendorManagement() {
@@ -74,9 +75,7 @@ export default function VendorManagement() {
               }}
             >
               {loading ? (
-                <Typography color="text.secondary">
-                  Loading vendor applications...
-                </Typography>
+                <LoadingSpinner fullScreen={false} py={4} />
               ) : vendors.length === 0 ? (
                 <Typography color="text.secondary">
                   No vendor applications found for the selected filters.

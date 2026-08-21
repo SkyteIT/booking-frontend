@@ -9,6 +9,7 @@ import RevenueOverviewCard from "../../../components/Vendor/Dashboard/RevenueOve
 import StatCard from "../../../components/Vendor/Dashboard/StatCard";
 import UpcomingBookingsCard from "../../../components/Vendor/Dashboard/UpcomingBookingsCard";
 import { useVendorDashboard } from "./useVendorDashboard";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
 export default function Dashboard() {
   const {
@@ -75,7 +76,7 @@ export default function Dashboard() {
       </Box>
 
       {loadingDashboard ? (
-        <Typography color="text.secondary">Loading dashboard...</Typography>
+        <LoadingSpinner fullScreen={false} py={4} />
       ) : (
         <Grid container spacing={2}>
           {stats.map((s) => (
@@ -101,7 +102,7 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, lg: 4 }}>
           <Box sx={{ mb: 1 }}>
             {loadingBookingStats ? (
-              <Typography color="text.secondary">Loading chart...</Typography>
+              <LoadingSpinner fullScreen={false} size={22} py={2} />
             ) : (
               <BookingStatusChart stats={bookingStats} />
             )}

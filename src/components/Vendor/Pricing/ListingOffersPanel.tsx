@@ -23,6 +23,7 @@ import {
   type OfferDiscountType,
 } from "../../../services/Vendor/listingOfferService";
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 type Props = {
   listingId: string | null;
@@ -200,7 +201,9 @@ export default function ListingOffersPanel({ listingId, onError, onSuccess }: Pr
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={4} align="center">Loading...</TableCell>
+              <TableCell colSpan={4} align="center">
+                <LoadingSpinner fullScreen={false} size={22} py={2} />
+              </TableCell>
             </TableRow>
           ) : offers.length === 0 ? (
             <TableRow>

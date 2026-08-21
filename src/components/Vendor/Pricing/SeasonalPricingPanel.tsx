@@ -22,6 +22,7 @@ import {
   type SeasonalRateAdjustmentType,
 } from "../../../services/Vendor/seasonalPricingService";
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 type Props = {
   listingId: string | null;
@@ -174,7 +175,9 @@ export default function SeasonalPricingPanel({ listingId, onError, onSuccess }: 
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={4} align="center">Loading...</TableCell>
+              <TableCell colSpan={4} align="center">
+                <LoadingSpinner fullScreen={false} size={22} py={2} />
+              </TableCell>
             </TableRow>
           ) : rules.length === 0 ? (
             <TableRow>

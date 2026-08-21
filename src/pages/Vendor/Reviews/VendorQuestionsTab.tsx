@@ -5,6 +5,7 @@ import { Box, Card, CardContent, Stack, Typography, Avatar, Button, TextField } 
 import { alpha } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
   answerQuestion,
   getVendorQuestions,
@@ -113,9 +114,7 @@ export default function VendorQuestionsTab() {
             </Typography>
           </Box>
         ) : loading ? (
-          <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-            Loading questions...
-          </Typography>
+          <LoadingSpinner fullScreen={false} py={3} />
         ) : questions.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
             No questions yet

@@ -8,6 +8,7 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import SegmentedTabs from '../../components/common/SegmentedTabs';
 import SnackbarAlert from '../../components/common/SnackbarAlert';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   getFraudFlags, reviewFraudFlag,
   type AdminFraudFlagDto,
@@ -164,9 +165,7 @@ export const FraudReviewPage: React.FC = () => {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={8}>
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                      Loading fraud flags...
-                    </Typography>
+                    <LoadingSpinner fullScreen={false} size={24} py={3} />
                   </TableCell>
                 </TableRow>
               ) : flags.length === 0 ? (

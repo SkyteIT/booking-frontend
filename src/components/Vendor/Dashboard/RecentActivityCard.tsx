@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type { ActivityItem } from "./types";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 type Props = {
   items: ActivityItem[];
@@ -63,9 +64,7 @@ export default function RecentActivityCard({
             </Typography>
           </Box>
         ) : loading ? (
-          <Typography variant="body2" color="text.secondary">
-            Loading activity...
-          </Typography>
+          <LoadingSpinner fullScreen={false} size={22} py={2} />
         ) : items.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No recent activity yet

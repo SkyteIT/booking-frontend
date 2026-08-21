@@ -6,6 +6,7 @@ import {
   DialogTitle, DialogContent, DialogActions, DialogContentText,
   Avatar, Divider, Select, FormControl, InputLabel, Alert,
 } from '@mui/material';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   Search, FilterList, Visibility, Block, MoreVert,
   Close, Edit, CheckCircle,
@@ -267,9 +268,7 @@ export const UserManagementPage: React.FC = () => {
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                          Loading users...
-                        </Typography>
+                        <LoadingSpinner fullScreen={false} size={24} py={3} />
                       </TableCell>
                     </TableRow>
                   ) : filteredUsers.length === 0 ? (

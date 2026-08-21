@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../../context/useAuth";
 import { getListingReviews, toggleReviewLike, type ReviewDto } from "../../../../../services/reviewService";
+import LoadingSpinner from "../../../../../components/common/LoadingSpinner";
 
 const PAGE_SIZE = 5;
 
@@ -103,9 +104,7 @@ const ListingReviews = ({ listingId }: ListingReviewsProps) => {
       </Typography>
 
       {loading ? (
-        <Typography variant="body2" color="text.secondary">
-          Loading reviews...
-        </Typography>
+        <LoadingSpinner fullScreen={false} py={3} />
       ) : (
         <Stack spacing={2}>
           {reviews.map((review) => (

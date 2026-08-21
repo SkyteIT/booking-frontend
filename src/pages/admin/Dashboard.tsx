@@ -27,6 +27,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import StarIcon from "@mui/icons-material/Star";
 import {
   getAllBookings,
@@ -506,9 +507,7 @@ export default function Dashboard() {
       <Grid container spacing={2} mb={3}>
         {loading ? (
           <Grid size={12}>
-            <Typography variant="body2" color="text.secondary">
-              Loading dashboard data...
-            </Typography>
+            <LoadingSpinner fullScreen={false} py={3} />
           </Grid>
         ) : (
           statCards.map((card) => (

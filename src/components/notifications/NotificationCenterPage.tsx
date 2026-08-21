@@ -43,6 +43,7 @@ import {
 } from "./notificationCatalog";
 import { belongsToPortal } from "../../utils/notificationPortals";
 import SegmentedTabs from "../common/SegmentedTabs";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 type NotificationFilter = "all" | "unread" | string;
 
@@ -598,9 +599,7 @@ export default function NotificationCenterPage({
           <Divider />
 
           {loading ? (
-            <Box sx={{ p: 4 }}>
-              <Typography color="text.secondary">Loading notifications...</Typography>
-            </Box>
+            <LoadingSpinner fullScreen={false} py={4} />
           ) : searchedNotifications.length === 0 ? (
             <Box sx={{ p: 4, textAlign: "center" }}>
               <NotificationsNoneOutlinedIcon sx={{ fontSize: 46, color: "text.disabled", mb: 1 }} />

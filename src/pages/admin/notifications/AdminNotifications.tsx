@@ -28,6 +28,7 @@ import { useAuth } from "../../../context/useAuth";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 import SegmentedTabs from "../../../components/common/SegmentedTabs";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
   getNotificationRoleConfig,
   resolveNotificationDestination,
@@ -365,9 +366,7 @@ export default function AdminNotifications() {
         <Divider />
 
         {loading ? (
-          <Box sx={{ p: 4 }}>
-            <Typography color="text.secondary">Loading admin notifications...</Typography>
-          </Box>
+          <LoadingSpinner fullScreen={false} py={4} />
         ) : filtered.length === 0 ? (
           <Box sx={{ p: 5, textAlign: "center" }}>
             <NotificationsActiveOutlinedIcon sx={{ fontSize: 52, color: "#CBD5E1" }} />

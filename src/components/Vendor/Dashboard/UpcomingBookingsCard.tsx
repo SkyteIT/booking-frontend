@@ -10,6 +10,7 @@ import { alpha } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router-dom";
 import BookingsTable from "../../Bookings/BookingTables";
 import type { VendorBookingDto } from "../../Bookings/BookingTypes";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 type Props = {
   rows: VendorBookingDto[];
@@ -80,9 +81,7 @@ export default function UpcomingBookingsCard({
             </Typography>
           </Box>
         ) : loading ? (
-          <Typography variant="body2" color="text.secondary">
-            Loading bookings...
-          </Typography>
+          <LoadingSpinner fullScreen={false} size={22} py={2} />
         ) : rows.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No upcoming bookings
