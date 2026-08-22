@@ -20,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import StepperBar, { type StepperStep } from "../../../components/navbars/StepperBar";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import {
   createListing,
   updateListing,
@@ -102,7 +103,7 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     categoryId: listing.categoryId,
     isActive: listing.isActive,
     currency: listing.currency ?? "LKR",
-    imageUrls: listing.images?.join(", ") ?? "",
+    images: listing.images ?? [],
     tagsInput: listing.tags?.join(", ") ?? "",
     cancellationPolicy: listing.cancellationPolicy ?? "",
   };
@@ -179,9 +180,7 @@ function buildCreateListingRequest(
     currency: data.currency || "LKR",
     location: data.location,
     isActive: data.isActive ?? true,
-    images: data.imageUrls
-      ? data.imageUrls.split(",").map((u) => u.trim()).filter(Boolean)
-      : data.images?.filter(Boolean) ?? [],
+    images: data.images?.filter(Boolean) ?? [],
     tags: data.tagsInput
       ? data.tagsInput.split(",").map((t) => t.trim()).filter(Boolean)
       : [],
@@ -274,6 +273,17 @@ const CreateListing = () => {
   const [listRows, setListRows] = useState<ListRow[]>(defaultListRows);
   const [gridConfig, setGridConfig] = useState<GridConfig>(defaultGridConfig);
   const [timeSlotConfig, setTimeSlotConfig] = useState<TimeSlotConfig>(defaultTimeSlotConfig);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "warning" | "info";
+  }>({ open: false, message: "", severity: "info" });
+
+  const showMessage = (
+    message: string,
+    severity: "success" | "error" | "warning" | "info" = "info"
+  ) => setSnackbar({ open: true, message, severity });
 
   const {
     register,
@@ -383,29 +393,31 @@ const CreateListing = () => {
       // listing cannot be published as that category.
       const categoryExists = categories.some((c) => c.id === data.categoryId);
       if (!categoryExists) {
-        alert("Please select a valid category.");
+        showMessage("Please select a valid category.", "error");
         return;
       }
 
       const request = buildCreateListingRequest(data, data.categoryId);
 
       if (isEditMode && id) {
-        await updateListing(id, request);
+        await updateListing(id, request, imageFiles);
         await createUnitsIfConfigured(id);
-        alert("Listing updated successfully!");
+        showMessage("Listing updated successfully!", "success");
       } else {
-        const created = await createListing(request);
+        const created = await createListing(request, imageFiles);
         await createUnitsIfConfigured(created.id);
-        alert("Listing published successfully!");
+        showMessage("Listing published successfully!", "success");
       }
       notifyDashboardRefresh();
-      navigate("/vendor/listings");
+      // Delay the redirect slightly so the success toast is actually seen
+      // before this page (and the snackbar mounted on it) unmounts.
+      setTimeout(() => navigate("/vendor/listings"), 1200);
     } catch (error) {
       console.error(error);
       const backendMessage = isAxiosError(error)
         ? (error.response?.data as { message?: string } | undefined)?.message
         : undefined;
-      alert(backendMessage || `Failed to ${isEditMode ? "update" : "publish"} listing.`);
+      showMessage(backendMessage || `Failed to ${isEditMode ? "update" : "publish"} listing.`, "error");
     }
   };
 
@@ -471,6 +483,13 @@ const CreateListing = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
+      <SnackbarAlert
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
+
       <Box sx={{ mb: 4 }}>
         <MuiLink
           component={Link}
@@ -536,7 +555,20 @@ const CreateListing = () => {
               </>
             )}
 
-            {activeStep === 3 && <ImagesStep register={register} control={control} errors={errors} />}
+            {activeStep === 3 && (
+              <ImagesStep
+                existingImages={formData.images ?? []}
+                onRemoveExisting={(url) =>
+                  setValue(
+                    "images",
+                    (formData.images ?? []).filter((img) => img !== url)
+                  )
+                }
+                newFiles={imageFiles}
+                onAddFiles={(files) => setImageFiles((prev) => [...prev, ...files])}
+                onRemoveNewFile={(index) => setImageFiles((prev) => prev.filter((_, i) => i !== index))}
+              />
+            )}
 
             {activeStep === 4 && (
               <ReviewStep
@@ -550,6 +582,7 @@ const CreateListing = () => {
                 onSubmit={handleSubmit(onSubmit)}
                 isSubmitting={isSubmitting}
                 isEditMode={isEditMode}
+                pendingImageCount={imageFiles.length}
               />
             )}
 
