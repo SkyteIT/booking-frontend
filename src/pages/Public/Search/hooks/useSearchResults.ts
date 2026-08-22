@@ -251,6 +251,7 @@ export const useSearchResults = () => {
     filteredListings: listings,
     loading,
     loadingMore,
+    totalCount,
     hasMore,
     loadMore,
     error,

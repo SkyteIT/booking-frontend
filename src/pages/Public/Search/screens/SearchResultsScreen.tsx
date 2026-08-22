@@ -6,6 +6,7 @@ import ResultsGrid from "../components/ResultsGrid";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import SearchToolbar from "../components/SearchToolbar";
 import { useSearchResults } from "../hooks/useSearchResults";
+import BannerCarouselSection from "../../../../components/sections/banners/BannerCarouselSection";
 
 const SearchResultsScreen = () => {
   const {
@@ -44,7 +45,13 @@ const SearchResultsScreen = () => {
         pb: { xs: 4, md: 6 },
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth={false} disableGutters sx={{ width: "100%", maxWidth: 1600, mx: "auto", px: { xs: 2, md: 4 } }}>
+        <BannerCarouselSection
+          placement="Explore"
+          showHeader={false}
+          compact
+        />
+
         <SearchToolbar query={filters.q} total={totalCount} onQueryChange={setQuery} />
 
         {error && (

@@ -155,7 +155,7 @@ const normalizeBanner = (b: any): Banner => ({
   title: b.title ?? "",
   description: b.subtitle ?? "",
   imageUrl: b.imageUrl ?? "",
-  placement: placementLabel(b.placement),
+  placement: placementLabel(b.placement) as Banner["placement"],
   startDate: b.startDate?.slice(0, 10) ?? "",
   endDate:   b.endDate?.slice(0, 10)   ?? "",
   status: b.status === "Inactive" ? "Inactive" : "Active",
