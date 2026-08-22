@@ -3,7 +3,12 @@ import api from "../api";
 // The backend serializes all enums as their string name globally
 // (Program.cs: AddJsonOptions -> JsonStringEnumConverter()), so this is
 // always e.g. "Hotel", never the underlying numeric value.
-export type ListingType = "Hotel" | "Restaurant" | "Event" | "CarRental" | "Activity";
+export type ListingType =
+  | "Hotel"
+  | "Restaurant"
+  | "Event"
+  | "CarRental"
+  | "Activity";
 
 export interface HotelDetailsDto {
   pricePerNight: number;
@@ -28,6 +33,7 @@ export interface RestaurantDetailsDto {
 export interface CarRentalDetailsDto {
   brand: string;
   model: string;
+  vehicleType?: string;
   transmission: string;
   pricePerDay: number;
   seatCount: number;
@@ -108,8 +114,14 @@ export interface CreateListingResult {
 // Creation responses have differed between API versions (the listing object,
 // a bare Guid, or an envelope). Keep that transport detail out of the page so
 // optional unit creation always targets the listing that was just created.
-export const createListing = async (data: CreateListingRequest): Promise<CreateListingResult> => {
-  const res = await api.post("/listings", data);
+export const createListing = async (
+  data: CreateListingRequest,
+  images: File[] = [],
+): Promise<CreateListingResult> => {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(data));
+  images.forEach((file) => formData.append("images", file));
+  const res = await api.post("/listings", formData);
   const body = res.data as unknown;
 
   let id = "";
@@ -117,10 +129,13 @@ export const createListing = async (data: CreateListingRequest): Promise<CreateL
     id = body;
   } else if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
-    const nested = record.data && typeof record.data === "object"
-      ? record.data as Record<string, unknown>
-      : undefined;
-    id = String(record.id ?? record.listingId ?? nested?.id ?? nested?.listingId ?? "");
+    const nested =
+      record.data && typeof record.data === "object"
+        ? (record.data as Record<string, unknown>)
+        : undefined;
+    id = String(
+      record.id ?? record.listingId ?? nested?.id ?? nested?.listingId ?? "",
+    );
   }
 
   if (!id) {
@@ -178,7 +193,17 @@ export interface ListingResponse {
   eventDetails?: EventDetailsDto;
 }
 
-const normalizeListing = (raw: any): ListingResponse => {
+const unwrapValues = <T>(
+  value: T[] | { $values?: T[] } | null | undefined,
+): T[] => {
+  if (Array.isArray(value)) return value;
+  return value?.$values ?? [];
+};
+
+const normalizeListing = (response: any): ListingResponse => {
+  // Some API actions return the DTO directly while others wrap it in
+  // { data } or { result }. Edit mode must hydrate from all supported shapes.
+  const raw = response?.data ?? response?.result ?? response;
   const isActive =
     typeof raw?.isActive === "boolean"
       ? raw.isActive
@@ -189,7 +214,7 @@ const normalizeListing = (raw: any): ListingResponse => {
   return {
     id: String(raw?.id ?? ""),
     vendorProfileId: String(raw?.vendorProfileId ?? raw?.vendorId ?? ""),
-    categoryId: String(raw?.categoryId ?? ""),
+    categoryId: String(raw?.categoryId ?? raw?.category?.id ?? ""),
     title: raw?.title ?? raw?.name ?? "",
     description: raw?.description ?? "",
     price: Number(raw?.price ?? 0),
@@ -201,17 +226,19 @@ const normalizeListing = (raw: any): ListingResponse => {
     type: raw?.type ?? "Hotel",
     averageRating: Number(raw?.averageRating ?? 0),
     totalReviews: Number(raw?.totalReviews ?? 0),
-    primaryImage: raw?.primaryImage ?? raw?.imageUrl ?? raw?.coverImage ?? undefined,
-    images: raw?.images ?? [],
-    tags: raw?.tags ?? [],
+    primaryImage:
+      raw?.primaryImage ?? raw?.imageUrl ?? raw?.coverImage ?? undefined,
+    images: unwrapValues<string>(raw?.images),
+    tags: unwrapValues<string>(raw?.tags),
     cancellationPolicy: raw?.cancellationPolicy ?? "",
     hasActiveOffer: Boolean(raw?.hasActiveOffer),
     offerBadgeText: raw?.offerBadgeText ?? undefined,
-    hotelDetails: raw?.hotelDetails,
-    restaurantDetails: raw?.restaurantDetails,
-    carRentalDetails: raw?.carRentalDetails,
-    activityDetails: raw?.activityDetails,
-    eventDetails: raw?.eventDetails,
+    hotelDetails: raw?.hotelDetails ?? raw?.details?.hotelDetails,
+    restaurantDetails:
+      raw?.restaurantDetails ?? raw?.details?.restaurantDetails,
+    carRentalDetails: raw?.carRentalDetails ?? raw?.details?.carRentalDetails,
+    activityDetails: raw?.activityDetails ?? raw?.details?.activityDetails,
+    eventDetails: raw?.eventDetails ?? raw?.details?.eventDetails,
   };
 };
 
@@ -236,7 +263,49 @@ export const getListingById = async (id: string): Promise<ListingResponse> => {
   return normalizeListing(res.data);
 };
 
-export const updateListing = async (id: string, data: CreateListingRequest, images: File[] = []) => {
+export const getEditableListingById = async (
+  id: string,
+): Promise<ListingResponse> => {
+  const publicListing = await getListingById(id);
+
+  try {
+    const vendorListings = await getVendorListings();
+    const ownedListing = vendorListings.find((listing) => listing.id === id);
+    if (!ownedListing) return publicListing;
+
+    return {
+      ...publicListing,
+      ...ownedListing,
+      categoryId: ownedListing.categoryId || publicListing.categoryId,
+      categoryName: ownedListing.categoryName || publicListing.categoryName,
+      // Prefer whichever endpoint actually includes the full subtype DTO.
+      hotelDetails: ownedListing.hotelDetails ?? publicListing.hotelDetails,
+      restaurantDetails:
+        ownedListing.restaurantDetails ?? publicListing.restaurantDetails,
+      carRentalDetails:
+        ownedListing.carRentalDetails ?? publicListing.carRentalDetails,
+      activityDetails:
+        ownedListing.activityDetails ?? publicListing.activityDetails,
+      eventDetails: ownedListing.eventDetails ?? publicListing.eventDetails,
+      images:
+        ownedListing.images.length > 0
+          ? ownedListing.images
+          : publicListing.images,
+      tags:
+        ownedListing.tags.length > 0 ? ownedListing.tags : publicListing.tags,
+    };
+  } catch {
+    // The public detail response is still usable if the vendor collection is
+    // temporarily unavailable or an older API does not expose /listings/me.
+    return publicListing;
+  }
+};
+
+export const updateListing = async (
+  id: string,
+  data: CreateListingRequest,
+  images: File[] = [],
+) => {
   const formData = new FormData();
   formData.append("data", JSON.stringify(data));
   images.forEach((file) => formData.append("images", file));

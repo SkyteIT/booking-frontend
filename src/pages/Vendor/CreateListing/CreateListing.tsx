@@ -18,14 +18,16 @@ import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import StepperBar, { type StepperStep } from "../../../components/navbars/StepperBar";
+import StepperBar, {
+  type StepperStep,
+} from "../../../components/navbars/StepperBar";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import {
   createListing,
   updateListing,
   getCategories,
-  getListingById,
+  getEditableListingById,
 } from "../../../services/Vendor/listingService";
 import type {
   CreateListingRequest,
@@ -48,9 +50,19 @@ import BookableUnitsSection, {
   type GridConfig,
   type TimeSlotConfig,
 } from "./components/BookableUnitsSection";
-import { defaultListRows, defaultGridConfig, defaultTimeSlotConfig } from "./components/bookableUnitsDefaults";
-import { addUnit, addUnitsGrid, addUnitsTimeSlots } from "../../../services/Vendor/listingUnitsService";
+import {
+  defaultListRows,
+  defaultGridConfig,
+  defaultTimeSlotConfig,
+} from "./components/bookableUnitsDefaults";
+import { normalizeTimeValue } from "./components/timeOptions";
+import {
+  addUnit,
+  addUnitsGrid,
+  addUnitsTimeSlots,
+} from "../../../services/Vendor/listingUnitsService";
 import { getLocalizationSettings } from "../../../services/Vendor/settings";
+import { getUnits } from "../../../services/Vendor/listingUnitsService";
 
 // ListingType and ListingCategory are the same set of string literals
 // (Hotel/Restaurant/Event/CarRental/Activity) — kept as an explicit map
@@ -62,6 +74,47 @@ const typeToCategory: Record<ListingType, ListingCategory> = {
   CarRental: "CarRental",
   Activity: "Activity",
 };
+
+const numericTypeToCategory: Record<number, ListingCategory> = {
+  0: "Hotel",
+  1: "Restaurant",
+  2: "Event",
+  3: "CarRental",
+  4: "Activity",
+};
+
+function resolveListingCategory(
+  category: CategoryDto,
+): ListingCategory | undefined {
+  const rawType = (category as { type?: unknown }).type;
+
+  if (typeof rawType === "number") return numericTypeToCategory[rawType];
+  if (typeof rawType === "string") {
+    const normalizedType = rawType.replace(/[\s&_-]/g, "").toLowerCase();
+    const typeMatch = (Object.keys(typeToCategory) as ListingType[]).find(
+      (type) => type.toLowerCase() === normalizedType,
+    );
+    if (typeMatch) return typeToCategory[typeMatch];
+  }
+
+  // Category names are the stable labels vendors see. This fallback keeps
+  // the correct form visible if an older API omits or numerically serializes
+  // Category.Type.
+  const name = category.name.toLowerCase();
+  if (name.includes("hotel") || name.includes("resort")) return "Hotel";
+  if (
+    name.includes("restaurant") ||
+    name.includes("restaurent") ||
+    name.includes("dining")
+  ) {
+    return "Restaurant";
+  }
+  if (name.includes("event") || name.includes("ticket")) return "Event";
+  if (name.includes("car rental") || name.includes("carrental"))
+    return "CarRental";
+  if (name.includes("activit") || name.includes("tour")) return "Activity";
+  return undefined;
+}
 
 const WIZARD_STEPS: StepperStep[] = [
   { label: "Basic Info", icon: InfoIcon },
@@ -80,10 +133,25 @@ const WIZARD_STEPS: StepperStep[] = [
 // all, so those categories' listings always failed backend validation on
 // submit regardless of what the vendor filled in — fixed alongside adding
 // the wizard's step-gated validation.
-const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = ["title", "location", "categoryId", "price", "currency"];
-const CATEGORY_REQUIRED_FIELDS: Record<ListingCategory, (keyof ListingFormData)[]> = {
+const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = [
+  "title",
+  "location",
+  "categoryId",
+  "price",
+  "currency",
+];
+const CATEGORY_REQUIRED_FIELDS: Record<
+  ListingCategory,
+  (keyof ListingFormData)[]
+> = {
   Hotel: ["roomTypes", "amenities"],
-  Restaurant: ["cuisineType", "seatingCapacity", "openingTime", "closingTime", "averageCost"],
+  Restaurant: [
+    "cuisineType",
+    "seatingCapacity",
+    "openingTime",
+    "closingTime",
+    "averageCost",
+  ],
   Activity: ["activityType", "duration"],
   Event: ["organizer", "seatCount", "eventDate", "eventTime"],
   CarRental: ["brand", "model", "seatCountCar"],
@@ -114,7 +182,10 @@ function getApiErrorMessage(error: unknown): string | undefined {
   if (problem.errors && typeof problem.errors === "object") {
     const messages = Object.values(problem.errors)
       .flatMap((value) => (Array.isArray(value) ? value : [value]))
-      .filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
+      .filter(
+        (value): value is string =>
+          typeof value === "string" && Boolean(value.trim()),
+      );
     if (messages.length > 0) return messages.join("\n");
   }
 
@@ -131,58 +202,68 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     categoryId: listing.categoryId,
     isActive: listing.isActive,
     currency: listing.currency ?? "LKR",
-    images: listing.images ?? [],
-    tagsInput: listing.tags?.join(", ") ?? "",
+    images: [...(listing.images ?? [])],
+    tagsInput: (listing.tags ?? []).join(", "),
     cancellationPolicy: listing.cancellationPolicy ?? "",
   };
 
-  const { hotelDetails, restaurantDetails, activityDetails, eventDetails, carRentalDetails } = listing;
+  const {
+    hotelDetails,
+    restaurantDetails,
+    activityDetails,
+    eventDetails,
+    carRentalDetails,
+  } = listing;
 
   if (hotelDetails) {
-    data.pricePerNight = hotelDetails.pricePerNight;
+    data.pricePerNight = hotelDetails.pricePerNight ?? listing.price;
     data.numberOfRooms = hotelDetails.availableRooms;
-    data.amenities = hotelDetails.amenities;
-    data.checkInTime = hotelDetails.checkInTime;
-    data.checkOutTime = hotelDetails.checkOutTime;
-    data.roomTypes = hotelDetails.roomTypes;
+    data.amenities = [...(hotelDetails.amenities ?? [])];
+    data.checkInTime = normalizeTimeValue(hotelDetails.checkInTime);
+    data.checkOutTime = normalizeTimeValue(hotelDetails.checkOutTime);
+    data.roomTypes = [...(hotelDetails.roomTypes ?? [])];
     data.propertyType = hotelDetails.propertyType ?? "";
     data.roomType = hotelDetails.primaryRoomType ?? "";
   } else if (restaurantDetails) {
-    const [openingTime, closingTime] = restaurantDetails.openingHours.split(" - ");
+    const [openingTime, closingTime] =
+      restaurantDetails.openingHours.split(" - ");
     data.cuisineType = restaurantDetails.cuisineType;
     data.averageCost = restaurantDetails.averageCost;
-    data.openingTime = openingTime ?? "06:00";
-    data.closingTime = closingTime ?? "23:00";
+    data.openingTime = normalizeTimeValue(openingTime) || "06:00";
+    data.closingTime = normalizeTimeValue(closingTime) || "23:00";
     data.seatingCapacity = restaurantDetails.tableCapacity;
-    data.tableTypes = restaurantDetails.tableTypes;
+    data.tableTypes = [...(restaurantDetails.tableTypes ?? [])];
     data.reservationRules = restaurantDetails.reservationRules ?? "";
   } else if (activityDetails) {
     data.activityType = activityDetails.activityType;
     data.duration = `${activityDetails.durationHours} hours`;
     data.difficultyLevel = activityDetails.difficultyLevel;
-    data.activityPrice = activityDetails.price;
+    data.activityPrice = activityDetails.price ?? listing.price;
     data.minGroupSize = activityDetails.minGroupSize;
     data.maxGroupSize = activityDetails.maxGroupSize;
     data.minAge = activityDetails.minAge;
     data.maxAge = activityDetails.maxAge;
-    data.includedServices = activityDetails.includedServices;
+    data.includedServices = [...(activityDetails.includedServices ?? [])];
     data.safetyRequirements = activityDetails.safetyRequirements;
     data.availabilitySchedule = activityDetails.availabilitySchedule;
   } else if (eventDetails) {
     const [eventDate, eventTime] = eventDetails.dateAndTime.split("T");
     data.organizer = eventDetails.organizer;
     data.eventDate = eventDate ?? "";
-    data.eventTime = eventTime ?? "";
+    data.eventTime = normalizeTimeValue(eventTime);
     data.seatCount = eventDetails.seatCount;
     data.eventType = eventDetails.eventType ?? "";
     data.venueName = eventDetails.venueName ?? "";
     data.venueAddress = eventDetails.venueAddress ?? "";
-    data.ticketTypes = eventDetails.ticketTypes ?? [];
+    data.ticketTypes = (eventDetails.ticketTypes ?? []).map((ticket) => ({
+      ...ticket,
+    }));
   } else if (carRentalDetails) {
     data.brand = carRentalDetails.brand;
     data.model = carRentalDetails.model;
+    data.vehicleType = carRentalDetails.vehicleType ?? "";
     data.transmission = carRentalDetails.transmission;
-    data.dailyRate = carRentalDetails.pricePerDay;
+    data.dailyRate = carRentalDetails.pricePerDay ?? listing.price;
     data.seatCountCar = carRentalDetails.seatCount;
     data.fuelType = carRentalDetails.fuelType;
     data.availabilityStatus = carRentalDetails.availabilityStatus;
@@ -210,9 +291,13 @@ function buildCreateListingRequest(
     isActive: data.isActive ?? true,
     images: data.images?.filter(Boolean) ?? [],
     tags: data.tagsInput
-      ? data.tagsInput.split(",").map((t) => t.trim()).filter(Boolean)
+      ? data.tagsInput
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
       : [],
-    cancellationPolicy: data.cancellationPolicy || "Free cancellation within 24 hours",
+    cancellationPolicy:
+      data.cancellationPolicy || "Free cancellation within 24 hours",
   };
 
   switch (data.category) {
@@ -274,6 +359,7 @@ function buildCreateListingRequest(
       request.carRentalDetails = {
         brand: data.brand || data.vehicleType || "",
         model: data.model ?? "",
+        vehicleType: data.vehicleType ?? "",
         transmission: data.transmission || "Automatic",
         pricePerDay: Number(data.dailyRate) || 0,
         seatCount: Number(data.seatCountCar) || 0,
@@ -304,8 +390,11 @@ const CreateListing = () => {
   const [unitsMode, setUnitsMode] = useState<UnitsMode>("none");
   const [listRows, setListRows] = useState<ListRow[]>(defaultListRows);
   const [gridConfig, setGridConfig] = useState<GridConfig>(defaultGridConfig);
-  const [timeSlotConfig, setTimeSlotConfig] = useState<TimeSlotConfig>(defaultTimeSlotConfig);
+  const [timeSlotConfig, setTimeSlotConfig] = useState<TimeSlotConfig>(
+    defaultTimeSlotConfig,
+  );
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [hasExistingUnits, setHasExistingUnits] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -314,7 +403,7 @@ const CreateListing = () => {
 
   const showMessage = (
     message: string,
-    severity: "success" | "error" | "warning" | "info" = "info"
+    severity: "success" | "error" | "warning" | "info" = "info",
   ) => setSnackbar({ open: true, message, severity });
 
   const {
@@ -346,8 +435,98 @@ const CreateListing = () => {
         setCategories(cats);
 
         if (isEditMode && id) {
-          const listing = await getListingById(id);
-          reset(buildEditFormData(listing) as ListingFormData);
+          const listing = await getEditableListingById(id);
+          const editData = buildEditFormData(listing);
+          const savedCategory = cats.find(
+            (category) =>
+              category.id === listing.categoryId ||
+              category.name.trim().toLowerCase() ===
+                listing.categoryName.trim().toLowerCase(),
+          );
+          if (savedCategory) {
+            editData.categoryId = savedCategory.id;
+            editData.category =
+              resolveListingCategory(savedCategory) ?? editData.category;
+          }
+          reset({
+            category: "Hotel",
+            currency: "LKR",
+            images: [],
+            roomTypes: [],
+            amenities: [],
+            tableTypes: [],
+            includedServices: [],
+            ticketTypes: [],
+            ...editData,
+          } as ListingFormData);
+
+          try {
+            const units = await getUnits(id);
+            setHasExistingUnits(units.length > 0);
+            if (
+              units.length > 0 &&
+              units.every((unit) => unit.kind === "Generic")
+            ) {
+              setUnitsMode("list");
+              setListRows(
+                units.map((unit) => ({
+                  name: unit.name,
+                  priceOverride:
+                    unit.priceOverride == null
+                      ? ""
+                      : String(unit.priceOverride),
+                  capacity: String(unit.capacity),
+                })),
+              );
+            } else if (
+              units.length > 0 &&
+              units.every((unit) => unit.kind === "Seat")
+            ) {
+              setUnitsMode("grid");
+              const rowIndexes = units.map((unit) =>
+                Number(unit.rowIndex ?? 0),
+              );
+              const columnIndexes = units.map((unit) =>
+                Number(unit.columnIndex ?? 0),
+              );
+              setGridConfig({
+                rows: String(new Set(rowIndexes).size),
+                columns: String(new Set(columnIndexes).size),
+                pricePerSeat:
+                  units[0].priceOverride == null
+                    ? ""
+                    : String(units[0].priceOverride),
+              });
+            } else if (
+              units.length > 0 &&
+              units.every((unit) => unit.kind === "TimeSlot")
+            ) {
+              setUnitsMode("timeslot");
+              const starts = units
+                .map((unit) => normalizeTimeValue(unit.slotStartTime ?? ""))
+                .filter(Boolean)
+                .sort();
+              const durationMatch = units[0].slotDuration?.match(
+                /(?:(\d+):)?(\d+):(\d+)|PT(?:(\d+)H)?(?:(\d+)M)?/i,
+              );
+              const durationMinutes = durationMatch
+                ? Number(durationMatch[1] ?? durationMatch[4] ?? 0) * 60 +
+                  Number(durationMatch[2] ?? durationMatch[5] ?? 30)
+                : 30;
+              setTimeSlotConfig({
+                startTime: starts[0] ?? "09:00",
+                endTime: starts.at(-1) ?? "17:00",
+                slotDurationMinutes: String(durationMinutes || 30),
+                capacityPerSlot: String(units[0].capacity),
+                price:
+                  units[0].priceOverride == null
+                    ? ""
+                    : String(units[0].priceOverride),
+              });
+            }
+          } catch {
+            setHasExistingUnits(false);
+          }
         } else {
           // New listings default to the vendor's own currency preference
           // (Settings > Localization) rather than always publishing in LKR —
@@ -374,18 +553,22 @@ const CreateListing = () => {
   }, [id, isEditMode, navigate, reset]);
 
   const formData = watch();
-  const selectedCategory = watch("category");
+  const watchedCategory = watch("category");
   const selectedCategoryId = watch("categoryId");
+  const chosenCategory = categories.find(
+    (category) => category.id === selectedCategoryId,
+  );
+  const resolvedCategory = chosenCategory
+    ? resolveListingCategory(chosenCategory)
+    : undefined;
+  const selectedCategory = resolvedCategory ?? watchedCategory;
 
   // ListingType is no longer picked independently — it's derived from the
   // chosen category's Type, which decides which detail-fields section
   // renders below (see typeToCategory above).
   useEffect(() => {
-    const chosen = categories.find((c) => c.id === selectedCategoryId);
-    if (chosen?.type !== undefined && chosen.type !== null) {
-      setValue("category", typeToCategory[chosen.type]);
-    }
-  }, [selectedCategoryId, categories, setValue]);
+    if (resolvedCategory) setValue("category", resolvedCategory);
+  }, [resolvedCategory, setValue]);
 
   const createUnitsIfConfigured = async (listingId: string) => {
     if (unitsMode === "list") {
@@ -393,7 +576,9 @@ const CreateListing = () => {
       for (const row of rows) {
         await addUnit(listingId, {
           name: row.name.trim(),
-          priceOverride: row.priceOverride ? Number(row.priceOverride) : undefined,
+          priceOverride: row.priceOverride
+            ? Number(row.priceOverride)
+            : undefined,
           capacity: Number(row.capacity) || 1,
         });
       }
@@ -404,7 +589,9 @@ const CreateListing = () => {
         await addUnitsGrid(listingId, {
           rows,
           columns,
-          pricePerSeat: gridConfig.pricePerSeat ? Number(gridConfig.pricePerSeat) : undefined,
+          pricePerSeat: gridConfig.pricePerSeat
+            ? Number(gridConfig.pricePerSeat)
+            : undefined,
         });
       }
     } else if (unitsMode === "timeslot") {
@@ -434,22 +621,27 @@ const CreateListing = () => {
 
       if (isEditMode && id) {
         await updateListing(id, request, imageFiles);
-        await createUnitsIfConfigured(id);
+        if (!hasExistingUnits) await createUnitsIfConfigured(id);
         showMessage("Listing updated successfully!", "success");
       } else {
-        const created = await createListing(request);
+        const created = await createListing(request, imageFiles);
         // The listing is already published once POST /listings succeeds.
         // Unit setup is a follow-up operation and must not turn a successful
         // publish into a misleading failure (or encourage a duplicate retry).
         if (unitsMode !== "none") {
           if (!created.id) {
-            alert("Listing published successfully, but bookable units could not be added because the API did not return the new listing ID.");
+            alert(
+              "Listing published successfully, but bookable units could not be added because the API did not return the new listing ID.",
+            );
           } else {
             try {
               await createUnitsIfConfigured(created.id);
               alert("Listing published successfully!");
             } catch (unitError) {
-              console.error("Listing published, but unit setup failed:", unitError);
+              console.error(
+                "Listing published, but unit setup failed:",
+                unitError,
+              );
               const unitMessage = getApiErrorMessage(unitError);
               alert(
                 `Listing published successfully, but bookable units could not be added${unitMessage ? `: ${unitMessage}` : ". You can add them by editing the listing."}`,
@@ -467,22 +659,47 @@ const CreateListing = () => {
     } catch (error) {
       console.error(error);
       const backendMessage = getApiErrorMessage(error);
-      alert(backendMessage || `Failed to ${isEditMode ? "update" : "publish"} listing.`);
+      alert(
+        backendMessage ||
+          `Failed to ${isEditMode ? "update" : "publish"} listing.`,
+      );
     }
   };
 
   const renderCategoryFields = () => {
     switch (selectedCategory) {
       case "Hotel":
-        return <HotelFields register={register} control={control} errors={errors} />;
+        return (
+          <HotelFields register={register} control={control} errors={errors} />
+        );
       case "Restaurant":
-        return <RestaurantFields register={register} control={control} errors={errors} />;
+        return (
+          <RestaurantFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        );
       case "Activity":
-        return <ActivityFields register={register} control={control} errors={errors} />;
+        return (
+          <ActivityFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        );
       case "Event":
-        return <EventFields register={register} control={control} errors={errors} />;
+        return (
+          <EventFields register={register} control={control} errors={errors} />
+        );
       case "CarRental":
-        return <CarRentalFields register={register} control={control} errors={errors} />;
+        return (
+          <CarRentalFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        );
       default:
         return null;
     }
@@ -492,9 +709,14 @@ const CreateListing = () => {
     if (unitsMode === "grid") {
       const rows = Number(gridConfig.rows);
       const columns = Number(gridConfig.columns);
-      if (!(rows > 0 && columns > 0)) return "Enter positive rows and columns, or switch back to None.";
+      if (!(rows > 0 && columns > 0))
+        return "Enter positive rows and columns, or switch back to None.";
     } else if (unitsMode === "timeslot") {
-      if (!timeSlotConfig.startTime || !timeSlotConfig.endTime || !(Number(timeSlotConfig.slotDurationMinutes) > 0)) {
+      if (
+        !timeSlotConfig.startTime ||
+        !timeSlotConfig.endTime ||
+        !(Number(timeSlotConfig.slotDurationMinutes) > 0)
+      ) {
         return "Fill in start time, end time, and a positive slot duration, or switch back to None.";
       }
     } else if (unitsMode === "list") {
@@ -509,6 +731,12 @@ const CreateListing = () => {
     if (activeStep === 0) {
       const valid = await trigger(BASIC_INFO_FIELDS);
       if (!valid) return;
+      if (!resolvedCategory) {
+        alert(
+          "This category is not connected to a listing type. Please select one of the five main categories.",
+        );
+        return;
+      }
     } else if (activeStep === 1) {
       const fields = CATEGORY_REQUIRED_FIELDS[selectedCategory] ?? [];
       const valid = fields.length === 0 || (await trigger(fields));
@@ -526,7 +754,10 @@ const CreateListing = () => {
   if (loading) {
     return (
       <Container sx={{ py: 20 }}>
-        <LoadingSpinner fullScreen={false} message="Loading listing details..." />
+        <LoadingSpinner
+          fullScreen={false}
+          message="Loading listing details..."
+        />
       </Container>
     );
   }
@@ -576,7 +807,13 @@ const CreateListing = () => {
         <CardContent sx={{ p: { xs: 3, md: 5 } }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             {activeStep === 0 && (
-              <BaseFields register={register} control={control} errors={errors} categories={categories} />
+              <BaseFields
+                register={register}
+                control={control}
+                errors={errors}
+                categories={categories}
+                selectedCategoryId={selectedCategoryId}
+              />
             )}
 
             {activeStep === 1 && renderCategoryFields()}
@@ -611,12 +848,16 @@ const CreateListing = () => {
                 onRemoveExisting={(url) =>
                   setValue(
                     "images",
-                    (formData.images ?? []).filter((img) => img !== url)
+                    (formData.images ?? []).filter((img) => img !== url),
                   )
                 }
                 newFiles={imageFiles}
-                onAddFiles={(files) => setImageFiles((prev) => [...prev, ...files])}
-                onRemoveNewFile={(index) => setImageFiles((prev) => prev.filter((_, i) => i !== index))}
+                onAddFiles={(files) =>
+                  setImageFiles((prev) => [...prev, ...files])
+                }
+                onRemoveNewFile={(index) =>
+                  setImageFiles((prev) => prev.filter((_, i) => i !== index))
+                }
               />
             )}
 
@@ -649,7 +890,11 @@ const CreateListing = () => {
             >
               <Button
                 variant="outlined"
-                onClick={activeStep === 0 ? () => navigate("/vendor/listings") : handleBack}
+                onClick={
+                  activeStep === 0
+                    ? () => navigate("/vendor/listings")
+                    : handleBack
+                }
                 sx={{ borderRadius: "10px", px: 3 }}
               >
                 {activeStep === 0 ? "Cancel" : "Back"}

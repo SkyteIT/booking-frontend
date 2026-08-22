@@ -11,9 +11,10 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
 import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import type { ListingFormData } from "../../../../utils/types";
+import AmPmTimeField from "./AmPmTimeField";
 
 interface EventFieldsProps {
   register: UseFormRegister<ListingFormData>;
@@ -81,14 +82,19 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
           error={!!errors.eventDate}
           helperText={errors.eventDate?.message}
         />
-        <TextField
-          fullWidth
-          type="time"
-          label="Event Time"
-          InputLabelProps={{ shrink: true }}
-          {...register("eventTime", { required: "Event time is required" })}
-          error={!!errors.eventTime}
-          helperText={errors.eventTime?.message}
+        <Controller
+          name="eventTime"
+          control={control}
+          rules={{ required: "Event time is required" }}
+          render={({ field }) => (
+            <AmPmTimeField
+              label="Event Time"
+              value={field.value}
+              onChange={field.onChange}
+              error={!!errors.eventTime}
+              helperText={errors.eventTime?.message}
+            />
+          )}
         />
       </Box>
 
@@ -135,7 +141,9 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
                     type="number"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.quantity` as const, { valueAsNumber: true })}
+                    {...register(`ticketTypes.${index}.quantity` as const, {
+                      valueAsNumber: true,
+                    })}
                   />
                 </TableCell>
 
@@ -145,7 +153,9 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
                     type="number"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.price` as const, { valueAsNumber: true })}
+                    {...register(`ticketTypes.${index}.price` as const, {
+                      valueAsNumber: true,
+                    })}
                   />
                 </TableCell>
               </TableRow>

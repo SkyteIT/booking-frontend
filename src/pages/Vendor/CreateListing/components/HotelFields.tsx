@@ -1,7 +1,9 @@
+import CheckIcon from "@mui/icons-material/Check";
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import type { ListingFormData } from "../../../../utils/types";
+import AmPmTimeField from "./AmPmTimeField";
 
 interface HotelFieldsProps {
   register: UseFormRegister<ListingFormData>;
@@ -62,20 +64,27 @@ export default function HotelFields({
           helperText={errors.numberOfRooms?.message}
         />
 
-        <TextField
-          fullWidth
-          type="time"
-          label="Check-in Time"
-          InputLabelProps={{ shrink: true }}
-          {...register("checkInTime")}
+        <Controller
+          name="checkInTime"
+          control={control}
+          render={({ field }) => (
+            <AmPmTimeField
+              label="Check-in Time"
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
-
-        <TextField
-          fullWidth
-          type="time"
-          label="Check-out Time"
-          InputLabelProps={{ shrink: true }}
-          {...register("checkOutTime")}
+        <Controller
+          name="checkOutTime"
+          control={control}
+          render={({ field }) => (
+            <AmPmTimeField
+              label="Check-out Time"
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
 
         <TextField
@@ -95,7 +104,10 @@ export default function HotelFields({
           name="roomTypes"
           control={control}
           defaultValue={[] as ListingFormData["roomTypes"]}
-          rules={{ validate: (v) => (v && v.length > 0) || "Select at least one room type" }}
+          rules={{
+            validate: (v) =>
+              (v && v.length > 0) || "Select at least one room type",
+          }}
           render={({ field }) => (
             <>
               <Stack
@@ -105,26 +117,35 @@ export default function HotelFields({
                 useFlexGap
                 sx={{ gap: 1 }}
               >
-                {roomTypes.map((type) => (
-                  <Chip
-                    key={type}
-                    label={type}
-                    clickable
-                    variant={field.value?.includes(type) ? "filled" : "outlined"}
-                    color={field.value?.includes(type) ? "primary" : "default"}
-                    onClick={() => {
-                      const current = field.value ?? [];
-                      field.onChange(
-                        current.includes(type)
-                          ? current.filter((v) => v !== type)
-                          : [...current, type],
-                      );
-                    }}
-                  />
-                ))}
+                {roomTypes.map((type) => {
+                  const selected = field.value?.includes(type) ?? false;
+                  return (
+                    <Chip
+                      key={type}
+                      label={type}
+                      icon={selected ? <CheckIcon /> : undefined}
+                      clickable
+                      variant={selected ? "filled" : "outlined"}
+                      aria-pressed={selected}
+                      sx={selectableChipSx(selected)}
+                      onClick={() => {
+                        const current = field.value ?? [];
+                        field.onChange(
+                          current.includes(type)
+                            ? current.filter((v) => v !== type)
+                            : [...current, type],
+                        );
+                      }}
+                    />
+                  );
+                })}
               </Stack>
               {errors.roomTypes && (
-                <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ display: "block", mt: 1 }}
+                >
                   {errors.roomTypes.message}
                 </Typography>
               )}
@@ -142,7 +163,10 @@ export default function HotelFields({
           name="amenities"
           control={control}
           defaultValue={[] as ListingFormData["amenities"]}
-          rules={{ validate: (v) => (v && v.length > 0) || "Select at least one amenity" }}
+          rules={{
+            validate: (v) =>
+              (v && v.length > 0) || "Select at least one amenity",
+          }}
           render={({ field }) => (
             <>
               <Stack
@@ -152,26 +176,35 @@ export default function HotelFields({
                 useFlexGap
                 sx={{ gap: 1 }}
               >
-                {amenities.map((item) => (
-                  <Chip
-                    key={item}
-                    label={item}
-                    clickable
-                    variant={field.value?.includes(item) ? "filled" : "outlined"}
-                    color={field.value?.includes(item) ? "primary" : "default"}
-                    onClick={() => {
-                      const current = field.value ?? [];
-                      field.onChange(
-                        current.includes(item)
-                          ? current.filter((v) => v !== item)
-                          : [...current, item],
-                      );
-                    }}
-                  />
-                ))}
+                {amenities.map((item) => {
+                  const selected = field.value?.includes(item) ?? false;
+                  return (
+                    <Chip
+                      key={item}
+                      label={item}
+                      icon={selected ? <CheckIcon /> : undefined}
+                      clickable
+                      variant={selected ? "filled" : "outlined"}
+                      aria-pressed={selected}
+                      sx={selectableChipSx(selected)}
+                      onClick={() => {
+                        const current = field.value ?? [];
+                        field.onChange(
+                          current.includes(item)
+                            ? current.filter((v) => v !== item)
+                            : [...current, item],
+                        );
+                      }}
+                    />
+                  );
+                })}
               </Stack>
               {errors.amenities && (
-                <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ display: "block", mt: 1 }}
+                >
                   {errors.amenities.message}
                 </Typography>
               )}
@@ -182,3 +215,15 @@ export default function HotelFields({
     </Box>
   );
 }
+
+const selectableChipSx = (selected: boolean) => ({
+  fontWeight: selected ? 700 : 500,
+  borderColor: selected ? "#0F5A8A" : "rgba(15, 90, 138, 0.35)",
+  backgroundColor: selected ? "#0F5A8A" : "#fff",
+  color: selected ? "#fff" : "#0F5A8A",
+  boxShadow: selected ? "0 3px 10px rgba(15, 90, 138, 0.28)" : "none",
+  "& .MuiChip-icon": { color: selected ? "#fff" : "inherit" },
+  "&:hover": {
+    backgroundColor: selected ? "#0C4A73" : "rgba(15, 90, 138, 0.08)",
+  },
+});

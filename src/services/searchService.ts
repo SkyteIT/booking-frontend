@@ -70,7 +70,7 @@ const normalizeSearchListing = (listing: SearchListingPayload): SearchListing =>
   offerBadgeText: listing.offerBadgeText ?? null,
 });
 
-export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
+//export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
 export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
   const { categoryIds, ...rest } = params;
   const qs = new URLSearchParams();
