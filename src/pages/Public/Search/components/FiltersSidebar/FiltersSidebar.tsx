@@ -35,6 +35,7 @@ const FiltersSidebar = ({
         backgroundColor: "background.paper",
       }}
     >
+      
       <FiltersHeader onClearAll={onClearAll} />
 
       <CategoryFilterSection

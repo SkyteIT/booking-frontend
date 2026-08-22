@@ -1,116 +1,115 @@
-import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import { Box, Button, IconButton, Typography } from "@mui/material";
-import { Controller } from "react-hook-form";
-import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
-import type { ListingFormData } from "../../../../utils/types";
+import { useEffect, useMemo } from "react";
 
 interface ImagesStepProps {
-  register: UseFormRegister<ListingFormData>;
-  control: Control<ListingFormData>;
-  errors: FieldErrors<ListingFormData>;
+  existingImages: string[];
+  onRemoveExisting: (url: string) => void;
+  newFiles: File[];
+  onAddFiles: (files: File[]) => void;
+  onRemoveNewFile: (index: number) => void;
 }
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_IMAGES = 10;
 
-const readImage = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+export default function ImagesStep({
+  existingImages,
+  onRemoveExisting,
+  newFiles,
+  onAddFiles,
+  onRemoveNewFile,
+}: ImagesStepProps) {
+  const previews = useMemo(() => newFiles.map((file) => URL.createObjectURL(file)), [newFiles]);
 
-export default function ImagesStep({ control }: ImagesStepProps) {
+  // Object URLs are only freed on unmount/change - not revoking them would
+  // leak memory for a form a vendor keeps adding/removing photos on.
+  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews]);
+
+  const totalCount = existingImages.length + newFiles.length;
+  const remainingSlots = Math.max(0, MAX_IMAGES - totalCount);
+
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (picked.length === 0) return;
+    onAddFiles(picked.slice(0, remainingSlots));
+  };
+
   return (
     <Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Add listing photos from your device. The first image is used as the cover photo.
+        Upload up to {MAX_IMAGES} photos (JPG, PNG, or WebP, max 5MB each). The first photo is used as the cover.
       </Typography>
-      <Controller
-        name="images"
-        control={control}
-        defaultValue={[]}
-        render={({ field, fieldState }) => (
-          <Box>
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<AddPhotoAlternateOutlinedIcon />}
-              sx={{ borderRadius: 2 }}
+
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+        {existingImages.map((url) => (
+          <Box key={url} sx={{ position: "relative", width: 120, height: 90 }}>
+            <Box
+              component="img"
+              src={url}
+              alt="Listing photo"
+              sx={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px" }}
+            />
+            <IconButton
+              size="small"
+              onClick={() => onRemoveExisting(url)}
+              sx={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                bgcolor: "background.paper",
+                boxShadow: 1,
+                "&:hover": { bgcolor: "error.light" },
+              }}
             >
-              Add images
-              <input
-                hidden
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={async (event) => {
-                  const files = Array.from(event.target.files ?? []);
-                  const oversized = files.find((file) => file.size > MAX_IMAGE_SIZE);
-                  if (oversized) {
-                    alert(`${oversized.name} is larger than 10 MB.`);
-                    event.target.value = "";
-                    return;
-                  }
-
-                  const selectedImages = await Promise.all(files.map(readImage));
-                  field.onChange([...(field.value ?? []), ...selectedImages]);
-                  event.target.value = "";
-                }}
-              />
-            </Button>
-
-            {fieldState.error && (
-              <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
-                {fieldState.error.message}
-              </Typography>
-            )}
-
-            {(field.value?.length ?? 0) > 0 && (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                  gap: 2,
-                  mt: 3,
-                }}
-              >
-                {field.value.map((image, index) => (
-                  <Box key={`${image.slice(0, 40)}-${index}`} sx={{ position: "relative" }}>
-                    <Box
-                      component="img"
-                      src={image}
-                      alt={`Listing preview ${index + 1}`}
-                      sx={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }}
-                    />
-                    <IconButton
-                      aria-label={`Remove image ${index + 1}`}
-                      size="small"
-                      onClick={() => field.onChange(field.value.filter((_, itemIndex) => itemIndex !== index))}
-                      sx={{
-                        position: "absolute",
-                        top: 6,
-                        right: 6,
-                        bgcolor: "background.paper",
-                        boxShadow: 1,
-                        "&:hover": { bgcolor: "error.light", color: "error.contrastText" },
-                      }}
-                    >
-                      <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
-                    {index === 0 && (
-                      <Typography variant="caption" sx={{ display: "block", mt: 0.5 }}>
-                        Cover photo
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            )}
+              <CloseIcon fontSize="small" />
+            </IconButton>
           </Box>
-        )}
-      />
+        ))}
+
+        {previews.map((url, index) => (
+          <Box key={url} sx={{ position: "relative", width: 120, height: 90 }}>
+            <Box
+              component="img"
+              src={url}
+              alt="New listing photo"
+              sx={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px" }}
+            />
+            <IconButton
+              size="small"
+              onClick={() => onRemoveNewFile(index)}
+              sx={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                bgcolor: "background.paper",
+                boxShadow: 1,
+                "&:hover": { bgcolor: "error.light" },
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ))}
+      </Box>
+
+      <Button
+        variant="outlined"
+        component="label"
+        startIcon={<CloudUploadOutlinedIcon />}
+        disabled={remainingSlots === 0}
+        sx={{ textTransform: "none", fontWeight: 500, borderRadius: "10px" }}
+      >
+        {totalCount === 0 ? "Upload photos" : "Add more photos"}
+        <input hidden type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFileInput} />
+      </Button>
+
+      {remainingSlots === 0 && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+          Maximum of {MAX_IMAGES} photos reached.
+        </Typography>
+      )}
     </Box>
   );
 }

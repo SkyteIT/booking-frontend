@@ -31,6 +31,11 @@ export interface SearchListing {
   offerBadgeText: string | null;
 }
 
+export interface SearchListingsResult {
+  items: SearchListing[];
+  totalCount: number;
+}
+
 type SearchListingPayload = Partial<SearchListing> & {
   primaryImage?: string | null;
   imageUrl?: string | null;
@@ -65,6 +70,7 @@ const normalizeSearchListing = (listing: SearchListingPayload): SearchListing =>
   offerBadgeText: listing.offerBadgeText ?? null,
 });
 
+export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
 export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
   const { categoryIds, ...rest } = params;
   const qs = new URLSearchParams();

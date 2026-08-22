@@ -25,12 +25,13 @@ interface PriceCardProps {
   listing: Listing;
   units: ListingUnitDto[] | null;
   selectedUnitId: string;
+  selectedSeatIds: string[];
   checkIn: string;
   checkOut: string;
   guests: number;
 }
 
-const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }: PriceCardProps) => {
+const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, checkOut, guests }: PriceCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
@@ -40,13 +41,33 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   const seatUnits = units?.filter((u) => u.kind === "Seat") ?? [];
   const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
   const selectedUnit = units?.find((u) => u.id === selectedUnitId);
-  const displayPrice = selectedUnit?.priceOverride ?? listing.price;
+  const selectedSeats = seatUnits.filter((u) => selectedSeatIds.includes(u.id));
+  const displayPrice =
+    seatUnits.length > 0 ? (selectedSeats[0]?.priceOverride ?? listing.price) : (selectedUnit?.priceOverride ?? listing.price);
   const quantityConfig = getQuantityConfig(listing);
-  const effectiveQuantity = seatUnits.length > 0 || timeSlotUnits.length > 0 || !quantityConfig ? 1 : guests;
+  const effectiveQuantity =
+    seatUnits.length > 0 ? selectedSeats.length : timeSlotUnits.length > 0 || !quantityConfig ? 1 : guests;
 
+  // Seats can each carry their own priceOverride (e.g. front-row vs back-row
+  // pricing), so the seat-map total is a per-seat sum, not one price × count.
   const estimatedTotal =
     checkIn && checkOut
-      ? calculatePricingTotal(displayPrice, effectiveQuantity, checkIn, checkOut || checkIn, listing.pricingUnit)
+      ? seatUnits.length > 0
+        ? selectedSeats.length > 0
+          ? selectedSeats.reduce(
+              (sum, seat) =>
+                sum +
+                calculatePricingTotal(
+                  seat.priceOverride ?? listing.price,
+                  1,
+                  checkIn,
+                  checkOut || checkIn,
+                  listing.pricingUnit
+                ),
+              0
+            )
+          : null
+        : calculatePricingTotal(displayPrice, effectiveQuantity, checkIn, checkOut || checkIn, listing.pricingUnit)
       : null;
 
   // Seasonal pricing rules live server-side only - the client-side
@@ -56,8 +77,13 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   // on the network. Keyed by the inputs it was fetched for, so a quote
   // from stale inputs is never shown against the current selection -
   // avoids a synchronous reset in the effect body.
+  // Seat maps skip the server quote entirely - it only accepts one unitId,
+  // and a per-seat seasonal quote would need its own multi-unit endpoint.
+  // The per-seat local sum above is used for seat-map listings instead.
   const quoteKey =
-    checkIn && checkOut ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}` : null;
+    checkIn && checkOut && seatUnits.length === 0
+      ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}`
+      : null;
   const [quote, setQuote] = useState<{ key: string; total: number } | null>(null);
 
   useEffect(() => {
@@ -105,7 +131,9 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   // reads as a summary instead of just a bare price.
   const selectionSummary = (() => {
     const parts: string[] = [];
-    if (selectedUnit && (seatUnits.length > 0 || timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))) {
+    if (seatUnits.length > 0 && selectedSeats.length > 0) {
+      parts.push(selectedSeats.map((s) => s.code ?? s.name).join(", "));
+    } else if (selectedUnit && (timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))) {
       parts.push(selectedUnit.name);
     }
     if (quantityConfig && seatUnits.length === 0 && timeSlotUnits.length === 0) {
@@ -127,7 +155,13 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
       return;
     }
 
-    if (units && units.length > 0 && !selectedUnitId) {
+    if (seatUnits.length > 0 && selectedSeats.length === 0) {
+      setStatus("error");
+      setErrorMessage("Please choose at least one seat before adding to cart.");
+      return;
+    }
+
+    if (seatUnits.length === 0 && units && units.length > 0 && !selectedUnitId) {
       setStatus("error");
       setErrorMessage("Please make a selection before adding to cart.");
       return;
@@ -135,27 +169,50 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
 
     setErrorMessage("");
     try {
-      addToCart(
-        {
-          id: listing.id,
-          name: listing.title,
-          category: listing.category as string,
-          // The selected unit's own price wins when set (e.g. "Deluxe
-          // Room" costing more than the listing's base price) - falling
-          // back to listing.price always was a real bug: picking a
-          // priced unit silently added the wrong amount to the cart.
-          price: selectedUnit?.priceOverride ?? listing.price,
-          priceUnit: listing.priceUnit ?? "per day",
-          pricingUnit: listing.pricingUnit,
-          description: listing.description ?? "",
-          image: listing.image,
-          location: listing.location,
-          listingUnitId: selectedUnitId || undefined,
-        },
-        effectiveQuantity,
-        checkIn,
-        checkOut
-      );
+      const baseItem = {
+        id: listing.id,
+        name: listing.title,
+        category: listing.category as string,
+        priceUnit: listing.priceUnit ?? "per day",
+        pricingUnit: listing.pricingUnit,
+        description: listing.description ?? "",
+        image: listing.image,
+        location: listing.location,
+      };
+
+      if (seatUnits.length > 0) {
+        // Each seat is its own bookable resource - one cart line per seat
+        // (now that CartContext's key includes listingUnitId, these no
+        // longer collide into a single merged line).
+        selectedSeats.forEach((seat) => {
+          addToCart(
+            {
+              ...baseItem,
+              name: `${listing.title} — ${seat.code ?? seat.name}`,
+              price: seat.priceOverride ?? listing.price,
+              listingUnitId: seat.id,
+            },
+            1,
+            checkIn,
+            checkOut
+          );
+        });
+      } else {
+        addToCart(
+          {
+            ...baseItem,
+            // The selected unit's own price wins when set (e.g. "Deluxe
+            // Room" costing more than the listing's base price) - falling
+            // back to listing.price always was a real bug: picking a
+            // priced unit silently added the wrong amount to the cart.
+            price: selectedUnit?.priceOverride ?? listing.price,
+            listingUnitId: selectedUnitId || undefined,
+          },
+          effectiveQuantity,
+          checkIn,
+          checkOut
+        );
+      }
       setStatus("success");
     } catch (err) {
       console.error("Failed to add to cart:", err);

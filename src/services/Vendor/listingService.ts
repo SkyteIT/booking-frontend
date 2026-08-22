@@ -236,8 +236,11 @@ export const getListingById = async (id: string): Promise<ListingResponse> => {
   return normalizeListing(res.data);
 };
 
-export const updateListing = async (id: string, data: CreateListingRequest) => {
-  const res = await api.put(`/listings/${id}`, data);
+export const updateListing = async (id: string, data: CreateListingRequest, images: File[] = []) => {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(data));
+  images.forEach((file) => formData.append("images", file));
+  const res = await api.put(`/listings/${id}`, formData);
   return res.data;
 };
 
