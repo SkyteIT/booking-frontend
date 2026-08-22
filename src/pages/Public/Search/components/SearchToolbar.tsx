@@ -102,7 +102,7 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
         <TextField
           fullWidth
           size="small"
-          placeholder="Search properties, locations..."
+          placeholder="Search listings, locations..."
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           onKeyDown={handleKeyDown}
@@ -163,7 +163,7 @@ const SearchToolbar = ({ query, total, onQueryChange }: SearchToolbarProps) => {
         }}
       >
         <Typography sx={{ color: "text.secondary", fontSize: "0.88rem", fontWeight: 500 }}>
-          {total} {total === 1 ? "property" : "properties"} found
+          {total} {total === 1 ? "result" : "results"} found
         </Typography>
       </Box>
     </>

@@ -28,9 +28,11 @@ interface Props {
 
 // Background colour per placement label — purely decorative
 const placementColor: Record<string, string> = {
-  "Homepage Hero":   "#e3f0fb",
-  "Homepage Banner": "#e8f5e9",
-  "Category Pages":  "#fff3e0",
+  Home: "#e3f0fb",
+  Explore: "#e8f5e9",
+  "Homepage Hero": "#e3f0fb",
+  "Homepage Banner": "#e3f0fb",
+  "Category Pages": "#e8f5e9",
 };
 
 export default function BannerTable({ banners, onEdit, onDelete }: Props) {
