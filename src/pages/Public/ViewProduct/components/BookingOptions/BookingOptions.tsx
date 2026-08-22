@@ -77,11 +77,23 @@ const BookingOptions = ({
   const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
   const genericUnits = units?.filter((u) => u.kind === "Generic") ?? [];
   const quantityConfig = getQuantityConfig(listing);
+  const usesDateRange =
+    listing.type === "Hotel" || listing.type === "CarRental";
+  const startDateLabel =
+    listing.type === "Hotel"
+      ? "Check-in"
+      : listing.type === "CarRental"
+        ? "Pickup date"
+        : "Booking date";
+  const endDateLabel = listing.type === "Hotel" ? "Check-out" : "Return date";
 
   // Real 2D seat-map layout for Kind=Seat units (concerts/theater) -
   // seats already carry real rowIndex/columnIndex, just render them
   // aligned to it instead of a flat wrapped list.
-  const maxColumn = seatUnits.reduce((m, u) => Math.max(m, u.columnIndex ?? 0), 0);
+  const maxColumn = seatUnits.reduce(
+    (m, u) => Math.max(m, u.columnIndex ?? 0),
+    0,
+  );
 
   return (
     <Box
@@ -109,7 +121,11 @@ const BookingOptions = ({
         </Box>
         <Typography
           variant="h6"
-          sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: "-0.01em" }}
+          sx={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+          }}
         >
           Select your options
         </Typography>
@@ -118,46 +134,69 @@ const BookingOptions = ({
       {/* Date Pickers - hidden for time-slot listings, which pick a single day below instead */}
       {timeSlotUnits.length === 0 && (
         <>
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: "text.primary" }}>
-            Select dates
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 600, mb: 1.5, color: "text.primary" }}
+          >
+            {usesDateRange ? "Select dates" : "Select a date"}
           </Typography>
-          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.5, mb: 3, maxWidth: 480 }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 1.5,
+              mb: 3,
+              maxWidth: 480,
+            }}
+          >
             <TextField
-              label="Check-in"
+              label={startDateLabel}
               type="date"
               size="small"
               value={checkIn}
-              onChange={(e) => onCheckInChange(e.target.value)}
+              disabled={
+                listing.type === "Event" && Boolean(listing.eventDateTime)
+              }
+              onChange={(e) => {
+                onCheckInChange(e.target.value);
+                if (!usesDateRange) onCheckOutChange(e.target.value);
+              }}
               slotProps={{
                 inputLabel: { shrink: true },
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <CalendarMonthOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+                      <CalendarMonthOutlinedIcon
+                        sx={{ fontSize: "1.1rem", color: "primary.main" }}
+                      />
                     </InputAdornment>
                   ),
                 },
               }}
               sx={fieldSx}
             />
-            <TextField
-              label="Check-out"
-              type="date"
-              size="small"
-              value={checkOut}
-              onChange={(e) => onCheckOutChange(e.target.value)}
-              slotProps={{
-                inputLabel: { shrink: true },
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarMonthOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={fieldSx}
-            />
+            {usesDateRange && (
+              <TextField
+                label={endDateLabel}
+                type="date"
+                size="small"
+                value={checkOut}
+                onChange={(e) => onCheckOutChange(e.target.value)}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarMonthOutlinedIcon
+                          sx={{ fontSize: "1.1rem", color: "primary.main" }}
+                        />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={fieldSx}
+              />
+            )}
           </Box>
         </>
       )}
@@ -170,7 +209,10 @@ const BookingOptions = ({
             value={selectedUnitId}
             label="Choose an option"
             onChange={(e) => onSelectUnit(e.target.value)}
-            sx={{ borderRadius: "12px", backgroundColor: "rgba(0,119,182,0.04)" }}
+            sx={{
+              borderRadius: "12px",
+              backgroundColor: "rgba(0,119,182,0.04)",
+            }}
           >
             {genericUnits.map((u) => (
               <MenuItem key={u.id} value={u.id}>
@@ -187,8 +229,12 @@ const BookingOptions = ({
           large venue instead of being squeezed into a 360px sidebar. */}
       {seatUnits.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}>
-            <EventSeatOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}
+          >
+            <EventSeatOutlinedIcon
+              sx={{ fontSize: "1.1rem", color: "primary.main" }}
+            />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {quantityConfig
                 ? `Choose your seats (up to ${quantityConfig.max})`
@@ -198,7 +244,11 @@ const BookingOptions = ({
               <Chip
                 size="small"
                 label={`${selectedSeatIds.length} selected`}
-                sx={{ fontWeight: 600, bgcolor: "rgba(0,119,182,0.1)", color: "primary.main" }}
+                sx={{
+                  fontWeight: 600,
+                  bgcolor: "rgba(0,119,182,0.1)",
+                  color: "primary.main",
+                }}
               />
             )}
           </Box>
@@ -232,7 +282,9 @@ const BookingOptions = ({
           >
             {seatUnits.map((u) => {
               const isSelected = selectedSeatIds.includes(u.id);
-              const atLimit = Boolean(quantityConfig) && selectedSeatIds.length >= (quantityConfig?.max ?? Infinity);
+              const atLimit =
+                Boolean(quantityConfig) &&
+                selectedSeatIds.length >= (quantityConfig?.max ?? Infinity);
               const disabled = !isSelected && atLimit;
               return (
                 <Box
@@ -240,7 +292,11 @@ const BookingOptions = ({
                   component="button"
                   type="button"
                   disabled={disabled}
-                  title={disabled ? `Up to ${quantityConfig?.max} seats` : u.code ?? u.name}
+                  title={
+                    disabled
+                      ? `Up to ${quantityConfig?.max} seats`
+                      : (u.code ?? u.name)
+                  }
                   onClick={() => onToggleSeat(u.id)}
                   sx={{
                     gridColumn: (u.columnIndex ?? 0) + 1,
@@ -250,15 +306,24 @@ const BookingOptions = ({
                     borderRadius: "8px",
                     border: "1px solid",
                     borderColor: isSelected ? "primary.main" : "divider",
-                    bgcolor: isSelected ? "primary.main" : "rgba(0,119,182,0.04)",
-                    color: isSelected ? "primary.contrastText" : "text.secondary",
+                    bgcolor: isSelected
+                      ? "primary.main"
+                      : "rgba(0,119,182,0.04)",
+                    color: isSelected
+                      ? "primary.contrastText"
+                      : "text.secondary",
                     fontSize: "0.7rem",
                     fontWeight: 600,
                     cursor: disabled ? "not-allowed" : "pointer",
                     opacity: disabled ? 0.4 : 1,
-                    boxShadow: isSelected ? "0 6px 14px rgba(0,119,182,0.35)" : "none",
+                    boxShadow: isSelected
+                      ? "0 6px 14px rgba(0,119,182,0.35)"
+                      : "none",
                     transition: "all 0.15s ease",
-                    "&:hover": { borderColor: "primary.main", transform: "translateY(-1px)" },
+                    "&:hover": {
+                      borderColor: "primary.main",
+                      transform: "translateY(-1px)",
+                    },
                   }}
                 >
                   {u.code ?? u.name}
@@ -286,7 +351,9 @@ const BookingOptions = ({
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CalendarMonthOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+                    <CalendarMonthOutlinedIcon
+                      sx={{ fontSize: "1.1rem", color: "primary.main" }}
+                    />
                   </InputAdornment>
                 ),
               },
@@ -294,7 +361,9 @@ const BookingOptions = ({
             sx={{ mb: 2, maxWidth: 240, ...fieldSx }}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
-            <ScheduleOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
+            <ScheduleOutlinedIcon
+              sx={{ fontSize: "1.1rem", color: "primary.main" }}
+            />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               Choose a time
             </Typography>
@@ -311,9 +380,17 @@ const BookingOptions = ({
                     cursor: "pointer",
                     fontWeight: 600,
                     color: isSelected ? "#fff" : "text.primary",
-                    background: isSelected ? "linear-gradient(160deg, #005a8d, #0077b6)" : "rgba(0,119,182,0.06)",
-                    boxShadow: isSelected ? "0 6px 14px rgba(0,119,182,0.3)" : "none",
-                    "&:hover": { background: isSelected ? undefined : "rgba(0,119,182,0.12)" },
+                    background: isSelected
+                      ? "linear-gradient(160deg, #005a8d, #0077b6)"
+                      : "rgba(0,119,182,0.06)",
+                    boxShadow: isSelected
+                      ? "0 6px 14px rgba(0,119,182,0.3)"
+                      : "none",
+                    "&:hover": {
+                      background: isSelected
+                        ? undefined
+                        : "rgba(0,119,182,0.12)",
+                    },
                   }}
                 />
               );
@@ -324,32 +401,39 @@ const BookingOptions = ({
 
       {/* Quantity - not shown for seat/time-slot listings (inherently 1)
           or Car Rental (no guest/quantity concept in real rental flows). */}
-      {seatUnits.length === 0 && timeSlotUnits.length === 0 && quantityConfig && (
-        <FormControl fullWidth size="small" sx={{ maxWidth: 480 }}>
-          <InputLabel>{quantityConfig.label}</InputLabel>
-          <Select
-            value={guests}
-            label={quantityConfig.label}
-            onChange={(e) => onGuestsChange(Number(e.target.value))}
-            startAdornment={
-              <InputAdornment position="start" sx={{ ml: 1 }}>
-                <GroupsOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
-              </InputAdornment>
-            }
-            sx={{ borderRadius: "12px", backgroundColor: "rgba(0,119,182,0.04)" }}
-          >
-            {Array.from(
-              { length: quantityConfig.max - quantityConfig.min + 1 },
-              (_, i) => quantityConfig.min + i
-            ).map((n) => (
-              <MenuItem key={n} value={n}>
-                {n} {quantityConfig.singular}
-                {n > 1 ? "s" : ""}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
+      {seatUnits.length === 0 &&
+        timeSlotUnits.length === 0 &&
+        quantityConfig && (
+          <FormControl fullWidth size="small" sx={{ maxWidth: 480 }}>
+            <InputLabel>{quantityConfig.label}</InputLabel>
+            <Select
+              value={guests}
+              label={quantityConfig.label}
+              onChange={(e) => onGuestsChange(Number(e.target.value))}
+              startAdornment={
+                <InputAdornment position="start" sx={{ ml: 1 }}>
+                  <GroupsOutlinedIcon
+                    sx={{ fontSize: "1.1rem", color: "primary.main" }}
+                  />
+                </InputAdornment>
+              }
+              sx={{
+                borderRadius: "12px",
+                backgroundColor: "rgba(0,119,182,0.04)",
+              }}
+            >
+              {Array.from(
+                { length: quantityConfig.max - quantityConfig.min + 1 },
+                (_, i) => quantityConfig.min + i,
+              ).map((n) => (
+                <MenuItem key={n} value={n}>
+                  {n} {quantityConfig.singular}
+                  {n > 1 ? "s" : ""}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
     </Box>
   );
 };

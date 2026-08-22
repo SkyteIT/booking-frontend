@@ -1,12 +1,22 @@
 // ViewProduct page — reads :id from the URL, fetches the matching
 // listing from the backend, then composes the three sub-components.
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Box, Container, Button, IconButton, Typography, Alert } from "@mui/material";
+import {
+  Box,
+  Container,
+  Button,
+  IconButton,
+  Typography,
+  Alert,
+} from "@mui/material";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getListingById } from "../../../services/Vendor/listingService";
-import { getUnits, type ListingUnitDto } from "../../../services/Vendor/listingUnitsService";
+import {
+  getUnits,
+  type ListingUnitDto,
+} from "../../../services/Vendor/listingUnitsService";
 import { mapApiListing } from "../Search/utils/mapApiListing";
 import type { Listing } from "../Search/utils/types";
 import BookingOptions from "./components/BookingOptions/BookingOptions";
@@ -30,7 +40,9 @@ const ViewProduct = () => {
   const [selectedUnitId, setSelectedUnitId] = useState("");
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const toggleSeat = (id: string) =>
-    setSelectedSeatIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+    setSelectedSeatIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    );
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
@@ -43,7 +55,18 @@ const ViewProduct = () => {
         const data = await getListingById(id);
         const mapped = mapApiListing(data);
         setListing(mapped);
-        setGuests(mapped.type === "Activity" && mapped.minGroupSize && mapped.minGroupSize > 1 ? mapped.minGroupSize : 1);
+        if (mapped.type === "Event" && mapped.eventDateTime) {
+          const eventDate = mapped.eventDateTime.slice(0, 10);
+          setCheckIn(eventDate);
+          setCheckOut(eventDate);
+        }
+        setGuests(
+          mapped.type === "Activity" &&
+            mapped.minGroupSize &&
+            mapped.minGroupSize > 1
+            ? mapped.minGroupSize
+            : 1,
+        );
         setError(null);
       } catch (err) {
         console.error("Error fetching listing:", err);
@@ -81,7 +104,9 @@ const ViewProduct = () => {
     return (
       <Container maxWidth="md" sx={{ pt: 20, pb: 8, textAlign: "center" }}>
         {error ? (
-          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
         ) : (
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
             Listing not found
@@ -110,7 +135,6 @@ const ViewProduct = () => {
       }}
     >
       <Container maxWidth="lg" sx={{ pt: 16, pb: 4 }}>
-
         {/* Two-column layout */}
         <Box
           sx={{
@@ -123,7 +147,10 @@ const ViewProduct = () => {
           {/* Left column: gallery + details + booking options */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <Box sx={{ position: "relative" }}>
-              <ImageGallery listing={listing} category={listing.category as string} />
+              <ImageGallery
+                listing={listing}
+                category={listing.category as string}
+              />
 
               {/* Back button - compact circular icon button floating over
                   the hero photo's gradient, translucent-blur treatment. */}
