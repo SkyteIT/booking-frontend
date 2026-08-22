@@ -135,7 +135,7 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
                     type="number"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.quantity` as const)}
+                    {...register(`ticketTypes.${index}.quantity` as const, { valueAsNumber: true })}
                   />
                 </TableCell>
 
@@ -145,7 +145,7 @@ const EventFields = ({ register, control, errors }: EventFieldsProps) => {
                     type="number"
                     fullWidth
                     variant="standard"
-                    {...register(`ticketTypes.${index}.price` as const)}
+                    {...register(`ticketTypes.${index}.price` as const, { valueAsNumber: true })}
                   />
                 </TableCell>
               </TableRow>
