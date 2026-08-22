@@ -9,9 +9,16 @@ interface BaseFieldsProps {
   control: Control<ListingFormData>;
   errors: FieldErrors<ListingFormData>;
   categories: CategoryDto[];
+  selectedCategoryId?: string;
 }
 
-export default function BaseFields({ register, control, errors, categories }: BaseFieldsProps) {
+export default function BaseFields({
+  register,
+  control,
+  errors,
+  categories,
+  selectedCategoryId,
+}: BaseFieldsProps) {
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
       <TextField
@@ -44,6 +51,7 @@ export default function BaseFields({ register, control, errors, categories }: Ba
             : "Determines which detail fields appear below")
         }
         error={!!errors.categoryId}
+        value={selectedCategoryId ?? ""}
         {...register("categoryId", { required: "Select a category" })}
       >
         {categories.map((cat) => (

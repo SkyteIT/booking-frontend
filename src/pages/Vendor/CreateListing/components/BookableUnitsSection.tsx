@@ -12,6 +12,7 @@ import {
   Alert,
 } from "@mui/material";
 import type { ListingCategory } from "../../../../utils/types";
+import AmPmTimeField from "./AmPmTimeField";
 
 export type UnitsMode = "none" | "list" | "grid" | "timeslot";
 
@@ -69,8 +70,16 @@ export default function BookableUnitsSection({
   // times) - a vendor can use these instead of, or alongside, assigned
   // seating (Grid mode).
   const showTimeSlotOption =
-    category === "Restaurant" || category === "Activity" || category === "Hotel" || category === "Event";
-  const timeSlotLabel = category === "Hotel" ? "Day-Use Time Bands" : category === "Event" ? "Showtimes" : "Time Slots";
+    category === "Restaurant" ||
+    category === "Activity" ||
+    category === "Hotel" ||
+    category === "Event";
+  const timeSlotLabel =
+    category === "Hotel"
+      ? "Day-Use Time Bands"
+      : category === "Event"
+        ? "Showtimes"
+        : "Time Slots";
 
   const updateRow = (index: number, patch: Partial<ListRow>) => {
     const next = [...listRows];
@@ -85,8 +94,8 @@ export default function BookableUnitsSection({
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Define specific room types, seats, fleet vehicles, or time slots
-        customers can pick individually. Leave this off to keep this listing
-        as a single bookable item.
+        customers can pick individually. Leave this off to keep this listing as
+        a single bookable item.
       </Typography>
 
       <ToggleButtonGroup
@@ -97,9 +106,13 @@ export default function BookableUnitsSection({
         sx={{ mb: 3 }}
       >
         <ToggleButton value="none">None</ToggleButton>
-        <ToggleButton value="list">List (room types / fleet / tiers)</ToggleButton>
+        <ToggleButton value="list">
+          List (room types / fleet / tiers)
+        </ToggleButton>
         {showGridOption && <ToggleButton value="grid">Seat Grid</ToggleButton>}
-        {showTimeSlotOption && <ToggleButton value="timeslot">{timeSlotLabel}</ToggleButton>}
+        {showTimeSlotOption && (
+          <ToggleButton value="timeslot">{timeSlotLabel}</ToggleButton>
+        )}
       </ToggleButtonGroup>
 
       {mode === "list" && (
@@ -120,7 +133,9 @@ export default function BookableUnitsSection({
                 size="small"
                 type="number"
                 value={row.priceOverride}
-                onChange={(e) => updateRow(i, { priceOverride: e.target.value })}
+                onChange={(e) =>
+                  updateRow(i, { priceOverride: e.target.value })
+                }
                 sx={{ flex: 1 }}
               />
               <TextField
@@ -132,7 +147,9 @@ export default function BookableUnitsSection({
                 sx={{ flex: 1 }}
               />
               <IconButton
-                onClick={() => onListRowsChange(listRows.filter((_, idx) => idx !== i))}
+                onClick={() =>
+                  onListRowsChange(listRows.filter((_, idx) => idx !== i))
+                }
                 disabled={listRows.length === 1}
               >
                 <DeleteIcon fontSize="small" />
@@ -157,14 +174,18 @@ export default function BookableUnitsSection({
               size="small"
               type="number"
               value={gridConfig.rows}
-              onChange={(e) => onGridConfigChange({ ...gridConfig, rows: e.target.value })}
+              onChange={(e) =>
+                onGridConfigChange({ ...gridConfig, rows: e.target.value })
+              }
             />
             <TextField
               label="Columns"
               size="small"
               type="number"
               value={gridConfig.columns}
-              onChange={(e) => onGridConfigChange({ ...gridConfig, columns: e.target.value })}
+              onChange={(e) =>
+                onGridConfigChange({ ...gridConfig, columns: e.target.value })
+              }
             />
             <TextField
               label="Price per seat"
@@ -172,13 +193,19 @@ export default function BookableUnitsSection({
               size="small"
               type="number"
               value={gridConfig.pricePerSeat}
-              onChange={(e) => onGridConfigChange({ ...gridConfig, pricePerSeat: e.target.value })}
+              onChange={(e) =>
+                onGridConfigChange({
+                  ...gridConfig,
+                  pricePerSeat: e.target.value,
+                })
+              }
             />
           </Stack>
           {Number(gridConfig.rows) > 0 && Number(gridConfig.columns) > 0 && (
             <Alert severity="info" sx={{ maxWidth: 500 }}>
-              This will generate {Number(gridConfig.rows) * Number(gridConfig.columns)} seats
-              (e.g. A1 - {String.fromCharCode(64 + Number(gridConfig.rows))}
+              This will generate{" "}
+              {Number(gridConfig.rows) * Number(gridConfig.columns)} seats (e.g.
+              A1 - {String.fromCharCode(64 + Number(gridConfig.rows))}
               {gridConfig.columns}).
             </Alert>
           )}
@@ -188,21 +215,27 @@ export default function BookableUnitsSection({
       {mode === "timeslot" && (
         <Stack spacing={2}>
           <Stack direction="row" spacing={2}>
-            <TextField
+            <AmPmTimeField
               label="Start time"
               size="small"
-              type="time"
               value={timeSlotConfig.startTime}
-              onChange={(e) => onTimeSlotConfigChange({ ...timeSlotConfig, startTime: e.target.value })}
-              InputLabelProps={{ shrink: true }}
+              onChange={(value) =>
+                onTimeSlotConfigChange({
+                  ...timeSlotConfig,
+                  startTime: value,
+                })
+              }
             />
-            <TextField
+            <AmPmTimeField
               label="End time"
               size="small"
-              type="time"
               value={timeSlotConfig.endTime}
-              onChange={(e) => onTimeSlotConfigChange({ ...timeSlotConfig, endTime: e.target.value })}
-              InputLabelProps={{ shrink: true }}
+              onChange={(value) =>
+                onTimeSlotConfigChange({
+                  ...timeSlotConfig,
+                  endTime: value,
+                })
+              }
             />
             <TextField
               label="Slot duration (min)"
@@ -210,7 +243,10 @@ export default function BookableUnitsSection({
               type="number"
               value={timeSlotConfig.slotDurationMinutes}
               onChange={(e) =>
-                onTimeSlotConfigChange({ ...timeSlotConfig, slotDurationMinutes: e.target.value })
+                onTimeSlotConfigChange({
+                  ...timeSlotConfig,
+                  slotDurationMinutes: e.target.value,
+                })
               }
             />
           </Stack>
@@ -221,7 +257,10 @@ export default function BookableUnitsSection({
               type="number"
               value={timeSlotConfig.capacityPerSlot}
               onChange={(e) =>
-                onTimeSlotConfigChange({ ...timeSlotConfig, capacityPerSlot: e.target.value })
+                onTimeSlotConfigChange({
+                  ...timeSlotConfig,
+                  capacityPerSlot: e.target.value,
+                })
               }
             />
             <TextField
@@ -230,7 +269,12 @@ export default function BookableUnitsSection({
               size="small"
               type="number"
               value={timeSlotConfig.price}
-              onChange={(e) => onTimeSlotConfigChange({ ...timeSlotConfig, price: e.target.value })}
+              onChange={(e) =>
+                onTimeSlotConfigChange({
+                  ...timeSlotConfig,
+                  price: e.target.value,
+                })
+              }
             />
           </Stack>
         </Stack>

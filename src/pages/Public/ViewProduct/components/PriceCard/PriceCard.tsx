@@ -13,7 +13,10 @@ import ToastAlert from "../../../../../components/common/ToastAlert";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../../../components/cart/app/contexts/CartContext";
 import { useAuth } from "../../../../../context/useAuth";
-import { getListingOffers, type ListingOfferDto } from "../../../../../services/Vendor/listingOfferService";
+import {
+  getListingOffers,
+  type ListingOfferDto,
+} from "../../../../../services/Vendor/listingOfferService";
 import type { ListingUnitDto } from "../../../../../services/Vendor/listingUnitsService";
 import { getPriceQuote } from "../../../../../services/Vendor/seasonalPricingService";
 import { businessDateToday } from "../../../../../utils/businessDate";
@@ -31,7 +34,15 @@ interface PriceCardProps {
   guests: number;
 }
 
-const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, checkOut, guests }: PriceCardProps) => {
+const PriceCard = ({
+  listing,
+  units,
+  selectedUnitId,
+  selectedSeatIds,
+  checkIn,
+  checkOut,
+  guests,
+}: PriceCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
@@ -43,10 +54,16 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
   const selectedUnit = units?.find((u) => u.id === selectedUnitId);
   const selectedSeats = seatUnits.filter((u) => selectedSeatIds.includes(u.id));
   const displayPrice =
-    seatUnits.length > 0 ? (selectedSeats[0]?.priceOverride ?? listing.price) : (selectedUnit?.priceOverride ?? listing.price);
+    seatUnits.length > 0
+      ? (selectedSeats[0]?.priceOverride ?? listing.price)
+      : (selectedUnit?.priceOverride ?? listing.price);
   const quantityConfig = getQuantityConfig(listing);
   const effectiveQuantity =
-    seatUnits.length > 0 ? selectedSeats.length : timeSlotUnits.length > 0 || !quantityConfig ? 1 : guests;
+    seatUnits.length > 0
+      ? selectedSeats.length
+      : timeSlotUnits.length > 0 || !quantityConfig
+        ? 1
+        : guests;
 
   // Seats can each carry their own priceOverride (e.g. front-row vs back-row
   // pricing), so the seat-map total is a per-seat sum, not one price × count.
@@ -62,12 +79,18 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
                   1,
                   checkIn,
                   checkOut || checkIn,
-                  listing.pricingUnit
+                  listing.pricingUnit,
                 ),
-              0
+              0,
             )
           : null
-        : calculatePricingTotal(displayPrice, effectiveQuantity, checkIn, checkOut || checkIn, listing.pricingUnit)
+        : calculatePricingTotal(
+            displayPrice,
+            effectiveQuantity,
+            checkIn,
+            checkOut || checkIn,
+            listing.pricingUnit,
+          )
       : null;
 
   // Seasonal pricing rules live server-side only - the client-side
@@ -84,7 +107,9 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
     checkIn && checkOut && seatUnits.length === 0
       ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}`
       : null;
-  const [quote, setQuote] = useState<{ key: string; total: number } | null>(null);
+  const [quote, setQuote] = useState<{ key: string; total: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!quoteKey || !checkIn || !checkOut) return;
@@ -96,12 +121,21 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
         unitId: selectedUnitId || undefined,
         quantity: effectiveQuantity,
       })
-        .then((result) => setQuote({ key: quoteKey, total: result.totalAmount }))
+        .then((result) =>
+          setQuote({ key: quoteKey, total: result.totalAmount }),
+        )
         .catch(() => {});
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [quoteKey, listing.id, checkIn, checkOut, selectedUnitId, effectiveQuantity]);
+  }, [
+    quoteKey,
+    listing.id,
+    checkIn,
+    checkOut,
+    selectedUnitId,
+    effectiveQuantity,
+  ]);
 
   const serverQuote = quote && quote.key === quoteKey ? quote.total : null;
   const displayedTotal = serverQuote ?? estimatedTotal;
@@ -118,7 +152,9 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
       .then((offers) => {
         if (cancelled) return;
         const today = businessDateToday();
-        const current = offers.find((o) => o.isActive && o.startDate <= today && o.endDate >= today);
+        const current = offers.find(
+          (o) => o.isActive && o.startDate <= today && o.endDate >= today,
+        );
         setActiveOffer(current ?? null);
       })
       .catch(() => setActiveOffer(null));
@@ -133,13 +169,25 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
     const parts: string[] = [];
     if (seatUnits.length > 0 && selectedSeats.length > 0) {
       parts.push(selectedSeats.map((s) => s.code ?? s.name).join(", "));
-    } else if (selectedUnit && (timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))) {
+    } else if (
+      selectedUnit &&
+      (timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))
+    ) {
       parts.push(selectedUnit.name);
     }
-    if (quantityConfig && seatUnits.length === 0 && timeSlotUnits.length === 0) {
-      parts.push(`${guests} ${quantityConfig.singular}${guests > 1 ? "s" : ""}`);
+    if (
+      quantityConfig &&
+      seatUnits.length === 0 &&
+      timeSlotUnits.length === 0
+    ) {
+      parts.push(
+        `${guests} ${quantityConfig.singular}${guests > 1 ? "s" : ""}`,
+      );
     }
-    if (checkIn) parts.push(checkOut && checkOut !== checkIn ? `${checkIn} – ${checkOut}` : checkIn);
+    if (checkIn)
+      parts.push(
+        checkOut && checkOut !== checkIn ? `${checkIn} – ${checkOut}` : checkIn,
+      );
     return parts.join(" · ");
   })();
 
@@ -151,7 +199,13 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
 
     if (!checkIn || !checkOut) {
       setStatus("error");
-      setErrorMessage("Please select both dates.");
+      setErrorMessage(
+        listing.type === "Hotel"
+          ? "Please select check-in and check-out dates."
+          : listing.type === "CarRental"
+            ? "Please select pickup and return dates."
+            : "Please select a booking date.",
+      );
       return;
     }
 
@@ -161,7 +215,12 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
       return;
     }
 
-    if (seatUnits.length === 0 && units && units.length > 0 && !selectedUnitId) {
+    if (
+      seatUnits.length === 0 &&
+      units &&
+      units.length > 0 &&
+      !selectedUnitId
+    ) {
       setStatus("error");
       setErrorMessage("Please make a selection before adding to cart.");
       return;
@@ -194,7 +253,7 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
             },
             1,
             checkIn,
-            checkOut
+            checkOut,
           );
         });
       } else {
@@ -210,7 +269,7 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
           },
           effectiveQuantity,
           checkIn,
-          checkOut
+          checkOut,
         );
       }
       setStatus("success");
@@ -270,69 +329,97 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
             backgroundColor: "rgba(0,119,182,0.06)",
           }}
         >
-          <CalendarMonthOutlinedIcon sx={{ fontSize: "1.2rem", color: "primary.main", mt: 0.2 }} />
+          <CalendarMonthOutlinedIcon
+            sx={{ fontSize: "1.2rem", color: "primary.main", mt: 0.2 }}
+          />
           <Box>
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.25, color: "text.primary" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, mb: 0.25, color: "text.primary" }}
+            >
               Your selection
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {selectionSummary || "Choose your options below"}
             </Typography>
             {displayedTotal !== null && (
-              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}
+              >
                 Estimated total: ${displayedTotal.toFixed(2)}
               </Typography>
             )}
           </Box>
         </Box>
 
-      {/* Active vendor offer, if one is running right now */}
-      {activeOffer && (
-        <>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2.5 }}>
-            <LocalOfferIcon sx={{ fontSize: "1rem", color: "#E85D3D", mt: 0.2 }} />
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {activeOffer.title}
-                {activeOffer.discountType === "PercentageDiscount" && ` — ${activeOffer.discountValue}% off`}
-                {activeOffer.discountType === "FixedAmountDiscount" && ` — ${activeOffer.discountValue} off`}
-              </Typography>
-              {activeOffer.description && (
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {activeOffer.description}
+        {/* Active vendor offer, if one is running right now */}
+        {activeOffer && (
+          <>
+            <Divider sx={{ mb: 2 }} />
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                mb: 2.5,
+              }}
+            >
+              <LocalOfferIcon
+                sx={{ fontSize: "1rem", color: "#E85D3D", mt: 0.2 }}
+              />
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {activeOffer.title}
+                  {activeOffer.discountType === "PercentageDiscount" &&
+                    ` — ${activeOffer.discountValue}% off`}
+                  {activeOffer.discountType === "FixedAmountDiscount" &&
+                    ` — ${activeOffer.discountValue} off`}
                 </Typography>
-              )}
+                {activeOffer.description && (
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {activeOffer.description}
+                  </Typography>
+                )}
+              </Box>
             </Box>
-          </Box>
-        </>
-      )}
+          </>
+        )}
 
-      {/* Real cancellation policy, if the vendor set one */}
-      {listing.cancellationPolicy && (
-        <>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2.5 }}>
-            <CheckCircleOutlineIcon sx={{ fontSize: "1rem", color: "primary.main", mt: 0.2 }} />
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {listing.cancellationPolicy}
-            </Typography>
-          </Box>
-        </>
-      )}
+        {/* Real cancellation policy, if the vendor set one */}
+        {listing.cancellationPolicy && (
+          <>
+            <Divider sx={{ mb: 2 }} />
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                mb: 2.5,
+              }}
+            >
+              <CheckCircleOutlineIcon
+                sx={{ fontSize: "1rem", color: "primary.main", mt: 0.2 }}
+              />
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                {listing.cancellationPolicy}
+              </Typography>
+            </Box>
+          </>
+        )}
 
-      <ToastAlert
-        open={status === "success"}
-        onClose={() => setStatus("idle")}
-        severity="success"
-        message="Added to your cart"
-      />
-      <ToastAlert
-        open={status === "error"}
-        onClose={() => setStatus("idle")}
-        severity="error"
-        message={errorMessage}
-      />
+        <ToastAlert
+          open={status === "success"}
+          onClose={() => setStatus("idle")}
+          severity="success"
+          message="Added to your cart"
+        />
+        <ToastAlert
+          open={status === "error"}
+          onClose={() => setStatus("idle")}
+          severity="error"
+          message={errorMessage}
+        />
 
         <Button
           fullWidth
@@ -350,8 +437,12 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
               ? "linear-gradient(160deg, #005a8d, #0077b6)"
               : undefined,
             "&:hover": {
-              background: listing.isAvailable ? "linear-gradient(160deg, #004a75, #005a8d)" : undefined,
-              boxShadow: listing.isAvailable ? "0 12px 28px rgba(0,119,182,0.32)" : "none",
+              background: listing.isAvailable
+                ? "linear-gradient(160deg, #004a75, #005a8d)"
+                : undefined,
+              boxShadow: listing.isAvailable
+                ? "0 12px 28px rgba(0,119,182,0.32)"
+                : "none",
             },
             "&.Mui-disabled": { color: "rgba(15,27,45,0.4)" },
           }}
@@ -361,7 +452,12 @@ const PriceCard = ({ listing, units, selectedUnitId, selectedSeatIds, checkIn, c
 
         <Typography
           variant="caption"
-          sx={{ display: "block", textAlign: "center", color: "text.secondary", mt: 1.25 }}
+          sx={{
+            display: "block",
+            textAlign: "center",
+            color: "text.secondary",
+            mt: 1.25,
+          }}
         >
           You won't be charged yet
         </Typography>
