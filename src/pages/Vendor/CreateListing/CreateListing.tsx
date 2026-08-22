@@ -1,10 +1,5 @@
-// src/pages/Vendor/CreateListing/CreateListing.tsx
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CategoryIcon from "@mui/icons-material/Category";
-import CheckIcon from "@mui/icons-material/Check";
-import EventSeatIcon from "@mui/icons-material/EventSeat";
-import ImageIcon from "@mui/icons-material/Image";
-import InfoIcon from "@mui/icons-material/Info";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
   Box,
   Container,
@@ -13,281 +8,54 @@ import {
   Card,
   CardContent,
   Link as MuiLink,
+  CircularProgress,
 } from "@mui/material";
-import { isAxiosError } from "axios";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import StepperBar, { type StepperStep } from "../../../components/navbars/StepperBar";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SaveIcon from "@mui/icons-material/Save";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import BaseFields from "./components/BaseFields";
+import HotelFields from "./components/HotelFields";
+import RestaurantFields from "./components/RestaurantFields";
+import ActivityFields from "./components/ActivityFields";
+import EventFields from "./components/EventFields";
+import CarRentalFields from "./components/CarRentalFields";
+import ListingPreview from "./components/ListingPreview";
+import type { ListingFormData, ListingCategory } from "../../../utils/types";
 import {
   createListing,
   updateListing,
   getCategories,
+  getCurrentVendor,
   getListingById,
+  ListingType,
 } from "../../../services/Vendor/listingService";
 import type {
   CreateListingRequest,
   CategoryDto,
   ListingResponse,
-  ListingType,
 } from "../../../services/Vendor/listingService";
-import type { ListingFormData, ListingCategory } from "../../../utils/types";
-import ActivityFields from "./components/ActivityFields";
-import BaseFields from "./components/BaseFields";
-import CarRentalFields from "./components/CarRentalFields";
-import EventFields from "./components/EventFields";
-import HotelFields from "./components/HotelFields";
-import ImagesStep from "./components/ImagesStep";
-import ReviewStep from "./components/ReviewStep";
-import RestaurantFields from "./components/RestaurantFields";
-import BookableUnitsSection, {
-  type UnitsMode,
-  type ListRow,
-  type GridConfig,
-  type TimeSlotConfig,
-} from "./components/BookableUnitsSection";
-import { defaultListRows, defaultGridConfig, defaultTimeSlotConfig } from "./components/bookableUnitsDefaults";
-import { addUnit, addUnitsGrid, addUnitsTimeSlots } from "../../../services/Vendor/listingUnitsService";
-import { getLocalizationSettings } from "../../../services/Vendor/settings";
-
-// ListingType and ListingCategory are the same set of string literals
-// (Hotel/Restaurant/Event/CarRental/Activity) — kept as an explicit map
-// rather than a cast so the two concepts read as distinct at each call site.
-const typeToCategory: Record<ListingType, ListingCategory> = {
-  Hotel: "Hotel",
-  Restaurant: "Restaurant",
-  Event: "Event",
-  CarRental: "CarRental",
-  Activity: "Activity",
-};
-
-const WIZARD_STEPS: StepperStep[] = [
-  { label: "Basic Info", icon: InfoIcon },
-  { label: "Category Details", icon: CategoryIcon },
-  { label: "Bookable Units", icon: EventSeatIcon },
-  { label: "Images", icon: ImageIcon },
-  { label: "Review", icon: CheckIcon },
-];
-
-// Fields validated per step before allowing "Next" — mirrors the
-// `required` rules registered in BaseFields/each category-fields
-// component, which in turn mirror the backend's FluentValidation rules
-// (CreateListingRequestValidator + the five *DetailsDtoValidator classes).
-// Several of these (roomTypes/amenities/model/seatCountCar/averageCost/
-// organizer/seatCount) previously had no frontend input or validation at
-// all, so those categories' listings always failed backend validation on
-// submit regardless of what the vendor filled in — fixed alongside adding
-// the wizard's step-gated validation.
-const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = ["title", "location", "categoryId", "price", "currency"];
-const CATEGORY_REQUIRED_FIELDS: Record<ListingCategory, (keyof ListingFormData)[]> = {
-  Hotel: ["roomTypes", "amenities"],
-  Restaurant: ["cuisineType", "seatingCapacity", "openingTime", "closingTime", "averageCost"],
-  Activity: ["activityType", "duration"],
-  Event: ["organizer", "seatCount", "eventDate", "eventTime"],
-  CarRental: ["brand", "model", "seatCountCar"],
-};
-
-const notifyDashboardRefresh = () => {
-  window.dispatchEvent(new Event("admin-dashboard-refresh"));
-};
-
-function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
-  const data: Partial<ListingFormData> = {
-    title: listing.title,
-    description: listing.description ?? "",
-    location: listing.location ?? "",
-    price: listing.price,
-    category: typeToCategory[listing.type] ?? "Hotel",
-    categoryId: listing.categoryId,
-    isActive: listing.isActive,
-    currency: listing.currency ?? "LKR",
-    imageUrls: listing.images?.join(", ") ?? "",
-    tagsInput: listing.tags?.join(", ") ?? "",
-    cancellationPolicy: listing.cancellationPolicy ?? "",
-  };
-
-  const { hotelDetails, restaurantDetails, activityDetails, eventDetails, carRentalDetails } = listing;
-
-  if (hotelDetails) {
-    data.pricePerNight = hotelDetails.pricePerNight;
-    data.numberOfRooms = hotelDetails.availableRooms;
-    data.amenities = hotelDetails.amenities;
-    data.checkInTime = hotelDetails.checkInTime;
-    data.checkOutTime = hotelDetails.checkOutTime;
-    data.roomTypes = hotelDetails.roomTypes;
-    data.propertyType = hotelDetails.propertyType ?? "";
-    data.roomType = hotelDetails.primaryRoomType ?? "";
-  } else if (restaurantDetails) {
-    const [openingTime, closingTime] = restaurantDetails.openingHours.split(" - ");
-    data.cuisineType = restaurantDetails.cuisineType;
-    data.averageCost = restaurantDetails.averageCost;
-    data.openingTime = openingTime ?? "06:00";
-    data.closingTime = closingTime ?? "23:00";
-    data.seatingCapacity = restaurantDetails.tableCapacity;
-    data.tableTypes = restaurantDetails.tableTypes;
-    data.reservationRules = restaurantDetails.reservationRules ?? "";
-  } else if (activityDetails) {
-    data.activityType = activityDetails.activityType;
-    data.duration = `${activityDetails.durationHours} hours`;
-    data.difficultyLevel = activityDetails.difficultyLevel;
-    data.activityPrice = activityDetails.price;
-    data.minGroupSize = activityDetails.minGroupSize;
-    data.maxGroupSize = activityDetails.maxGroupSize;
-    data.minAge = activityDetails.minAge;
-    data.maxAge = activityDetails.maxAge;
-    data.includedServices = activityDetails.includedServices;
-    data.safetyRequirements = activityDetails.safetyRequirements;
-    data.availabilitySchedule = activityDetails.availabilitySchedule;
-  } else if (eventDetails) {
-    const [eventDate, eventTime] = eventDetails.dateAndTime.split("T");
-    data.organizer = eventDetails.organizer;
-    data.eventDate = eventDate ?? "";
-    data.eventTime = eventTime ?? "";
-    data.seatCount = eventDetails.seatCount;
-    data.eventType = eventDetails.eventType ?? "";
-    data.venueName = eventDetails.venueName ?? "";
-    data.venueAddress = eventDetails.venueAddress ?? "";
-    data.ticketTypes = eventDetails.ticketTypes ?? [];
-  } else if (carRentalDetails) {
-    data.brand = carRentalDetails.brand;
-    data.model = carRentalDetails.model;
-    data.transmission = carRentalDetails.transmission;
-    data.dailyRate = carRentalDetails.pricePerDay;
-    data.seatCountCar = carRentalDetails.seatCount;
-    data.fuelType = carRentalDetails.fuelType;
-    data.availabilityStatus = carRentalDetails.availabilityStatus;
-    data.year = carRentalDetails.year;
-    data.hourlyRate = carRentalDetails.hourlyRate;
-    data.pickupLocation = carRentalDetails.pickupLocation ?? "";
-    data.returnLocation = carRentalDetails.returnLocation ?? "";
-    data.insuranceOptions = carRentalDetails.insuranceOptions ?? "";
-  }
-
-  return data;
-}
-
-function buildCreateListingRequest(
-  data: ListingFormData,
-  categoryId: string,
-): CreateListingRequest {
-  const request: CreateListingRequest = {
-    categoryId,
-    title: data.title,
-    description: data.description ?? "",
-    price: Number(data.price) || 0,
-    currency: data.currency || "LKR",
-    location: data.location,
-    isActive: data.isActive ?? true,
-    images: data.imageUrls
-      ? data.imageUrls.split(",").map((u) => u.trim()).filter(Boolean)
-      : data.images?.filter(Boolean) ?? [],
-    tags: data.tagsInput
-      ? data.tagsInput.split(",").map((t) => t.trim()).filter(Boolean)
-      : [],
-    cancellationPolicy: data.cancellationPolicy || "Free cancellation within 24 hours",
-  };
-
-  switch (data.category) {
-    case "Hotel":
-      request.hotelDetails = {
-        pricePerNight: Number(data.pricePerNight ?? data.price) || 0,
-        availableRooms: Number(data.numberOfRooms) || 0,
-        amenities: data.amenities ?? [],
-        checkInTime: data.checkInTime || "14:00",
-        checkOutTime: data.checkOutTime || "12:00",
-        roomTypes: data.roomTypes ?? [],
-        propertyType: data.propertyType ?? "",
-        primaryRoomType: data.roomType ?? "",
-      };
-      break;
-    case "Restaurant":
-      request.restaurantDetails = {
-        cuisineType: data.cuisineType ?? "",
-        averageCost: Number(data.averageCost) || 0,
-        openingHours: `${data.openingTime || "06:00"} - ${data.closingTime || "23:00"}`,
-        tableCapacity: Number(data.seatingCapacity) || 0,
-        tableTypes: data.tableTypes ?? [],
-        reservationRules: data.reservationRules ?? "",
-      };
-      break;
-    case "Activity":
-      request.activityDetails = {
-        activityType: data.activityType ?? "",
-        durationHours: parseInt(data.duration?.replace(/\D/g, "") || "0", 10),
-        difficultyLevel: data.difficultyLevel || "Easy",
-        price: Number(data.activityPrice) || 0,
-        minGroupSize: Number(data.minGroupSize) || 1,
-        maxGroupSize: Number(data.maxGroupSize) || 10,
-        minAge: Number(data.minAge) || 0,
-        maxAge: Number(data.maxAge) || 100,
-        includedServices: data.includedServices ?? [],
-        safetyRequirements: data.safetyRequirements ?? "",
-        availabilitySchedule: data.availabilitySchedule ?? "",
-      };
-      break;
-    case "Event":
-      request.eventDetails = {
-        eventName: data.title,
-        organizer: data.organizer ?? "",
-        dateAndTime: `${data.eventDate || "2026-05-10"}T${data.eventTime || "19:00"}:00`,
-        seatCount: Number(data.seatCount) || 0,
-        ticketPrice: Number(data.ticketTypes?.[0]?.price) || 0,
-        eventType: data.eventType ?? "",
-        venueName: data.venueName ?? "",
-        venueAddress: data.venueAddress ?? "",
-        ticketTypes: data.ticketTypes ?? [],
-      };
-      break;
-    case "CarRental":
-      request.carRentalDetails = {
-        brand: data.brand || data.vehicleType || "",
-        model: data.model ?? "",
-        transmission: data.transmission || "Automatic",
-        pricePerDay: Number(data.dailyRate) || 0,
-        seatCount: Number(data.seatCountCar) || 0,
-        fuelType: data.fuelType ?? "",
-        availabilityStatus: data.availabilityStatus || "Available",
-        year: Number(data.year) || undefined,
-        hourlyRate: Number(data.hourlyRate) || undefined,
-        pickupLocation: data.pickupLocation ?? "",
-        returnLocation: data.returnLocation ?? "",
-        insuranceOptions: data.insuranceOptions || "Basic Insurance",
-      };
-      break;
-  }
-
-  return request;
-}
 
 const CreateListing = () => {
   const { id } = useParams<{ id: string }>();
-  const isEditMode = Boolean(id);
+  const isEditMode = !!id;
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [vendorId, setVendorId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
-  const [activeStep, setActiveStep] = useState(0);
-  const [unitsError, setUnitsError] = useState<string | null>(null);
-
-  const [unitsMode, setUnitsMode] = useState<UnitsMode>("none");
-  const [listRows, setListRows] = useState<ListRow[]>(defaultListRows);
-  const [gridConfig, setGridConfig] = useState<GridConfig>(defaultGridConfig);
-  const [timeSlotConfig, setTimeSlotConfig] = useState<TimeSlotConfig>(defaultTimeSlotConfig);
 
   const {
     register,
     control,
     watch,
-    setValue,
-    trigger,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ListingFormData>({
     defaultValues: {
-      category: "Hotel",
-      currency: "LKR",
+      category: "Hotel" as ListingCategory,
       ticketTypes: [
         { type: "General Admission", quantity: 100, price: 50 },
         { type: "VIP", quantity: 100, price: 150 },
@@ -299,24 +67,182 @@ const CreateListing = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const cats = await getCategories();
+        const [cats, vendor] = await Promise.all([
+          getCategories(),
+          getCurrentVendor(),
+        ]);
         setCategories(cats);
+        setVendorId(vendor.id);
 
         if (isEditMode && id) {
-          const listing = await getListingById(id);
-          reset(buildEditFormData(listing) as ListingFormData);
-        } else {
-          // New listings default to the vendor's own currency preference
-          // (Settings > Localization) rather than always publishing in LKR —
-          // still overridable per listing below.
-          try {
-            const localization = await getLocalizationSettings();
-            if (localization.currency) {
-              setValue("currency", localization.currency);
-            }
-          } catch {
-            // Keep the LKR default if localization settings aren't available.
+          const listingData: ListingResponse = await getListingById(id);
+
+          const typeMap: Record<number, ListingCategory> = {
+            0: "Hotel",
+            1: "Restaurant",
+            2: "Event",
+            3: "CarRental",
+            4: "Activity",
+          };
+
+          // Map backend response to form data
+          const typeValueFromApi =
+            listingData.type !== undefined
+              ? listingData.type
+              : (listingData as any).Type;
+          // Handle if type comes as string or number
+          const typeNum =
+            typeof typeValueFromApi === "string"
+              ? parseInt(typeValueFromApi)
+              : typeValueFromApi;
+          const categoryValue = typeMap[typeNum as number] || "Hotel";
+
+          const initialFormData: any = {
+            title: listingData.title || (listingData as any).Title || "",
+            description:
+              listingData.description || (listingData as any).Description || "",
+            location:
+              listingData.location || (listingData as any).Location || "",
+            price: listingData.basePrice || (listingData as any).BasePrice || 0,
+            category: categoryValue,
+            status:
+              (listingData.status || (listingData as any).Status) === "Live" ||
+              (listingData.status || (listingData as any).Status) === "Active"
+                ? "Active"
+                : "Inactive",
+            isAvailable:
+              listingData.isAvailable !== undefined
+                ? listingData.isAvailable
+                : (listingData as any).IsAvailable !== undefined
+                  ? (listingData as any).IsAvailable
+                  : true,
+            imageUrls:
+              (listingData.images || (listingData as any).Images)?.join(", ") ||
+              "",
+            tags:
+              (listingData.tags || (listingData as any).Tags)?.join(", ") || "",
+            cancellationPolicy:
+              listingData.cancellationPolicy ||
+              (listingData as any).CancellationPolicy ||
+              "",
+          };
+
+          // Map detail fields (handling potential PascalCase or camelCase from API)
+          const hotel =
+            listingData.hotelDetails || (listingData as any).HotelDetails;
+          const restaurant =
+            listingData.restaurantDetails ||
+            (listingData as any).RestaurantDetails;
+          const activity =
+            listingData.activityDetails || (listingData as any).ActivityDetails;
+          const event =
+            listingData.eventDetails || (listingData as any).EventDetails;
+          const carRental =
+            listingData.carRentalDetails ||
+            (listingData as any).CarRentalDetails;
+
+          if (hotel) {
+            initialFormData.pricePerNight =
+              hotel.pricePerNight ||
+              hotel.PricePerNight ||
+              initialFormData.price;
+            initialFormData.numberOfRooms =
+              hotel.availableRooms || hotel.AvailableRooms || 0;
+            initialFormData.amenities =
+              hotel.amenities || hotel.Amenities || [];
+            initialFormData.checkInTime =
+              hotel.checkInTime || hotel.CheckInTime || "";
+            initialFormData.checkOutTime =
+              hotel.checkOutTime || hotel.CheckOutTime || "";
+            initialFormData.roomTypes =
+              hotel.roomTypes || hotel.RoomTypes || [];
+            initialFormData.propertyType =
+              hotel.propertyType || hotel.PropertyType || "";
+            initialFormData.roomType =
+              hotel.primaryRoomType || hotel.PrimaryRoomType || "";
+          } else if (restaurant) {
+            initialFormData.cuisineType =
+              restaurant.cuisineType || restaurant.CuisineType || "";
+            initialFormData.averageCost =
+              restaurant.averageCost || restaurant.AverageCost || 0;
+            const hours = (
+              restaurant.openingHours || restaurant.OpeningHours
+            )?.split(" - ");
+            initialFormData.openingTime = hours?.[0] || "06:00";
+            initialFormData.closingTime = hours?.[1] || "23:00";
+            initialFormData.seatingCapacity =
+              restaurant.tableCapacity || restaurant.TableCapacity || 0;
+            initialFormData.tableTypes =
+              restaurant.tableTypes || restaurant.TableTypes || [];
+            initialFormData.reservationRules =
+              restaurant.reservationRules || restaurant.ReservationRules || "";
+          } else if (activity) {
+            initialFormData.activityType =
+              activity.activityType || activity.ActivityType || "";
+            const dur = activity.durationHours || activity.DurationHours;
+            initialFormData.duration = dur ? `${dur} hours` : "";
+            initialFormData.difficultyLevel =
+              activity.difficultyLevel || activity.DifficultyLevel || "Easy";
+            initialFormData.activityPrice =
+              activity.price || activity.Price || 0;
+            initialFormData.minGroupSize =
+              activity.minGroupSize || activity.MinGroupSize || 1;
+            initialFormData.maxGroupSize =
+              activity.maxGroupSize || activity.MaxGroupSize || 10;
+            initialFormData.minAge = activity.minAge || activity.MinAge || 0;
+            initialFormData.maxAge = activity.maxAge || activity.MaxAge || 100;
+            initialFormData.includedServices =
+              activity.includedServices || activity.IncludedServices || [];
+            initialFormData.safetyRequirements =
+              activity.safetyRequirements || activity.SafetyRequirements || "";
+            initialFormData.availabilitySchedule =
+              activity.availabilitySchedule ||
+              activity.AvailabilitySchedule ||
+              "";
+          } else if (event) {
+            initialFormData.organizer =
+              event.organizer || event.Organizer || "";
+            const dateTime = (event.dateAndTime || event.DateAndTime)?.split(
+              "T",
+            );
+            initialFormData.eventDate = dateTime?.[0] || "";
+            initialFormData.eventTime = dateTime?.[1] || "";
+            initialFormData.seatCount = event.seatCount || event.SeatCount || 0;
+            initialFormData.eventType =
+              event.eventType || event.EventType || "";
+            initialFormData.venueName =
+              event.venueName || event.VenueName || "";
+            initialFormData.venueAddress =
+              event.venueAddress || event.VenueAddress || "";
+            initialFormData.ticketTypes =
+              event.ticketTypes || event.TicketTypes || [];
+          } else if (carRental) {
+            initialFormData.brand = carRental.brand || carRental.Brand || "";
+            initialFormData.model = carRental.model || carRental.Model || "";
+            initialFormData.transmission =
+              carRental.transmission || carRental.Transmission || "Automatic";
+            initialFormData.dailyRate =
+              carRental.pricePerDay || carRental.PricePerDay || 0;
+            initialFormData.seatCountCar =
+              carRental.seatCount || carRental.SeatCount || 0;
+            initialFormData.fuelType =
+              carRental.fuelType || carRental.FuelType || "";
+            initialFormData.availabilityStatus =
+              carRental.availabilityStatus ||
+              carRental.AvailabilityStatus ||
+              "Available";
+            initialFormData.year = carRental.year || carRental.Year || 2024;
+            initialFormData.hourlyRate =
+              carRental.hourlyRate || carRental.HourlyRate || 0;
+            initialFormData.pickupLocation =
+              carRental.pickupLocation || carRental.PickupLocation || "";
+            initialFormData.returnLocation =
+              carRental.returnLocation || carRental.ReturnLocation || "";
+            initialFormData.insuranceOptions =
+              carRental.insuranceOptions || carRental.InsuranceOptions || "";
           }
+
+          reset(initialFormData);
         }
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -326,145 +252,194 @@ const CreateListing = () => {
         setLoading(false);
       }
     };
-
     fetchInitialData();
   }, [id, isEditMode, navigate, reset]);
 
   const formData = watch();
   const selectedCategory = watch("category");
-  const selectedCategoryId = watch("categoryId");
-
-  // ListingType is no longer picked independently — it's derived from the
-  // chosen category's Type, which decides which detail-fields section
-  // renders below (see typeToCategory above).
-  useEffect(() => {
-    const chosen = categories.find((c) => c.id === selectedCategoryId);
-    if (chosen?.type !== undefined && chosen.type !== null) {
-      setValue("category", typeToCategory[chosen.type]);
-    }
-  }, [selectedCategoryId, categories, setValue]);
-
-  const createUnitsIfConfigured = async (listingId: string) => {
-    if (unitsMode === "list") {
-      const rows = listRows.filter((r) => r.name.trim());
-      for (const row of rows) {
-        await addUnit(listingId, {
-          name: row.name.trim(),
-          priceOverride: row.priceOverride ? Number(row.priceOverride) : undefined,
-          capacity: Number(row.capacity) || 1,
-        });
-      }
-    } else if (unitsMode === "grid") {
-      const rows = Number(gridConfig.rows);
-      const columns = Number(gridConfig.columns);
-      if (rows > 0 && columns > 0) {
-        await addUnitsGrid(listingId, {
-          rows,
-          columns,
-          pricePerSeat: gridConfig.pricePerSeat ? Number(gridConfig.pricePerSeat) : undefined,
-        });
-      }
-    } else if (unitsMode === "timeslot") {
-      await addUnitsTimeSlots(listingId, {
-        startTime: `${timeSlotConfig.startTime}:00`,
-        endTime: `${timeSlotConfig.endTime}:00`,
-        slotDurationMinutes: Number(timeSlotConfig.slotDurationMinutes) || 30,
-        capacityPerSlot: Number(timeSlotConfig.capacityPerSlot) || 1,
-        price: timeSlotConfig.price ? Number(timeSlotConfig.price) : undefined,
-      });
-    }
-  };
 
   const onSubmit = async (data: ListingFormData) => {
     try {
-      // The category select is required and only ever offers real,
-      // currently-fetched admin categories — no fallback to "closest match"
-      // or "first available". If it doesn't exist as a real category, this
-      // listing cannot be published as that category.
-      const categoryExists = categories.some((c) => c.id === data.categoryId);
-      if (!categoryExists) {
-        alert("Please select a valid category.");
+      const type = data.category;
+
+      let categoryId = "00000000-0000-0000-0000-000000000000";
+      const categoryMatch = categories.find(
+        (c) =>
+          c.name.toLowerCase().includes(data.category.toLowerCase()) ||
+          data.category
+            .toLowerCase()
+            .includes(c.name.toLowerCase().replace("s", "")),
+      );
+
+      if (categoryMatch) {
+        categoryId = categoryMatch.id;
+      } else if (categories.length > 0) {
+        // Fallback or maintain existing ID if in edit mode (complex to pass ID here without extra state)
+        categoryId = categories[0].id;
+      }
+
+      if (!vendorId) {
+        alert("Vendor profile not loaded. Please try again.");
         return;
       }
 
-      const request = buildCreateListingRequest(data, data.categoryId);
+      const request: CreateListingRequest = {
+        vendorId: vendorId,
+        categoryId: categoryId,
+        type: ListingType[type as keyof typeof ListingType],
+        title: data.title,
+        description: data.description || "",
+        price: Number(data.price) || 0,
+        basePrice: Number(data.price) || 0,
+        currency: "LKR",
+        location: data.location,
+        status: data.status || "Active",
+        isAvailable:
+          data.isAvailable !== undefined ? Boolean(data.isAvailable) : true,
+        images: data.imageUrls
+          ? data.imageUrls
+              .split(",")
+              .map((u) => u.trim())
+              .filter((u) => u !== "")
+          : Array.isArray(data.images) && data.images.length > 0
+            ? data.images
+            : [
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000",
+              ],
+        tags:
+          typeof data.tags === "string"
+            ? (data.tags as string)
+                .split(",")
+                .map((t) => t.trim())
+                .filter((t) => t !== "")
+            : data.tags || [],
+        cancellationPolicy:
+          data.cancellationPolicy || "Free cancellation within 24 hours",
+      };
+
+      if (type === "Hotel") {
+        request.hotelDetails = {
+          pricePerNight: Number(data.pricePerNight) || Number(data.price) || 0,
+          availableRooms: Number(data.numberOfRooms) || 0,
+          amenities: data.amenities || [],
+          checkInTime: data.checkInTime || "14:00",
+          checkOutTime: data.checkOutTime || "12:00",
+          roomTypes: data.roomTypes || [],
+          propertyType: data.propertyType || "",
+          primaryRoomType: data.roomType || "",
+        };
+      } else if (type === "Restaurant") {
+        request.restaurantDetails = {
+          cuisineType: data.cuisineType || "",
+          averageCost: Number(data.averageCost) || 0,
+          openingHours: `${data.openingTime || "06:00"} - ${data.closingTime || "23:00"}`,
+          tableCapacity: Number(data.seatingCapacity) || 0,
+          tableTypes: data.tableTypes || [],
+          reservationRules: data.reservationRules || "",
+        };
+      } else if (type === "Activity") {
+        request.activityDetails = {
+          activityType: data.activityType || "",
+          durationHours: parseInt(
+            String(data.duration)?.replace(/\D/g, "") || "0",
+          ),
+          difficultyLevel: data.difficultyLevel || "Easy",
+          price: Number(data.activityPrice) || 0,
+          minGroupSize: Number(data.minGroupSize) || 1,
+          maxGroupSize: Number(data.maxGroupSize) || 10,
+          minAge: Number(data.minAge) || 0,
+          maxAge: Number(data.maxAge) || 100,
+          includedServices: data.includedServices || [],
+          safetyRequirements: data.safetyRequirements || "",
+          availabilitySchedule: data.availabilitySchedule || "",
+        };
+      } else if (type === "Event") {
+        request.eventDetails = {
+          eventName: data.title,
+          organizer: data.organizer || "",
+          dateAndTime: `${data.eventDate || "2026-05-10"}T${data.eventTime || "19:00:00"}`,
+          seatCount: Number(data.seatCount) || 0,
+          ticketPrice: Number(data.ticketTypes?.[0]?.price) || 0,
+          eventType: data.eventType || "",
+          venueName: data.venueName || "",
+          venueAddress: data.venueAddress || "",
+          ticketTypes: data.ticketTypes || [],
+        };
+      } else if (type === "CarRental") {
+        request.carRentalDetails = {
+          brand: data.brand || data.vehicleType || "",
+          model: data.model || "",
+          transmission: data.transmission || "Automatic",
+          pricePerDay: Number(data.dailyRate) || 0,
+          seatCount: Number(data.seatCountCar) || 0,
+          fuelType: data.fuelType || "",
+          availabilityStatus: data.availabilityStatus || "Available",
+          year: Number(data.year) || 2024,
+          hourlyRate: Number(data.hourlyRate) || 0,
+          pickupLocation: data.pickupLocation || "",
+          returnLocation: data.returnLocation || "",
+          insuranceOptions: data.insuranceOptions || "Basic Insurance",
+        };
+      }
 
       if (isEditMode && id) {
         await updateListing(id, request);
-        await createUnitsIfConfigured(id);
         alert("Listing updated successfully!");
       } else {
-        const created = await createListing(request);
-        await createUnitsIfConfigured(created.id);
+        await createListing(request);
         alert("Listing published successfully!");
       }
-      notifyDashboardRefresh();
       navigate("/vendor/listings");
     } catch (error) {
       console.error(error);
-      const backendMessage = isAxiosError(error)
-        ? (error.response?.data as { message?: string } | undefined)?.message
-        : undefined;
-      alert(backendMessage || `Failed to ${isEditMode ? "update" : "publish"} listing.`);
+      alert(`Failed to ${isEditMode ? "update" : "publish"} listing.`);
     }
   };
 
   const renderCategoryFields = () => {
     switch (selectedCategory) {
       case "Hotel":
-        return <HotelFields register={register} control={control} errors={errors} />;
+        return (
+          <HotelFields register={register} control={control} errors={errors} />
+        );
       case "Restaurant":
-        return <RestaurantFields register={register} control={control} errors={errors} />;
+        return (
+          <RestaurantFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        );
       case "Activity":
-        return <ActivityFields register={register} control={control} errors={errors} />;
+        return (
+          <ActivityFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        );
       case "Event":
-        return <EventFields register={register} control={control} errors={errors} />;
+        return (
+          <EventFields register={register} control={control} errors={errors} />
+        );
       case "CarRental":
-        return <CarRentalFields register={register} control={control} errors={errors} />;
+        return (
+          <CarRentalFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        );
       default:
         return null;
     }
   };
 
-  const validateUnitsStep = (): string | null => {
-    if (unitsMode === "grid") {
-      const rows = Number(gridConfig.rows);
-      const columns = Number(gridConfig.columns);
-      if (!(rows > 0 && columns > 0)) return "Enter positive rows and columns, or switch back to None.";
-    } else if (unitsMode === "timeslot") {
-      if (!timeSlotConfig.startTime || !timeSlotConfig.endTime || !(Number(timeSlotConfig.slotDurationMinutes) > 0)) {
-        return "Fill in start time, end time, and a positive slot duration, or switch back to None.";
-      }
-    } else if (unitsMode === "list") {
-      if (!listRows.some((r) => r.name.trim())) {
-        return "Name at least one unit, or switch back to None.";
-      }
-    }
-    return null;
-  };
-
-  const handleNext = async () => {
-    if (activeStep === 0) {
-      const valid = await trigger(BASIC_INFO_FIELDS);
-      if (!valid) return;
-    } else if (activeStep === 1) {
-      const fields = CATEGORY_REQUIRED_FIELDS[selectedCategory] ?? [];
-      const valid = fields.length === 0 || (await trigger(fields));
-      if (!valid) return;
-    } else if (activeStep === 2) {
-      const error = validateUnitsStep();
-      setUnitsError(error);
-      if (error) return;
-    }
-    setActiveStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1));
-  };
-
-  const handleBack = () => setActiveStep((s) => Math.max(0, s - 1));
-
   if (loading) {
     return (
-      <Container sx={{ py: 20 }}>
-        <LoadingSpinner fullScreen={false} message="Loading listing details..." />
+      <Container sx={{ py: 20, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading listing details...</Typography>
       </Container>
     );
   }
@@ -491,11 +466,12 @@ const CreateListing = () => {
         </MuiLink>
       </Box>
 
-      <StepperBar
-        activeStep={activeStep}
-        steps={WIZARD_STEPS}
-        title={isEditMode ? "Edit Listing" : "Create New Listing"}
-      />
+      <Typography
+        variant="h4"
+        sx={{ mb: 4, fontWeight: 700, color: "#1E293B" }}
+      >
+        {isEditMode ? "Edit Listing" : "Create New Listing"}
+      </Typography>
 
       <Card
         sx={{
@@ -506,52 +482,14 @@ const CreateListing = () => {
       >
         <CardContent sx={{ p: { xs: 3, md: 5 } }}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            {activeStep === 0 && (
-              <BaseFields register={register} control={control} errors={errors} categories={categories} />
-            )}
+            <BaseFields
+              register={register}
+              control={control}
+              errors={errors}
+              categories={categories}
+            />
 
-            {activeStep === 1 && renderCategoryFields()}
-
-            {activeStep === 2 && (
-              <>
-                <BookableUnitsSection
-                  category={selectedCategory}
-                  mode={unitsMode}
-                  onModeChange={(mode) => {
-                    setUnitsMode(mode);
-                    setUnitsError(null);
-                  }}
-                  listRows={listRows}
-                  onListRowsChange={setListRows}
-                  gridConfig={gridConfig}
-                  onGridConfigChange={setGridConfig}
-                  timeSlotConfig={timeSlotConfig}
-                  onTimeSlotConfigChange={setTimeSlotConfig}
-                />
-                {unitsError && (
-                  <Typography variant="body2" color="error" sx={{ mt: 2 }}>
-                    {unitsError}
-                  </Typography>
-                )}
-              </>
-            )}
-
-            {activeStep === 3 && <ImagesStep register={register} control={control} errors={errors} />}
-
-            {activeStep === 4 && (
-              <ReviewStep
-                data={formData}
-                categories={categories}
-                register={register}
-                unitsMode={unitsMode}
-                listRows={listRows}
-                gridConfig={gridConfig}
-                timeSlotConfig={timeSlotConfig}
-                onSubmit={handleSubmit(onSubmit)}
-                isSubmitting={isSubmitting}
-                isEditMode={isEditMode}
-              />
-            )}
+            {renderCategoryFields()}
 
             <Box
               sx={{
@@ -559,38 +497,64 @@ const CreateListing = () => {
                 pt: 4,
                 borderTop: "1px solid #E2E8F0",
                 display: "flex",
-                justifyContent: "space-between",
+                justifyContent: "flex-end",
                 gap: 2,
                 flexWrap: "wrap",
               }}
             >
               <Button
                 variant="outlined"
-                onClick={activeStep === 0 ? () => navigate("/vendor/listings") : handleBack}
+                onClick={() => navigate("/vendor/listings")}
                 sx={{ borderRadius: "10px", px: 3 }}
               >
-                {activeStep === 0 ? "Cancel" : "Back"}
+                Cancel
               </Button>
-
-              {activeStep < WIZARD_STEPS.length - 1 && (
+              {!isEditMode && (
                 <Button
-                  type="button"
-                  variant="contained"
-                  onClick={handleNext}
-                  sx={{
-                    borderRadius: "10px",
-                    px: 4,
-                    backgroundColor: "#0F5A8A",
-                    "&:hover": { backgroundColor: "#0C4A73" },
-                  }}
+                  variant="outlined"
+                  startIcon={<SaveIcon />}
+                  sx={{ borderRadius: "10px", px: 3 }}
                 >
-                  Next
+                  Save Draft
                 </Button>
               )}
+              <Button
+                variant="outlined"
+                startIcon={<VisibilityIcon />}
+                onClick={() => setPreviewOpen(true)}
+                sx={{ borderRadius: "10px", px: 3 }}
+              >
+                Preview
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isSubmitting}
+                sx={{
+                  borderRadius: "10px",
+                  px: 4,
+                  backgroundColor: "#0F5A8A",
+                  "&:hover": { backgroundColor: "#0C4A73" },
+                }}
+              >
+                {isSubmitting ? (
+                  <CircularProgress size={24} sx={{ color: "white" }} />
+                ) : isEditMode ? (
+                  "Update Listing"
+                ) : (
+                  "Publish Listing"
+                )}
+              </Button>
             </Box>
           </form>
         </CardContent>
       </Card>
+
+      <ListingPreview
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        data={formData}
+      />
     </Container>
   );
 };

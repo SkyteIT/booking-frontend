@@ -1,33 +1,39 @@
-// src/pages/Vendor/Listings/VendorListings.tsx
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import SearchIcon from "@mui/icons-material/Search";
+// src/pages/vendor/Listings/VendorListings.tsx
+import { useState, useEffect } from "react";
 import {
   Container,
   Typography,
   Box,
   Button,
-  Card,
   Grid,
+  Card,
+  CardContent,
+  CardMedia,
   TextField,
   InputAdornment,
   Select,
   MenuItem,
-  Menu,
+  IconButton,
+  Chip,
+  Stack,
+  CircularProgress,
   Alert,
+  Menu,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
 } from "@mui/material";
-import { useState, useEffect, useMemo } from "react";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import StarIcon from "@mui/icons-material/Star";
 import { Link } from "react-router-dom";
 import { getVendorListings, deleteListing } from "../../../services/Vendor/listingService";
 import type { ListingResponse } from "../../../services/Vendor/listingService";
-import { imageForCategory, hashSeed } from "../../../utils/categoryImages";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
-import ListingCard from "./components/ListingCard";
 
 const VendorListings = () => {
   const [listings, setListings] = useState<ListingResponse[]>([]);
@@ -36,13 +42,41 @@ const VendorListings = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-  const [menuListing, setMenuListing] = useState<ListingResponse | null>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [activeListingId, setActiveListingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [listingToDelete, setListingToDelete] = useState<string | null>(null);
 
-  const notifyDashboardRefresh = () => {
-    window.dispatchEvent(new Event("admin-dashboard-refresh"));
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, id: string) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+    setActiveListingId(id);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setActiveListingId(null);
+  };
+
+  const handleDeleteClick = () => {
+    setListingToDelete(activeListingId);
+    setDeleteDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!listingToDelete) return;
+    try {
+      await deleteListing(listingToDelete);
+      setListings((prev) => prev.filter((l) => l.id !== listingToDelete));
+      setDeleteDialogOpen(false);
+      setListingToDelete(null);
+    } catch (err: any) {
+      console.error("Error deleting listing:", err);
+      setError(err.message || "Failed to delete the listing. Please try again.");
+      setDeleteDialogOpen(false);
+      setListingToDelete(null);
+    }
   };
 
   useEffect(() => {
@@ -63,100 +97,40 @@ const VendorListings = () => {
     fetchListings();
   }, []);
 
-  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, listing: ListingResponse) => {
-    setMenuAnchor(e.currentTarget);
-    setMenuListing(listing);
-  };
-
-  const handleMenuClose = () => setMenuAnchor(null);
-
-  const handleDeleteOpen = () => {
-    setDeleteOpen(true);
-    setMenuAnchor(null);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!menuListing) return;
-    setDeleting(true);
-    try {
-      await deleteListing(menuListing.id);
-      setListings((prev) => prev.filter((l) => l.id !== menuListing.id));
-      notifyDashboardRefresh();
-      setDeleteOpen(false);
-    } catch (err) {
-      console.error("Error deleting listing:", err);
-      setError("Failed to delete listing. Please try again later.");
-      setDeleteOpen(false);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const filteredListings = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-    return listings.filter((listing) => {
-      const haystack = [
-        listing.title,
-        listing.description,
-        listing.categoryName,
-        listing.vendorName,
-        listing.location,
-        listing.tags?.join(" "),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch = !query || haystack.includes(query);
-      const active = typeof listing.isActive === "boolean"
-        ? listing.isActive
-        : String((listing as any).status ?? "").toLowerCase() === "active";
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "live" ? active : !active);
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [listings, searchQuery, statusFilter]);
+  const filteredListings = listings.filter((listing) => {
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || listing.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <LoadingSpinner fullScreen={false} message="Loading your listings..." />
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress sx={{ color: "#0F5A8A" }} />
+        <Typography sx={{ mt: 2, color: "#64748B" }}>Loading your listings...</Typography>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" disableGutters sx={{ py: { xs: 2, md: 3 } }}>
-      {/* Header */}
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      {/* Header Section */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 4,
+          mb: 6,
         }}
       >
         <Box>
           <Typography
-            variant="h5"
-            sx={{
-              fontFamily: "'Syne', sans-serif",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              display: "flex",
-              alignItems: "baseline",
-              gap: "2px",
-            }}
+            variant="h4"
+            sx={{ fontWeight: 700, color: "#1E293B", mb: 1 }}
           >
             Listings
-            <Box component="span" sx={{ width: 8, height: 8, borderRadius: "3px", backgroundColor: "primary.main", display: "inline-block", ml: 0.5 }} />
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+          <Typography variant="body1" sx={{ color: "#64748B" }}>
             Manage your inventory and offerings
           </Typography>
         </Box>
@@ -166,153 +140,267 @@ const VendorListings = () => {
           component={Link}
           to="/vendor/listings/new"
           sx={{
-            background: "linear-gradient(160deg, #005a8d, #0077b6)",
-            borderRadius: "999px",
+            backgroundColor: "#0F5A8A",
+            borderRadius: "10px",
             px: 3,
-            py: 1.1,
+            py: 1,
             textTransform: "none",
-            fontSize: "0.9rem",
+            fontSize: "0.95rem",
             fontWeight: 600,
-            boxShadow: "0 8px 20px rgba(0,119,182,0.28)",
-            "&:hover": {
-              background: "linear-gradient(160deg, #004a75, #005a8d)",
-              boxShadow: "0 10px 24px rgba(0,119,182,0.34)",
-            },
+            "&:hover": { backgroundColor: "#0D4D76" },
           }}
         >
-          Create new listing
+          Create new Listing
         </Button>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: "14px" }}>
+        <Alert severity="error" sx={{ mb: 4, borderRadius: "12px" }}>
           {error}
         </Alert>
       )}
 
-      {/* Outer container - matches the Bookings tab's structure: one
-          gradient-tinted card holding the filters and the grid, so the
-          two tabs read as the same pattern rather than one-off layouts. */}
-      <Card
+      {/* Filter Bar */}
+      <Box
         sx={{
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-          background: "linear-gradient(160deg, #FFFFFF 0%, #E3F1FC 100%)",
-          p: { xs: 2, md: 2.5 },
+          display: "flex",
+          gap: 2,
+          mb: 6,
+          flexWrap: "wrap",
+          p: 2,
+          backgroundColor: "#ffffff",
+          borderRadius: "16px",
+          border: "1px solid #E2E8F0",
+          boxShadow: "0px 4px 12px rgba(0,0,0,0.02)",
         }}
       >
-        <Box
+        <TextField
+          placeholder="Search listings..."
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ flexGrow: 1, minWidth: "200px" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "#94A3B8" }} />
+              </InputAdornment>
+            ),
+            sx: { borderRadius: "10px" },
+          }}
+        />
+        <Select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          size="small"
+          sx={{ minWidth: "140px", borderRadius: "10px" }}
+        >
+          <MenuItem value="all">All Status</MenuItem>
+          <MenuItem value="live">Live</MenuItem>
+          <MenuItem value="inactive">Inactive</MenuItem>
+        </Select>
+        <Button
+          variant="outlined"
+          startIcon={<FilterListIcon />}
           sx={{
-            display: "flex",
-            gap: 1.5,
-            mb: 3,
-            flexWrap: "wrap",
-            alignItems: "center",
+            borderRadius: "10px",
+            textTransform: "none",
+            borderColor: "#E2E8F0",
+            color: "#64748B",
+            px: 2,
+            "&:hover": { borderColor: "#CBD5E1", backgroundColor: "#F8FAFC" },
           }}
         >
-          <TextField
-            placeholder="Search listings..."
-            size="small"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{
-              flexGrow: 1,
-              minWidth: "220px",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "999px",
-                bgcolor: "#fff",
-                "& fieldset": { borderColor: "rgba(15,27,45,0.1)" },
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            size="small"
-            sx={{
-              minWidth: "140px",
-              borderRadius: "999px",
-              bgcolor: "#fff",
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(15,27,45,0.1)" },
-            }}
-          >
-            <MenuItem value="all">All status</MenuItem>
-            <MenuItem value="live">Live</MenuItem>
-            <MenuItem value="inactive">Inactive</MenuItem>
-          </Select>
+          More Filters
+        </Button>
+      </Box>
+
+      {/* Listings Grid */}
+      {filteredListings.length === 0 ? (
+        <Box sx={{ textAlign: "center", py: 10, bgcolor: "#ffffff", borderRadius: "20px", border: "1px dashed #E2E8F0" }}>
+          <Typography variant="h6" color="text.secondary">No listings found</Typography>
+          <Typography color="text.secondary">Try adjusting your search or filters.</Typography>
         </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {filteredListings.map((listing) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={listing.id}>
+              <Card
+                sx={{
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "0px 4px 20px rgba(0,0,0,0.04)",
+                  transition: "transform 0.2s ease, boxShadow 0.2s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0px 12px 30px rgba(0,0,0,0.08)",
+                  },
+                }}
+              >
+                <Box sx={{ position: "relative" }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={listing.primaryImage || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"}
+                    alt={listing.title}
+                  />
+                  <Chip
+                    label={listing.status}
+                    size="small"
+                    sx={{
+                      position: "absolute",
+                      top: 16,
+                      right: 16,
+                      backgroundColor: listing.status === "Live" ? "#DCFCE7" : "#F1F5F9",
+                      color: listing.status === "Live" ? "#166534" : "#475569",
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      border: "none",
+                    }}
+                  />
+                </Box>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 700, mb: 0.5, color: "#1E293B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  >
+                    {listing.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#64748B", mb: 2 }}>
+                    {listing.categoryName}
+                  </Typography>
 
-        {filteredListings.length === 0 ? (
-          <Box
-            sx={{
-              textAlign: "center",
-              py: 10,
-              bgcolor: "#fff",
-              borderRadius: "20px",
-              border: "1px dashed rgba(15,27,45,0.12)",
-            }}
-          >
-            <Typography variant="h6" sx={{ color: "text.secondary", fontWeight: 600 }}>
-              No listings found
-            </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-              Try adjusting your search or filters.
-            </Typography>
-          </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {filteredListings.map((listing) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={listing.id}>
-                <ListingCard
-                  listing={listing}
-                  fallbackImage={imageForCategory(listing.categoryName, hashSeed(listing.id))}
-                  onMenuOpen={(e) => handleMenuOpen(e, listing)}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Card>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 800, color: "#0F5A8A" }}
+                    >
+                      {listing.currency} {listing.basePrice}
+                    </Typography>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Typography variant="caption" sx={{ color: "#64748B" }}>
+                        {listing.bookingsCount} bookings
+                      </Typography>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <StarIcon sx={{ fontSize: "1rem", color: "#FBBF24" }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#1E293B" }}>
+                          {listing.rating > 0 ? listing.rating.toFixed(1) : "New"}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
 
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
-        <MenuItem onClick={handleDeleteOpen} sx={{ color: "error.main" }}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      startIcon={<EditIcon sx={{ fontSize: "1.1rem" }} />}
+                      component={Link}
+                      to={`/vendor/listings/edit/${listing.id}`}
+                      sx={{
+                        backgroundColor: "#0F5A8A",
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        "&:hover": { backgroundColor: "#0D4D76" },
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMenuOpen(e, listing.id);
+                      }}
+                      sx={{
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "10px",
+                        color: "#64748B",
+                      }}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      {/* Popover Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: "10px",
+            boxShadow: "0px 4px 20px rgba(0,0,0,0.05)",
+            border: "1px solid #E2E8F0",
+          }
+        }}
+      >
+        <MenuItem onClick={handleDeleteClick} sx={{ color: "#DC2626", fontWeight: 500 }}>
           Delete
         </MenuItem>
       </Menu>
 
+      {/* Confirmation Dialog */}
       <Dialog
-        open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
-        PaperProps={{ sx: { borderRadius: "20px" } }}
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            p: 1.5,
+            maxWidth: "400px",
+          }
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Delete listing</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete <strong>{menuListing?.title}</strong>? This action cannot be undone.
+        <DialogTitle sx={{ fontWeight: 700, color: "#1E293B", pb: 1 }}>
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          <DialogContentText sx={{ color: "#64748B" }}>
+            Are you sure you want to delete this listing? This action cannot be undone and will delete all associated bookings and reviews permanently.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => setDeleteOpen(false)} sx={{ textTransform: "none", borderRadius: "999px" }}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            variant="outlined"
+            sx={{
+              borderRadius: "10px",
+              textTransform: "none",
+              borderColor: "#E2E8F0",
+              color: "#64748B",
+              "&:hover": { borderColor: "#CBD5E1", backgroundColor: "#F8FAFC" },
+            }}
+          >
             Cancel
           </Button>
           <Button
+            onClick={handleDeleteConfirm}
             variant="contained"
             color="error"
-            disabled={deleting}
-            onClick={handleDeleteConfirm}
-            sx={{ textTransform: "none", borderRadius: "999px", px: 2.5 }}
+            sx={{
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 600,
+              backgroundColor: "#DC2626",
+              "&:hover": { backgroundColor: "#B91C1C" },
+            }}
           >
-            {deleting ? "Deleting..." : "Delete"}
+            Delete this listing permanently
           </Button>
         </DialogActions>
       </Dialog>
