@@ -36,13 +36,45 @@ export interface SearchListingsResult {
   totalCount: number;
 }
 
+type SearchListingPayload = Partial<SearchListing> & {
+  primaryImage?: string | null;
+  imageUrl?: string | null;
+  coverImage?: string | null;
+  images?: string[] | null;
+};
+
+const normalizeSearchListing = (listing: SearchListingPayload): SearchListing => ({
+  id: String(listing.id ?? ""),
+  title: listing.title ?? "",
+  categoryName: listing.categoryName ?? "",
+  location: listing.location ?? "",
+  price: Number(listing.price ?? 0),
+  averageRating: Number(listing.averageRating ?? 0),
+  isFeatured: Boolean(listing.isFeatured),
+  isActive: listing.isActive !== false,
+  // Search DTOs and full listing DTOs have used different cover-image field
+  // names. Prefer the explicit thumbnail, then the listing's uploaded cover.
+  thumbnailUrl:
+    listing.thumbnailUrl ??
+    listing.primaryImage ??
+    listing.imageUrl ??
+    listing.coverImage ??
+    listing.images?.find(Boolean) ??
+    null,
+  hasActiveOffer: Boolean(listing.hasActiveOffer),
+  offerBadgeText: listing.offerBadgeText ?? null,
+});
+
 export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
   const { categoryIds, ...rest } = params;
   const qs = new URLSearchParams();
 
   Object.entries(rest).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
-      qs.set(key, String(value));
+      // The search API accepts page sizes from 1 through 50. Keep every caller
+      // within that contract even if it passes a stale or user-derived value.
+      const queryValue = key === "pageSize" ? Math.min(50, Math.max(1, Number(value))) : value;
+      qs.set(key, String(queryValue));
     }
   });
 
@@ -50,9 +82,13 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
     categoryIds.forEach((id) => qs.append("categoryIds", id));
   }
 
-  const { data } = await api.get<{ items: SearchListing[]; totalCount: number }>(`/search/listings?${qs.toString()}`, {
-    headers: { "Content-Type": "application/json" },
-    skipAuthRedirect: true,
-  });
-  return { items: data.items, totalCount: data.totalCount };
+  const { data } = await api.get<{ items: SearchListingPayload[]; totalCount: number }>(
+    `/search/listings?${qs.toString()}`,
+    { headers: { "Content-Type": "application/json" }, skipAuthRedirect: true }
+  );
+
+  return {
+    items: Array.isArray(data.items) ? data.items.map(normalizeSearchListing) : [],
+    totalCount: Number(data.totalCount ?? 0),
+  };
 };

@@ -298,6 +298,7 @@ const CreateListing = () => {
     defaultValues: {
       category: "Hotel",
       currency: "LKR",
+      images: [],
       ticketTypes: [
         { type: "General Admission", quantity: 100, price: 50 },
         { type: "VIP", quantity: 100, price: 150 },
