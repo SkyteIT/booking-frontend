@@ -235,7 +235,11 @@ function buildCreateListingRequest(
         eventType: data.eventType ?? "",
         venueName: data.venueName ?? "",
         venueAddress: data.venueAddress ?? "",
-        ticketTypes: data.ticketTypes ?? [],
+        ticketTypes: (data.ticketTypes ?? []).map((t) => ({
+          type: t.type,
+          quantity: Number(t.quantity) || 0,
+          price: Number(t.price) || 0,
+        })),
       };
       break;
     case "CarRental":
