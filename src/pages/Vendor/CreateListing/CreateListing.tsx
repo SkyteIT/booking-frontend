@@ -92,6 +92,34 @@ const notifyDashboardRefresh = () => {
   window.dispatchEvent(new Event("admin-dashboard-refresh"));
 };
 
+function getApiErrorMessage(error: unknown): string | undefined {
+  if (!isAxiosError(error)) return undefined;
+
+  const data = error.response?.data;
+  if (typeof data === "string" && data.trim()) return data;
+  if (!data || typeof data !== "object") return undefined;
+
+  const problem = data as {
+    message?: unknown;
+    detail?: unknown;
+    title?: unknown;
+    errors?: Record<string, unknown>;
+  };
+
+  for (const value of [problem.message, problem.detail, problem.title]) {
+    if (typeof value === "string" && value.trim()) return value;
+  }
+
+  if (problem.errors && typeof problem.errors === "object") {
+    const messages = Object.values(problem.errors)
+      .flatMap((value) => (Array.isArray(value) ? value : [value]))
+      .filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
+    if (messages.length > 0) return messages.join("\n");
+  }
+
+  return undefined;
+}
+
 function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
   const data: Partial<ListingFormData> = {
     title: listing.title,
@@ -401,9 +429,7 @@ const CreateListing = () => {
       navigate("/vendor/listings");
     } catch (error) {
       console.error(error);
-      const backendMessage = isAxiosError(error)
-        ? (error.response?.data as { message?: string } | undefined)?.message
-        : undefined;
+      const backendMessage = getApiErrorMessage(error);
       alert(backendMessage || `Failed to ${isEditMode ? "update" : "publish"} listing.`);
     }
   };
