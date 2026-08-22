@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import ListingCard from "../../../../components/cards/ListingCard";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import type { SearchListing } from "../../../../services/searchService";
+import { hashSeed, imageForCategory } from "../../../../utils/categoryImages";
 
 interface Props {
   listings: SearchListing[];
@@ -66,22 +67,8 @@ export default function ResultsGrid({ listings, loading, error, hasMore, loading
     );
   }
 
-  const selectImageForListing = (listing: SearchListing) => {
-    if (listing.thumbnailUrl) return listing.thumbnailUrl;
-
-    const title = (listing.title || "").toLowerCase();
-    const cat = (listing.categoryName || "").toLowerCase();
-
-    if (title.includes("portrait")) return "https://source.unsplash.com/800x600/?portrait,photography";
-    if (title.includes("product")) return "https://source.unsplash.com/800x600/?product,photography";
-    if (title.includes("event")) return "https://source.unsplash.com/800x600/?event,photography,concert";
-    if (cat.includes("photography")) return "https://source.unsplash.com/800x600/?photography";
-    if (cat.includes("car")) return "https://source.unsplash.com/800x600/?car,rental";
-
-    // fallback by category name or generic travel
-    const q = encodeURIComponent(listing.categoryName || "travel");
-    return `https://source.unsplash.com/800x600/?${q}`;
-  };
+  const selectImageForListing = (listing: SearchListing) =>
+    listing.thumbnailUrl || imageForCategory(listing.categoryName, hashSeed(listing.id));
 
   return (
     <>

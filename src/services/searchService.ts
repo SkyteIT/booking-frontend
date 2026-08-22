@@ -31,6 +31,11 @@ export interface SearchListing {
   offerBadgeText: string | null;
 }
 
+export interface SearchListingsResult {
+  items: SearchListing[];
+  totalCount: number;
+}
+
 type SearchListingPayload = Partial<SearchListing> & {
   primaryImage?: string | null;
   imageUrl?: string | null;
@@ -60,7 +65,7 @@ const normalizeSearchListing = (listing: SearchListingPayload): SearchListing =>
   offerBadgeText: listing.offerBadgeText ?? null,
 });
 
-export const searchListings = async (params: SearchParams): Promise<SearchListing[]> => {
+export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
   const { categoryIds, ...rest } = params;
   const qs = new URLSearchParams();
 
@@ -77,9 +82,13 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
     categoryIds.forEach((id) => qs.append("categoryIds", id));
   }
 
-  const { data } = await api.get<SearchListingPayload[]>(`/search/listings?${qs.toString()}`, {
-    headers: { "Content-Type": "application/json" },
-    skipAuthRedirect: true,
-  });
-  return Array.isArray(data) ? data.map(normalizeSearchListing) : [];
+  const { data } = await api.get<{ items: SearchListingPayload[]; totalCount: number }>(
+    `/search/listings?${qs.toString()}`,
+    { headers: { "Content-Type": "application/json" }, skipAuthRedirect: true }
+  );
+
+  return {
+    items: Array.isArray(data.items) ? data.items.map(normalizeSearchListing) : [],
+    totalCount: Number(data.totalCount ?? 0),
+  };
 };

@@ -101,8 +101,14 @@ export interface CreateListingRequest {
   eventDetails?: EventDetailsDto;
 }
 
-export const createListing = async (data: CreateListingRequest) => {
-  const res = await api.post("/listings", data);
+// `images` here are real files the vendor picked (uploaded to Azure Blob
+// Storage server-side) - `data.images` should only ever carry existing,
+// already-uploaded URLs kept from a prior edit, never external/pasted ones.
+export const createListing = async (data: CreateListingRequest, images: File[] = []) => {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(data));
+  images.forEach((file) => formData.append("images", file));
+  const res = await api.post("/listings", formData);
   return res.data;
 };
 
@@ -211,8 +217,11 @@ export const getListingById = async (id: string): Promise<ListingResponse> => {
   return normalizeListing(res.data);
 };
 
-export const updateListing = async (id: string, data: CreateListingRequest) => {
-  const res = await api.put(`/listings/${id}`, data);
+export const updateListing = async (id: string, data: CreateListingRequest, images: File[] = []) => {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(data));
+  images.forEach((file) => formData.append("images", file));
+  const res = await api.put(`/listings/${id}`, formData);
   return res.data;
 };
 
