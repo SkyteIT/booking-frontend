@@ -27,20 +27,44 @@ export interface Listing {
   // control (see PriceCard.tsx) - drives what "quantity" honestly means
   // per category (rooms/party size/participants) instead of one
   // generic "guests" field with a fixed 1-6 range everywhere.
-  availableRooms?: number;   // Hotel
-  tableCapacity?: number;    // Restaurant
-  minGroupSize?: number;     // Activity
-  maxGroupSize?: number;     // Activity
+  availableRooms?: number; // Hotel
+  roomTypes?: string[];
+  propertyType?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  tableCapacity?: number; // Restaurant
+  cuisineType?: string;
+  averageCost?: number;
+  openingHours?: string;
+  tableTypes?: string[];
+  reservationRules?: string;
+  minGroupSize?: number; // Activity
+  maxGroupSize?: number; // Activity
+  activityType?: string;
+  durationHours?: number;
+  difficultyLevel?: string;
+  minAge?: number;
+  maxAge?: number;
+  safetyRequirements?: string;
+  availabilitySchedule?: string;
   // Event venue + Car Rental vehicle specs - real data the backend
   // already returns but the product page never surfaced.
-  venueName?: string;        // Event
-  venueAddress?: string;     // Event
-  eventType?: string;        // Event
-  vehicleBrand?: string;     // CarRental
-  vehicleModel?: string;     // CarRental
-  vehicleYear?: number;      // CarRental
+  venueName?: string; // Event
+  venueAddress?: string; // Event
+  eventType?: string; // Event
+  eventDateTime?: string;
+  organizer?: string;
+  seatCount?: number;
+  ticketTypes?: { type: string; quantity: number; price: number }[];
+  vehicleBrand?: string; // CarRental
+  vehicleModel?: string; // CarRental
+  vehicleYear?: number; // CarRental
   vehicleTransmission?: string; // CarRental
-  vehicleFuelType?: string;  // CarRental
+  vehicleFuelType?: string; // CarRental
+  vehicleSeatCount?: number;
+  pickupLocation?: string;
+  returnLocation?: string;
+  availabilityStatus?: string;
   rating: number;
   reviews: number;
   image: string;
