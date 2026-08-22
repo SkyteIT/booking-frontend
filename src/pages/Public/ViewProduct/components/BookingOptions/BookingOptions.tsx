@@ -41,6 +41,11 @@ interface BookingOptionsProps {
   unitsLoading: boolean;
   selectedUnitId: string;
   onSelectUnit: (id: string) => void;
+  // Seat-map events sell distinct seats, not a quantity of one thing - a
+  // customer buying 3 tickets picks 3 actual seats, so selection here is
+  // multi-select rather than reusing the single selectedUnitId above.
+  selectedSeatIds: string[];
+  onToggleSeat: (id: string) => void;
   checkIn: string;
   checkOut: string;
   onCheckInChange: (v: string) => void;
@@ -55,6 +60,8 @@ const BookingOptions = ({
   unitsLoading,
   selectedUnitId,
   onSelectUnit,
+  selectedSeatIds,
+  onToggleSeat,
   checkIn,
   checkOut,
   onCheckInChange,
@@ -183,8 +190,17 @@ const BookingOptions = ({
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}>
             <EventSeatOutlinedIcon sx={{ fontSize: "1.1rem", color: "primary.main" }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              Choose a seat
+              {quantityConfig
+                ? `Choose your seats (up to ${quantityConfig.max})`
+                : "Choose your seats"}
             </Typography>
+            {selectedSeatIds.length > 0 && (
+              <Chip
+                size="small"
+                label={`${selectedSeatIds.length} selected`}
+                sx={{ fontWeight: 600, bgcolor: "rgba(0,119,182,0.1)", color: "primary.main" }}
+              />
+            )}
           </Box>
 
           <Box
@@ -215,14 +231,17 @@ const BookingOptions = ({
             }}
           >
             {seatUnits.map((u) => {
-              const isSelected = selectedUnitId === u.id;
+              const isSelected = selectedSeatIds.includes(u.id);
+              const atLimit = Boolean(quantityConfig) && selectedSeatIds.length >= (quantityConfig?.max ?? Infinity);
+              const disabled = !isSelected && atLimit;
               return (
                 <Box
                   key={u.id}
                   component="button"
                   type="button"
-                  title={u.code ?? u.name}
-                  onClick={() => onSelectUnit(u.id)}
+                  disabled={disabled}
+                  title={disabled ? `Up to ${quantityConfig?.max} seats` : u.code ?? u.name}
+                  onClick={() => onToggleSeat(u.id)}
                   sx={{
                     gridColumn: (u.columnIndex ?? 0) + 1,
                     gridRow: (u.rowIndex ?? 0) + 1,
@@ -235,7 +254,8 @@ const BookingOptions = ({
                     color: isSelected ? "primary.contrastText" : "text.secondary",
                     fontSize: "0.7rem",
                     fontWeight: 600,
-                    cursor: "pointer",
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    opacity: disabled ? 0.4 : 1,
                     boxShadow: isSelected ? "0 6px 14px rgba(0,119,182,0.35)" : "none",
                     transition: "all 0.15s ease",
                     "&:hover": { borderColor: "primary.main", transform: "translateY(-1px)" },

@@ -28,6 +28,9 @@ const ViewProduct = () => {
   const [units, setUnits] = useState<ListingUnitDto[] | null>(null);
   const [unitsLoading, setUnitsLoading] = useState(true);
   const [selectedUnitId, setSelectedUnitId] = useState("");
+  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
+  const toggleSeat = (id: string) =>
+    setSelectedSeatIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
@@ -150,6 +153,8 @@ const ViewProduct = () => {
               unitsLoading={unitsLoading}
               selectedUnitId={selectedUnitId}
               onSelectUnit={setSelectedUnitId}
+              selectedSeatIds={selectedSeatIds}
+              onToggleSeat={toggleSeat}
               checkIn={checkIn}
               checkOut={checkOut}
               onCheckInChange={setCheckIn}
@@ -164,6 +169,7 @@ const ViewProduct = () => {
             listing={listing}
             units={units}
             selectedUnitId={selectedUnitId}
+            selectedSeatIds={selectedSeatIds}
             checkIn={checkIn}
             checkOut={checkOut}
             guests={guests}

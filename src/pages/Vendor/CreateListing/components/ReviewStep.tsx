@@ -24,6 +24,7 @@ interface ReviewStepProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   isEditMode: boolean;
+  pendingImageCount: number;
 }
 
 function unitsSummary(
@@ -60,9 +61,10 @@ export default function ReviewStep({
   onSubmit,
   isSubmitting,
   isEditMode,
+  pendingImageCount,
 }: ReviewStepProps) {
   const categoryName = categories.find((c) => c.id === data.categoryId)?.name ?? data.category;
-  const imageCount = data.images?.filter(Boolean).length ?? 0;
+  const imageCount = (data.images?.length ?? 0) + pendingImageCount;
 
   return (
     <Box>

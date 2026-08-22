@@ -55,22 +55,31 @@ const SearchResultsScreen = () => {
 
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 3 }}>
-            <FiltersSidebar
-              categories={categories}
-              selectedCategories={filters.categories}
-              minPrice={filters.minPrice}
-              maxPrice={filters.maxPrice}
-              minRating={filters.minRating}
-              ratingOptions={ratingOptions}
-              hasOffer={filters.hasOffer}
-              onClearAll={clearFilters}
-              onClearCategories={clearCategories}
-              onToggleCategory={toggleCategory}
-              onMinPriceChange={setMinPrice}
-              onMaxPriceChange={setMaxPrice}
-              onMinRatingChange={setMinRating}
-              onToggleHasOffer={toggleHasOffer}
-            />
+            <Box
+              sx={{
+                position: { md: "sticky" },
+                top: { md: 96 },
+                maxHeight: { md: "calc(100vh - 112px)" },
+                overflowY: { md: "auto" },
+              }}
+            >
+              <FiltersSidebar
+                categories={categories}
+                selectedCategories={filters.categories}
+                minPrice={filters.minPrice}
+                maxPrice={filters.maxPrice}
+                minRating={filters.minRating}
+                ratingOptions={ratingOptions}
+                hasOffer={filters.hasOffer}
+                onClearAll={clearFilters}
+                onClearCategories={clearCategories}
+                onToggleCategory={toggleCategory}
+                onMinPriceChange={setMinPrice}
+                onMaxPriceChange={setMaxPrice}
+                onMinRatingChange={setMinRating}
+                onToggleHasOffer={toggleHasOffer}
+              />
+            </Box>
           </Grid>
 
           <Grid size={{ xs: 12, md: 9 }}>

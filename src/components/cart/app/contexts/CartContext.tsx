@@ -26,11 +26,12 @@ export interface CartItem extends BookingItem {
 
 // A cart line isn't uniquely identified by `id` alone - the same listing
 // can appear twice with different date ranges (addToCart's own merge
-// check already keys on id+startDate+endDate). Selection needs a key
-// that's actually unique per line, or selecting one date-range of a
-// listing would silently select every other date-range of it too.
-const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate'>): string =>
-  `${item.id}::${item.startDate}::${item.endDate}`;
+// check already keys on id+startDate+endDate+listingUnitId), and for a
+// seat-map event two different seats share id/dates but are distinct
+// resources - without listingUnitId in the key, picking seat D5 then D6
+// would silently collapse into one cart line for D5 with quantity 2.
+const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>): string =>
+  `${item.id}::${item.startDate}::${item.endDate}::${item.listingUnitId ?? ""}`;
 
 // Helper function to check if item allows multiple quantities.
 // NOTE: matches literal category names because the real admin-managed
@@ -113,7 +114,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       (cartItem) =>
         cartItem.id === item.id &&
         cartItem.startDate === startDate &&
-        cartItem.endDate === endDate
+        cartItem.endDate === endDate &&
+        cartItem.listingUnitId === item.listingUnitId
     );
 
     if (existingItemIndex > -1) {
