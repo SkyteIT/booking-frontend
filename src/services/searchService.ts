@@ -38,6 +38,11 @@ type SearchListingPayload = Partial<SearchListing> & {
   images?: string[] | null;
 };
 
+export interface SearchListingsResult {
+  items: SearchListing[];
+  totalCount: number;
+}
+
 const normalizeSearchListing = (listing: SearchListingPayload): SearchListing => ({
   id: String(listing.id ?? ""),
   title: listing.title ?? "",
@@ -60,7 +65,7 @@ const normalizeSearchListing = (listing: SearchListingPayload): SearchListing =>
   offerBadgeText: listing.offerBadgeText ?? null,
 });
 
-export const searchListings = async (params: SearchParams): Promise<SearchListing[]> => {
+export const searchListings = async (params: SearchParams): Promise<SearchListingsResult> => {
   const { categoryIds, ...rest } = params;
   const qs = new URLSearchParams();
 
@@ -77,9 +82,38 @@ export const searchListings = async (params: SearchParams): Promise<SearchListin
     categoryIds.forEach((id) => qs.append("categoryIds", id));
   }
 
-  const { data } = await api.get<SearchListingPayload[]>(`/search/listings?${qs.toString()}`, {
+  const { data } = await api.get<unknown>(`/search/listings?${qs.toString()}`, {
     headers: { "Content-Type": "application/json" },
     skipAuthRedirect: true,
   });
-  return Array.isArray(data) ? data.map(normalizeSearchListing) : [];
+
+  // Support both the original array response and the paginated response used
+  // by the current search endpoint. Previously, paginated data was discarded
+  // as an empty array while the Explore hook expected { items, totalCount },
+  // which caused the page to enter its failure state.
+  if (Array.isArray(data)) {
+    const items = data.map((item) => normalizeSearchListing(item as SearchListingPayload));
+    return { items, totalCount: items.length };
+  }
+
+  if (data && typeof data === "object") {
+    const payload = data as Record<string, unknown>;
+    const rawItems = Array.isArray(payload.items)
+      ? payload.items
+      : Array.isArray(payload.data)
+        ? payload.data
+        : Array.isArray(payload.$values)
+          ? payload.$values
+          : [];
+    const items = rawItems.map((item) => normalizeSearchListing(item as SearchListingPayload));
+    const rawTotal = payload.totalCount ?? payload.total ?? payload.count;
+    const parsedTotal = Number(rawTotal);
+
+    return {
+      items,
+      totalCount: Number.isFinite(parsedTotal) ? parsedTotal : items.length,
+    };
+  }
+
+  return { items: [], totalCount: 0 };
 };

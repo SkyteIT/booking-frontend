@@ -422,8 +422,27 @@ const CreateListing = () => {
         alert("Listing updated successfully!");
       } else {
         const created = await createListing(request);
-        await createUnitsIfConfigured(created.id);
-        alert("Listing published successfully!");
+        // The listing is already published once POST /listings succeeds.
+        // Unit setup is a follow-up operation and must not turn a successful
+        // publish into a misleading failure (or encourage a duplicate retry).
+        if (unitsMode !== "none") {
+          if (!created.id) {
+            alert("Listing published successfully, but bookable units could not be added because the API did not return the new listing ID.");
+          } else {
+            try {
+              await createUnitsIfConfigured(created.id);
+              alert("Listing published successfully!");
+            } catch (unitError) {
+              console.error("Listing published, but unit setup failed:", unitError);
+              const unitMessage = getApiErrorMessage(unitError);
+              alert(
+                `Listing published successfully, but bookable units could not be added${unitMessage ? `: ${unitMessage}` : ". You can add them by editing the listing."}`,
+              );
+            }
+          }
+        } else {
+          alert("Listing published successfully!");
+        }
       }
       notifyDashboardRefresh();
       navigate("/vendor/listings");

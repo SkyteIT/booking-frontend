@@ -101,9 +101,34 @@ export interface CreateListingRequest {
   eventDetails?: EventDetailsDto;
 }
 
-export const createListing = async (data: CreateListingRequest) => {
+export interface CreateListingResult {
+  id: string;
+}
+
+// Creation responses have differed between API versions (the listing object,
+// a bare Guid, or an envelope). Keep that transport detail out of the page so
+// optional unit creation always targets the listing that was just created.
+export const createListing = async (data: CreateListingRequest): Promise<CreateListingResult> => {
   const res = await api.post("/listings", data);
-  return res.data;
+  const body = res.data as unknown;
+
+  let id = "";
+  if (typeof body === "string") {
+    id = body;
+  } else if (body && typeof body === "object") {
+    const record = body as Record<string, unknown>;
+    const nested = record.data && typeof record.data === "object"
+      ? record.data as Record<string, unknown>
+      : undefined;
+    id = String(record.id ?? record.listingId ?? nested?.id ?? nested?.listingId ?? "");
+  }
+
+  if (!id) {
+    const location = String(res.headers.location ?? "");
+    id = location.match(/\/listings\/([^/?#]+)/i)?.[1] ?? "";
+  }
+
+  return { id };
 };
 
 export interface CategoryDto {
