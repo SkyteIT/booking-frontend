@@ -77,15 +77,27 @@ const BookingOptions = ({
   const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
   const genericUnits = units?.filter((u) => u.kind === "Generic") ?? [];
   const quantityConfig = getQuantityConfig(listing);
-  const usesDateRange =
-    listing.type === "Hotel" || listing.type === "CarRental";
+  // The backend already knows exactly what date UI each listing type
+  // needs (BookingSelectionConfigDto) - an Event with a fixed date sets
+  // showStartDate: false, so there's nothing for the customer to pick.
+  // Falls back to the old per-type guess only if an older cached
+  // response has no bookingSelection at all.
+  const selectionConfig = listing.bookingSelection;
+  const usesDateRange = selectionConfig
+    ? selectionConfig.showEndDate
+    : listing.type === "Hotel" || listing.type === "CarRental";
   const startDateLabel =
-    listing.type === "Hotel"
+    selectionConfig?.startLabel ??
+    (listing.type === "Hotel"
       ? "Check-in"
       : listing.type === "CarRental"
         ? "Pickup date"
-        : "Booking date";
-  const endDateLabel = listing.type === "Hotel" ? "Check-out" : "Return date";
+        : "Booking date");
+  const endDateLabel =
+    selectionConfig?.endLabel ??
+    (listing.type === "Hotel" ? "Check-out" : "Return date");
+  const showDatePicker = selectionConfig ? selectionConfig.showStartDate : true;
+  const fixedDate = selectionConfig?.fixedStartDateTime ?? listing.eventDateTime;
 
   // Real 2D seat-map layout for Kind=Seat units (concerts/theater) -
   // seats already carry real rowIndex/columnIndex, just render them
@@ -132,56 +144,33 @@ const BookingOptions = ({
       </Box>
 
       {/* Date Pickers - hidden for time-slot listings, which pick a single day below instead */}
-      {timeSlotUnits.length === 0 && (
-        <>
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 600, mb: 1.5, color: "text.primary" }}
-          >
-            {usesDateRange ? "Select dates" : "Select a date"}
-          </Typography>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 1.5,
-              mb: 3,
-              maxWidth: 480,
-            }}
-          >
-            <TextField
-              label={startDateLabel}
-              type="date"
-              size="small"
-              value={checkIn}
-              disabled={
-                listing.type === "Event" && Boolean(listing.eventDateTime)
-              }
-              onChange={(e) => {
-                onCheckInChange(e.target.value);
-                if (!usesDateRange) onCheckOutChange(e.target.value);
+      {timeSlotUnits.length === 0 &&
+        (showDatePicker ? (
+          <>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, mb: 1.5, color: "text.primary" }}
+            >
+              {usesDateRange ? "Select dates" : "Select a date"}
+            </Typography>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 1.5,
+                mb: 3,
+                maxWidth: 480,
               }}
-              slotProps={{
-                inputLabel: { shrink: true },
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarMonthOutlinedIcon
-                        sx={{ fontSize: "1.1rem", color: "primary.main" }}
-                      />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={fieldSx}
-            />
-            {usesDateRange && (
+            >
               <TextField
-                label={endDateLabel}
+                label={startDateLabel}
                 type="date"
                 size="small"
-                value={checkOut}
-                onChange={(e) => onCheckOutChange(e.target.value)}
+                value={checkIn}
+                onChange={(e) => {
+                  onCheckInChange(e.target.value);
+                  if (!usesDateRange) onCheckOutChange(e.target.value);
+                }}
                 slotProps={{
                   inputLabel: { shrink: true },
                   input: {
@@ -196,10 +185,63 @@ const BookingOptions = ({
                 }}
                 sx={fieldSx}
               />
-            )}
-          </Box>
-        </>
-      )}
+              {usesDateRange && (
+                <TextField
+                  label={endDateLabel}
+                  type="date"
+                  size="small"
+                  value={checkOut}
+                  onChange={(e) => onCheckOutChange(e.target.value)}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarMonthOutlinedIcon
+                            sx={{ fontSize: "1.1rem", color: "primary.main" }}
+                          />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  sx={fieldSx}
+                />
+              )}
+            </Box>
+          </>
+        ) : (
+          // Fixed-date listings (e.g. a music festival with one set date)
+          // have nothing for the customer to pick - show the date instead
+          // of asking them to choose it.
+          fixedDate && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mb: 3,
+                px: 1.75,
+                py: 1.25,
+                borderRadius: "12px",
+                backgroundColor: "rgba(0,119,182,0.04)",
+                maxWidth: 480,
+              }}
+            >
+              <CalendarMonthOutlinedIcon
+                sx={{ fontSize: "1.1rem", color: "primary.main" }}
+              />
+              <Typography variant="body2">
+                <Typography component="span" sx={{ fontWeight: 600 }}>
+                  {startDateLabel}:
+                </Typography>{" "}
+                {new Date(fixedDate).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </Typography>
+            </Box>
+          )
+        ))}
 
       {/* Generic units (room types / fleet vehicles / ticket tiers) */}
       {genericUnits.length > 0 && (

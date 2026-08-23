@@ -3,19 +3,15 @@ import { Alert, Box, Button, Divider, Paper, Typography } from '@mui/material';
 import React from 'react';
 
 interface CartOrderSummaryProps {
+  currency: string;
   subtotal: number;
-  tax: number;
-  serviceFee: number;
-  total: number;
   selectedCount: number;
   onCheckout: () => void;
 }
 
 export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
+  currency,
   subtotal,
-  tax,
-  serviceFee,
-  total,
   selectedCount,
   onCheckout,
 }) => {
@@ -34,35 +30,20 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
           ORDER SUMMARY
         </Typography>
         <Typography variant="h4" sx={{ fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-          ${total.toFixed(2)}
+          {currency} {subtotal.toFixed(2)}
         </Typography>
       </Box>
 
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-          <Typography variant="body2" color="text.secondary">
-            Subtotal
-          </Typography>
-          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            ${subtotal.toFixed(2)}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-          <Typography variant="body2" color="text.secondary">
-            Tax (10%)
-          </Typography>
-          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            ${tax.toFixed(2)}
-          </Typography>
-        </Box>
-
+        {/* This matches CheckoutAsync's total exactly - no tax or service
+            fee is added at checkout, so showing fabricated ones here would
+            let the cart display a different amount than what's charged. */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.5 }}>
           <Typography variant="body2" color="text.secondary">
-            Service Fee
+            Subtotal ({selectedCount} {selectedCount === 1 ? 'item' : 'items'})
           </Typography>
           <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            ${serviceFee.toFixed(2)}
+            {currency} {subtotal.toFixed(2)}
           </Typography>
         </Box>
 

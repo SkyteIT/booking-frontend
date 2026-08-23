@@ -18,6 +18,7 @@ export interface Listing {
   type?: string;
   location: string;
   price: number;
+  currency: string;
   priceUnit?: string;
   // Category pricing model (PerNight/PerHour/PerPerson/PerDay/FixedPrice)
   // from the backend's ListingResponse.PricingUnit - lets the cart
@@ -76,6 +77,24 @@ export interface Listing {
   amenities: string[];
   hasActiveOffer?: boolean;
   offerBadgeText?: string | null;
+  // Backend's authority on what booking-date UI this listing needs (e.g.
+  // Event listings set showStartDate: false + fixedStartDateTime instead
+  // of asking the customer to pick a date at all) - see BookingOptions.tsx.
+  bookingSelection?: BookingSelectionConfig;
+}
+
+export interface BookingSelectionConfig {
+  startLabel: string;
+  endLabel?: string;
+  showStartDate: boolean;
+  showStartTime: boolean;
+  showEndDate: boolean;
+  showEndTime: boolean;
+  endMustBeAfterStart: boolean;
+  quantityLabel: string;
+  unitLabel?: string;
+  showUnitSelection: boolean;
+  fixedStartDateTime?: string;
 }
 
 export interface SearchFilters {

@@ -23,6 +23,7 @@ export interface SearchListing {
   categoryName: string;
   location: string;
   price: number;
+  currency: string;
   averageRating: number;
   isFeatured: boolean;
   isActive: boolean;
@@ -54,6 +55,7 @@ const normalizeSearchListing = (listing: SearchListingPayload): SearchListing =>
   categoryName: listing.categoryName ?? "",
   location: listing.location ?? "",
   price: Number(listing.price ?? 0),
+  currency: listing.currency ?? "LKR",
   averageRating: Number(listing.averageRating ?? 0),
   isFeatured: Boolean(listing.isFeatured),
   isActive: listing.isActive !== false,

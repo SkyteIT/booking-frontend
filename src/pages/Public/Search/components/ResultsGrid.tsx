@@ -80,7 +80,7 @@ export default function ResultsGrid({ listings, loading, error, hasMore, loading
               image={selectImageForListing(listing)}
               title={listing.title}
               category={listing.categoryName}
-              price={`$${listing.price}`}
+              price={`${listing.currency} ${listing.price.toLocaleString()}`}
               rating={listing.averageRating}
               location={listing.location}
               badge={listing.isFeatured ? "Featured" : undefined}

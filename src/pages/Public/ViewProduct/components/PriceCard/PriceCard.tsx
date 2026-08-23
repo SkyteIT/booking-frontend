@@ -232,6 +232,7 @@ const PriceCard = ({
         id: listing.id,
         name: listing.title,
         category: listing.category as string,
+        currency: listing.currency,
         priceUnit: listing.priceUnit ?? "per day",
         pricingUnit: listing.pricingUnit,
         description: listing.description ?? "",
@@ -305,7 +306,7 @@ const PriceCard = ({
             variant="h4"
             sx={{ fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}
           >
-            ${displayPrice}
+            {listing.currency} {displayPrice}
           </Typography>
           <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.85)" }}>
             /{listing.priceUnit}
@@ -347,7 +348,7 @@ const PriceCard = ({
                 variant="body2"
                 sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}
               >
-                Estimated total: ${displayedTotal.toFixed(2)}
+                Estimated total: {listing.currency} {displayedTotal.toFixed(2)}
               </Typography>
             )}
           </Box>
