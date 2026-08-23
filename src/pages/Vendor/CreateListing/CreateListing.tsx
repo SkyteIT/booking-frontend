@@ -55,7 +55,7 @@ import {
   defaultGridConfig,
   defaultTimeSlotConfig,
 } from "./components/bookableUnitsDefaults";
-import { normalizeTimeValue } from "./components/timeOptions";
+import { normalizeTimeValue, formatTimeAmPm } from "./components/timeOptions";
 import {
   addUnit,
   addUnitsGrid,
@@ -63,6 +63,14 @@ import {
 } from "../../../services/Vendor/listingUnitsService";
 import { getLocalizationSettings } from "../../../services/Vendor/settings";
 import { getUnits } from "../../../services/Vendor/listingUnitsService";
+import OptionGroupsSection, {
+  type OptionGroupRow,
+} from "./components/OptionGroupsSection";
+import {
+  getOptionGroups,
+  addOptionGroup,
+  addOptionValue,
+} from "../../../services/Vendor/listingOptionsService";
 
 // ListingType and ListingCategory are the same set of string literals
 // (Hotel/Restaurant/Event/CarRental/Activity) — kept as an explicit map
@@ -124,15 +132,7 @@ const WIZARD_STEPS: StepperStep[] = [
   { label: "Review", icon: CheckIcon },
 ];
 
-// Fields validated per step before allowing "Next" — mirrors the
-// `required` rules registered in BaseFields/each category-fields
-// component, which in turn mirror the backend's FluentValidation rules
-// (CreateListingRequestValidator + the five *DetailsDtoValidator classes).
-// Several of these (roomTypes/amenities/model/seatCountCar/averageCost/
-// organizer/seatCount) previously had no frontend input or validation at
-// all, so those categories' listings always failed backend validation on
-// submit regardless of what the vendor filled in — fixed alongside adding
-// the wizard's step-gated validation.
+
 const BASIC_INFO_FIELDS: (keyof ListingFormData)[] = [
   "title",
   "location",
@@ -175,9 +175,6 @@ function getApiErrorMessage(error: unknown): string | undefined {
     errors?: Record<string, unknown>;
   };
 
-  for (const value of [problem.message, problem.detail, problem.title]) {
-    if (typeof value === "string" && value.trim()) return value;
-  }
 
   if (problem.errors && typeof problem.errors === "object") {
     const messages = Object.values(problem.errors)
@@ -187,6 +184,10 @@ function getApiErrorMessage(error: unknown): string | undefined {
           typeof value === "string" && Boolean(value.trim()),
       );
     if (messages.length > 0) return messages.join("\n");
+  }
+
+  for (const value of [problem.message, problem.detail, problem.title]) {
+    if (typeof value === "string" && value.trim()) return value;
   }
 
   return undefined;
@@ -205,6 +206,7 @@ function buildEditFormData(listing: ListingResponse): Partial<ListingFormData> {
     images: [...(listing.images ?? [])],
     tagsInput: (listing.tags ?? []).join(", "),
     cancellationPolicy: listing.cancellationPolicy ?? "",
+    pricingUnitOverride: listing.pricingUnitOverride ?? "",
   };
 
   const {
@@ -298,6 +300,9 @@ function buildCreateListingRequest(
       : [],
     cancellationPolicy:
       data.cancellationPolicy || "Free cancellation within 24 hours",
+    pricingUnitOverride:
+      (data.pricingUnitOverride as "FixedPrice" | "PerPerson" | undefined) ||
+      undefined,
   };
 
   switch (data.category) {
@@ -306,8 +311,11 @@ function buildCreateListingRequest(
         pricePerNight: Number(data.pricePerNight ?? data.price) || 0,
         availableRooms: Number(data.numberOfRooms) || 0,
         amenities: data.amenities ?? [],
-        checkInTime: data.checkInTime || "14:00",
-        checkOutTime: data.checkOutTime || "12:00",
+        // Form state stores times as 24-hour "HH:mm" internally (see
+        // normalizeTimeValue), but the backend validator requires 12-hour
+        // AM/PM format (e.g. "2:00 PM") - convert at the request boundary.
+        checkInTime: formatTimeAmPm(data.checkInTime) || "2:00 PM",
+        checkOutTime: formatTimeAmPm(data.checkOutTime) || "12:00 PM",
         roomTypes: data.roomTypes ?? [],
         propertyType: data.propertyType ?? "",
         primaryRoomType: data.roomType ?? "",
@@ -317,7 +325,9 @@ function buildCreateListingRequest(
       request.restaurantDetails = {
         cuisineType: data.cuisineType ?? "",
         averageCost: Number(data.averageCost) || 0,
-        openingHours: `${data.openingTime || "06:00"} - ${data.closingTime || "23:00"}`,
+        // Same 24-hour-internal / 12-hour-AM/PM-on-the-wire conversion as
+        // Hotel's check-in/out times above.
+        openingHours: `${formatTimeAmPm(data.openingTime) || "6:00 AM"} - ${formatTimeAmPm(data.closingTime) || "11:00 PM"}`,
         tableCapacity: Number(data.seatingCapacity) || 0,
         tableTypes: data.tableTypes ?? [],
         reservationRules: data.reservationRules ?? "",
@@ -393,8 +403,10 @@ const CreateListing = () => {
   const [timeSlotConfig, setTimeSlotConfig] = useState<TimeSlotConfig>(
     defaultTimeSlotConfig,
   );
+  const [optionGroups, setOptionGroups] = useState<OptionGroupRow[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [hasExistingUnits, setHasExistingUnits] = useState(false);
+  const [hasExistingOptionGroups, setHasExistingOptionGroups] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -471,6 +483,7 @@ const CreateListing = () => {
               setListRows(
                 units.map((unit) => ({
                   name: unit.name,
+                  description: unit.description ?? "",
                   priceOverride:
                     unit.priceOverride == null
                       ? ""
@@ -527,10 +540,34 @@ const CreateListing = () => {
           } catch {
             setHasExistingUnits(false);
           }
+
+          try {
+            const groups = await getOptionGroups(id);
+            setHasExistingOptionGroups(groups.length > 0);
+            if (groups.length > 0) {
+              setOptionGroups(
+                groups.map((group) => ({
+                  name: group.name,
+                  values: group.values.map((value) => ({
+                    name: value.name,
+                    priceModifier:
+                      value.priceModifier === 0
+                        ? ""
+                        : String(value.priceModifier),
+                    priceOverride:
+                      value.priceOverride == null
+                        ? ""
+                        : String(value.priceOverride),
+                    confirmationOverride: value.confirmationTypeOverride ?? "",
+                    requiresSeatSelection: value.requiresSeatSelection,
+                  })),
+                })),
+              );
+            }
+          } catch {
+            setHasExistingOptionGroups(false);
+          }
         } else {
-          // New listings default to the vendor's own currency preference
-          // (Settings > Localization) rather than always publishing in LKR —
-          // still overridable per listing below.
           try {
             const localization = await getLocalizationSettings();
             if (localization.currency) {
@@ -542,8 +579,8 @@ const CreateListing = () => {
         }
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        alert("Failed to load listing data.");
-        navigate("/vendor/listings");
+        showMessage("Failed to load listing data.", "error");
+        setTimeout(() => navigate("/vendor/listings"), 1200);
       } finally {
         setLoading(false);
       }
@@ -576,6 +613,7 @@ const CreateListing = () => {
       for (const row of rows) {
         await addUnit(listingId, {
           name: row.name.trim(),
+          description: row.description.trim() || undefined,
           priceOverride: row.priceOverride
             ? Number(row.priceOverride)
             : undefined,
@@ -605,6 +643,25 @@ const CreateListing = () => {
     }
   };
 
+  const createOptionGroupsIfConfigured = async (listingId: string) => {
+    const groups = optionGroups.filter((g) => g.name.trim());
+    for (const group of groups) {
+      const created = await addOptionGroup(listingId, {
+        name: group.name.trim(),
+      });
+      const values = group.values.filter((v) => v.name.trim());
+      for (const value of values) {
+        await addOptionValue(listingId, created.id, {
+          name: value.name.trim(),
+          priceModifier: value.priceModifier ? Number(value.priceModifier) : 0,
+          priceOverride: value.priceOverride ? Number(value.priceOverride) : null,
+          confirmationTypeOverride: value.confirmationOverride || null,
+          requiresSeatSelection: value.requiresSeatSelection,
+        });
+      }
+    }
+  };
+
   const onSubmit = async (data: ListingFormData) => {
     try {
       // The category select is required and only ever offers real,
@@ -622,34 +679,41 @@ const CreateListing = () => {
       if (isEditMode && id) {
         await updateListing(id, request, imageFiles);
         if (!hasExistingUnits) await createUnitsIfConfigured(id);
+        if (!hasExistingOptionGroups) await createOptionGroupsIfConfigured(id);
         showMessage("Listing updated successfully!", "success");
       } else {
         const created = await createListing(request, imageFiles);
         // The listing is already published once POST /listings succeeds.
-        // Unit setup is a follow-up operation and must not turn a successful
-        // publish into a misleading failure (or encourage a duplicate retry).
-        if (unitsMode !== "none") {
+        // Unit/option setup is a follow-up operation and must not turn a
+        // successful publish into a misleading failure (or encourage a
+        // duplicate retry).
+        const hasFollowUpSetup =
+          unitsMode !== "none" || optionGroups.some((g) => g.name.trim());
+        if (hasFollowUpSetup) {
           if (!created.id) {
-            alert(
-              "Listing published successfully, but bookable units could not be added because the API did not return the new listing ID.",
+            showMessage(
+              "Listing published successfully, but bookable units/options could not be added because the API did not return the new listing ID.",
+              "warning",
             );
           } else {
             try {
               await createUnitsIfConfigured(created.id);
-              alert("Listing published successfully!");
+              await createOptionGroupsIfConfigured(created.id);
+              showMessage("Listing published successfully!", "success");
             } catch (unitError) {
               console.error(
-                "Listing published, but unit setup failed:",
+                "Listing published, but unit/option setup failed:",
                 unitError,
               );
               const unitMessage = getApiErrorMessage(unitError);
-              alert(
-                `Listing published successfully, but bookable units could not be added${unitMessage ? `: ${unitMessage}` : ". You can add them by editing the listing."}`,
+              showMessage(
+                `Listing published successfully, but bookable units/options could not be added${unitMessage ? `: ${unitMessage}` : ". You can add them by editing the listing."}`,
+                "warning",
               );
             }
           }
         } else {
-          alert("Listing published successfully!");
+          showMessage("Listing published successfully!", "success");
         }
       }
       notifyDashboardRefresh();
@@ -659,9 +723,10 @@ const CreateListing = () => {
     } catch (error) {
       console.error(error);
       const backendMessage = getApiErrorMessage(error);
-      alert(
+      showMessage(
         backendMessage ||
           `Failed to ${isEditMode ? "update" : "publish"} listing.`,
+        "error",
       );
     }
   };
@@ -724,6 +789,17 @@ const CreateListing = () => {
         return "Name at least one unit, or switch back to None.";
       }
     }
+
+    // A group with values but no name (or a value typed into a group
+    // that was never named) would otherwise be silently dropped on save
+    // with no feedback - name it here before it's lost.
+    const unnamedGroupWithValues = optionGroups.find(
+      (g) => !g.name.trim() && g.values.some((v) => v.name.trim()),
+    );
+    if (unnamedGroupWithValues) {
+      return "One of your option groups has values but no group name (e.g. \"Package\", \"Ticket Tier\") - name the group or remove its values.";
+    }
+
     return null;
   };
 
@@ -732,8 +808,9 @@ const CreateListing = () => {
       const valid = await trigger(BASIC_INFO_FIELDS);
       if (!valid) return;
       if (!resolvedCategory) {
-        alert(
+        showMessage(
           "This category is not connected to a listing type. Please select one of the five main categories.",
+          "error",
         );
         return;
       }
@@ -839,6 +916,11 @@ const CreateListing = () => {
                     {unitsError}
                   </Typography>
                 )}
+                <OptionGroupsSection
+                  groups={optionGroups}
+                  onGroupsChange={setOptionGroups}
+                  hasSeatUnits={unitsMode === "grid"}
+                />
               </>
             )}
 
@@ -870,6 +952,7 @@ const CreateListing = () => {
                 listRows={listRows}
                 gridConfig={gridConfig}
                 timeSlotConfig={timeSlotConfig}
+                optionGroups={optionGroups}
                 onSubmit={handleSubmit(onSubmit)}
                 isSubmitting={isSubmitting}
                 isEditMode={isEditMode}

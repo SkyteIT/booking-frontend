@@ -1,8 +1,6 @@
 import api from "../api";
 
-// The backend serializes all enums as their string name globally
-// (Program.cs: AddJsonOptions -> JsonStringEnumConverter()), so this is
-// always e.g. "Hotel", never the underlying numeric value.
+
 export type ListingType =
   | "Hotel"
   | "Restaurant"
@@ -100,6 +98,11 @@ export interface CreateListingRequest {
 
   cancellationPolicy: string;
 
+  // Vendor override of the category's default pricing model for this
+  // listing only - e.g. a flat package price on a category that otherwise
+  // multiplies by participant count. Undefined = use the category default.
+  pricingUnitOverride?: PricingUnitValue;
+
   hotelDetails?: HotelDetailsDto;
   restaurantDetails?: RestaurantDetailsDto;
   carRentalDetails?: CarRentalDetailsDto;
@@ -107,13 +110,13 @@ export interface CreateListingRequest {
   eventDetails?: EventDetailsDto;
 }
 
+export type PricingUnitValue = "PerNight" | "PerHour" | "PerPerson" | "PerDay" | "FixedPrice";
+
 export interface CreateListingResult {
   id: string;
 }
 
-// Creation responses have differed between API versions (the listing object,
-// a bare Guid, or an envelope). Keep that transport detail out of the page so
-// optional unit creation always targets the listing that was just created.
+
 export const createListing = async (
   data: CreateListingRequest,
   images: File[] = [],
@@ -176,6 +179,10 @@ export interface ListingResponse {
   // PerNight | PerHour | PerPerson | PerDay | FixedPrice, from the
   // listing's Category.ServiceModel - null if the admin never set it.
   pricingUnit?: string | null;
+  // The vendor's own override, if set - distinct from the resolved
+  // pricingUnit above so the edit form can show the vendor's actual
+  // choice instead of the resolved value.
+  pricingUnitOverride?: PricingUnitValue | null;
   type: ListingType;
   averageRating: number;
   totalReviews: number;
@@ -193,11 +200,38 @@ export interface ListingResponse {
   eventDetails?: EventDetailsDto;
 
   bookingSelection?: BookingSelectionConfigDto;
+  customFieldValues?: CustomFieldValueDto[];
+  optionGroups?: ListingOptionGroupDto[];
 }
 
-// Matches Ube.Application.Features.Listings.BookingSelectionConfigDto -
-// the backend's per-listing-type authority on what booking UI to show,
-// so the frontend doesn't have to re-derive it from `type` guesses.
+// Matches Ube.Application.Features.Listings.ListingOptionGroupDto/ListingOptionValueDto
+export interface ListingOptionValueDto {
+  id: string;
+  name: string;
+  displayOrder: number;
+  priceModifier: number;
+  priceOverride?: number | null;
+  confirmationTypeOverride?: "Instant" | "Request" | null;
+  requiresSeatSelection: boolean;
+}
+
+export interface ListingOptionGroupDto {
+  id: string;
+  listingId: string;
+  name: string;
+  displayOrder: number;
+  values: ListingOptionValueDto[];
+}
+
+// Matches Ube.Application.Features.Listings.ListingCustomFieldValueDto -
+// admin-configured, category-specific fields with this listing's values.
+export interface CustomFieldValueDto {
+  categoryCustomFieldId: string;
+  label: string;
+  value: string;
+}
+
+
 export interface BookingSelectionConfigDto {
   startLabel: string;
   endLabel?: string;
@@ -250,6 +284,8 @@ const normalizeListing = (response: any): ListingResponse => {
     images: unwrapValues<string>(raw?.images),
     tags: unwrapValues<string>(raw?.tags),
     cancellationPolicy: raw?.cancellationPolicy ?? "",
+    pricingUnit: raw?.pricingUnit ?? undefined,
+    pricingUnitOverride: raw?.pricingUnitOverride ?? undefined,
     hasActiveOffer: Boolean(raw?.hasActiveOffer),
     offerBadgeText: raw?.offerBadgeText ?? undefined,
     hotelDetails: raw?.hotelDetails ?? raw?.details?.hotelDetails,
@@ -259,6 +295,13 @@ const normalizeListing = (response: any): ListingResponse => {
     activityDetails: raw?.activityDetails ?? raw?.details?.activityDetails,
     eventDetails: raw?.eventDetails ?? raw?.details?.eventDetails,
     bookingSelection: raw?.bookingSelection ?? undefined,
+    customFieldValues: unwrapValues<CustomFieldValueDto>(raw?.customFieldValues),
+    optionGroups: unwrapValues<ListingOptionGroupDto>(raw?.optionGroups).map((g) => ({
+      ...g,
+      values: unwrapValues<ListingOptionValueDto>(
+        (g.values as unknown) as ListingOptionValueDto[] | { $values?: ListingOptionValueDto[] },
+      ),
+    })),
   };
 };
 

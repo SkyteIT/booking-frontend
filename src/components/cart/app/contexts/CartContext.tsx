@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../../../../context/useAuth';
 import { addToCart as syncAddToCart } from '../../../../services/cartService';
 import { calculatePricingTotal } from '../../../../utils/pricingCalculator';
+import SnackbarAlert from '../../../common/SnackbarAlert';
 export interface BookingItem {
   id: string;
   name: string;
@@ -16,6 +17,7 @@ export interface BookingItem {
   allowMultiple?: boolean; // Whether multiple quantities can be booked
   listingUnitId?: string; // specific room type/seat/fleet unit/time slot chosen, if the listing has any defined
   pricingUnit?: string; // PerNight | PerHour | PerPerson | PerDay | FixedPrice, from the listing's Category
+  optionValueIds?: string[]; // selected ListingOptionValue ids (one per option group), if the listing has any defined
 }
 
 export interface CartItem extends BookingItem {
@@ -26,8 +28,8 @@ export interface CartItem extends BookingItem {
 }
 
 
-const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>): string =>
-  `${item.id}::${item.startDate}::${item.endDate}::${item.listingUnitId ?? ""}`;
+const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId' | 'optionValueIds'>): string =>
+  `${item.id}::${item.startDate}::${item.endDate}::${item.listingUnitId ?? ""}::${[...(item.optionValueIds ?? [])].sort().join(",")}`;
 
 
 export const canBookMultiple = (category: string): boolean => {
@@ -100,6 +102,17 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const calculateItemTotal = calculatePricingTotal;
 
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  }>({ open: false, message: '', severity: 'info' });
+
+  const showMessage = (
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info' = 'info',
+  ) => setSnackbar({ open: true, message, severity });
+
   const addToCart = (
     item: BookingItem,
     quantity: number,
@@ -107,34 +120,42 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     endDate: string
   ) => {
     const totalPrice = calculateItemTotal(item.price, quantity, startDate, endDate, item.pricingUnit);
+    // Functional update - callers (e.g. adding several seats in a row)
+    // call addToCart multiple times synchronously before React re-renders,
+    // so reading the `cart` closure directly here would make every call
+    // but the last overwrite its predecessors instead of accumulating.
+    let duplicateBlocked = false;
 
-    const existingItemIndex = cart.findIndex(
-      (cartItem) =>
-        cartItem.id === item.id &&
-        cartItem.startDate === startDate &&
-        cartItem.endDate === endDate &&
-        cartItem.listingUnitId === item.listingUnitId
-    );
-
-    if (existingItemIndex > -1) {
-
-          if (item.category === 'hotel' || item.category === 'car') {
-      alert(`${item.name} is already in your cart!`);
-      return;
-    }
-
-      // Update existing item
-      const updatedCart = [...cart];
-      updatedCart[existingItemIndex].quantity += quantity;
-      updatedCart[existingItemIndex].totalPrice = calculateItemTotal(
-        item.price,
-        updatedCart[existingItemIndex].quantity,
-        startDate,
-        endDate,
-        item.pricingUnit
+    setCart((prevCart) => {
+      const existingItemIndex = prevCart.findIndex(
+        (cartItem) =>
+          getCartItemKey(cartItem) ===
+          getCartItemKey({ ...item, startDate, endDate })
       );
-      setCart(updatedCart);
-    } else {
+
+      if (existingItemIndex > -1) {
+        if (item.category === 'hotel' || item.category === 'car') {
+          duplicateBlocked = true;
+          return prevCart;
+        }
+
+        // Update existing item
+        const updatedCart = [...prevCart];
+        const updatedQuantity = updatedCart[existingItemIndex].quantity + quantity;
+        updatedCart[existingItemIndex] = {
+          ...updatedCart[existingItemIndex],
+          quantity: updatedQuantity,
+          totalPrice: calculateItemTotal(
+            item.price,
+            updatedQuantity,
+            startDate,
+            endDate,
+            item.pricingUnit
+          ),
+        };
+        return updatedCart;
+      }
+
       // Add new item
       const cartItem: CartItem = {
         ...item,
@@ -143,7 +164,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         endDate,
         totalPrice,
       };
-      setCart([...cart, cartItem]);
+      return [...prevCart, cartItem];
+    });
+
+    if (duplicateBlocked) {
+      showMessage(`${item.name} is already in your cart!`, 'warning');
+      return;
     }
 
     // Best-effort background sync for signed-in users. The backend cart has
@@ -241,6 +267,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       }}
     >
       {children}
+      <SnackbarAlert
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
     </CartContext.Provider>
   );
 };

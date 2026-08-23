@@ -17,6 +17,7 @@ import type {
   TimeSlotConfig,
   UnitsMode,
 } from "./BookableUnitsSection";
+import type { OptionGroupRow } from "./OptionGroupsSection";
 import { formatTimeAmPm } from "./timeOptions";
 
 interface ReviewStepProps {
@@ -27,6 +28,7 @@ interface ReviewStepProps {
   listRows: ListRow[];
   gridConfig: GridConfig;
   timeSlotConfig: TimeSlotConfig;
+  optionGroups: OptionGroupRow[];
   onSubmit: () => void;
   isSubmitting: boolean;
   isEditMode: boolean;
@@ -65,6 +67,7 @@ export default function ReviewStep({
   listRows,
   gridConfig,
   timeSlotConfig,
+  optionGroups,
   onSubmit,
   isSubmitting,
   isEditMode,
@@ -121,6 +124,50 @@ export default function ReviewStep({
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {unitsSummary(unitsMode, listRows, gridConfig, timeSlotConfig)}
       </Typography>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+        Option Groups
+      </Typography>
+      {(() => {
+        const named = optionGroups.filter((g) => g.name.trim());
+        if (named.length === 0) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              No option groups configured.
+            </Typography>
+          );
+        }
+        return (
+          <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {named.map((group, i) => {
+              const values = group.values.filter((v) => v.name.trim());
+              return (
+                <Box
+                  key={i}
+                  sx={{
+                    px: 1.5,
+                    py: 1,
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 2,
+                    minWidth: 180,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {group.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {values.length > 0
+                      ? values.map((v) => v.name).join(", ")
+                      : "No values yet"}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        );
+      })()}
 
       <Divider sx={{ my: 2 }} />
 

@@ -84,6 +84,21 @@ export default function BaseFields({
         error={!!errors.currency}
       />
 
+      <TextField
+        select
+        fullWidth
+        label="Pricing model"
+        helperText="How the base price applies when a customer picks a quantity/participant count"
+        defaultValue=""
+        {...register("pricingUnitOverride")}
+      >
+        <MenuItem value="">Use category default</MenuItem>
+        <MenuItem value="FixedPrice">
+          Flat price for this booking (e.g. a package, regardless of headcount)
+        </MenuItem>
+        <MenuItem value="PerPerson">Price per person/unit (multiplies by quantity)</MenuItem>
+      </TextField>
+
       <Box sx={{ gridColumn: "1 / -1" }}>
         <TextField
           fullWidth

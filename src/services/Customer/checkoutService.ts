@@ -7,6 +7,7 @@ export interface CheckoutItemRequest {
   startDateTime: string;
   endDateTime: string;
   listingUnitId?: string | null;
+  optionValueIds?: string[] | null;
 }
 
 export interface PaymentDto {

@@ -1,9 +1,4 @@
-// Sticky summary card: price, a one-line recap of what's selected in
-// BookingOptions (the main-section picker), and an Add to Cart action.
-// Adds to CartContext (the localStorage cart the whole Cart -> Checkout
-// -> Payment flow actually reads from). All interactive selection
-// (dates, seats/units, quantity) lives in BookingOptions now - this
-// card only reads that state via props and submits it.
+
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
@@ -32,6 +27,7 @@ interface PriceCardProps {
   checkIn: string;
   checkOut: string;
   guests: number;
+  selectedOptionValueIds: Record<string, string>;
 }
 
 const PriceCard = ({
@@ -42,6 +38,7 @@ const PriceCard = ({
   checkIn,
   checkOut,
   guests,
+  selectedOptionValueIds,
 }: PriceCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -53,13 +50,36 @@ const PriceCard = ({
   const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
   const selectedUnit = units?.find((u) => u.id === selectedUnitId);
   const selectedSeats = seatUnits.filter((u) => selectedSeatIds.includes(u.id));
+
+  
+  const allOptionValues = listing.optionGroups?.flatMap((g) => g.values) ?? [];
+  const selectedOptionValues = Object.values(selectedOptionValueIds)
+    .map((valueId) => allOptionValues.find((v) => v.id === valueId))
+    .filter((v): v is NonNullable<typeof v> => Boolean(v));
+  const optionModifierSum = selectedOptionValues.reduce(
+    (sum, v) => sum + v.priceModifier,
+    0,
+  );
+  // A selected value's own PriceOverride replaces the base rate entirely
+  // (e.g. "Family package" @ 1500/person instead of the base 2000/person)
+  // rather than adjusting it - mirrors CheckoutService's resolution order.
+  const optionPriceOverride = [...selectedOptionValues]
+    .reverse()
+    .find((v) => v.priceOverride != null)?.priceOverride;
+
+  const hasOptionGroups = (listing.optionGroups?.length ?? 0) > 0;
+  const showSeatGrid =
+    seatUnits.length > 0 &&
+    (!hasOptionGroups || selectedOptionValues.some((v) => v.requiresSeatSelection));
+
   const displayPrice =
-    seatUnits.length > 0
-      ? (selectedSeats[0]?.priceOverride ?? listing.price)
-      : (selectedUnit?.priceOverride ?? listing.price);
+    (showSeatGrid
+      ? (optionPriceOverride ?? selectedSeats[0]?.priceOverride ?? listing.price)
+      : (optionPriceOverride ?? selectedUnit?.priceOverride ?? listing.price)) +
+    optionModifierSum;
   const quantityConfig = getQuantityConfig(listing);
   const effectiveQuantity =
-    seatUnits.length > 0
+    showSeatGrid
       ? selectedSeats.length
       : timeSlotUnits.length > 0 || !quantityConfig
         ? 1
@@ -69,13 +89,14 @@ const PriceCard = ({
   // pricing), so the seat-map total is a per-seat sum, not one price × count.
   const estimatedTotal =
     checkIn && checkOut
-      ? seatUnits.length > 0
+      ? showSeatGrid
         ? selectedSeats.length > 0
           ? selectedSeats.reduce(
               (sum, seat) =>
                 sum +
                 calculatePricingTotal(
-                  seat.priceOverride ?? listing.price,
+                  (optionPriceOverride ?? seat.priceOverride ?? listing.price) +
+                    optionModifierSum,
                   1,
                   checkIn,
                   checkOut || checkIn,
@@ -93,18 +114,13 @@ const PriceCard = ({
           )
       : null;
 
-  // Seasonal pricing rules live server-side only - the client-side
-  // estimate above can't know about them. Debounced quote call gives an
-  // accurate preview once dates settle, falling back to the client-side
-  // estimate while in flight or if it fails, so the UI is never blocked
-  // on the network. Keyed by the inputs it was fetched for, so a quote
-  // from stale inputs is never shown against the current selection -
-  // avoids a synchronous reset in the effect body.
-  // Seat maps skip the server quote entirely - it only accepts one unitId,
-  // and a per-seat seasonal quote would need its own multi-unit endpoint.
-  // The per-seat local sum above is used for seat-map listings instead.
+  // The server price-quote endpoint only knows about unitId/quantity - it
+  // has no concept of a selected option value's PriceOverride, so it would
+  // silently ignore an active override and quote the wrong total. Skip it
+  // and use the local estimate (which does account for it) whenever one
+  // is in play, same as the seat-grid case below.
   const quoteKey =
-    checkIn && checkOut && seatUnits.length === 0
+    checkIn && checkOut && !showSeatGrid && optionPriceOverride == null
       ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}`
       : null;
   const [quote, setQuote] = useState<{ key: string; total: number } | null>(
@@ -140,10 +156,6 @@ const PriceCard = ({
   const serverQuote = quote && quote.key === quoteKey ? quote.total : null;
   const displayedTotal = serverQuote ?? estimatedTotal;
 
-  // Full offer text (title/description) isn't on the listing payload
-  // itself - fetched separately, same established pattern as units
-  // (getUnits). The price above already reflects any discount via the
-  // quote call; this block is purely explanatory.
   const [activeOffer, setActiveOffer] = useState<ListingOfferDto | null>(null);
 
   useEffect(() => {
@@ -163,11 +175,10 @@ const PriceCard = ({
     };
   }, [listing.id]);
 
-  // One-line recap of what's selected in BookingOptions, so this card
-  // reads as a summary instead of just a bare price.
+ 
   const selectionSummary = (() => {
     const parts: string[] = [];
-    if (seatUnits.length > 0 && selectedSeats.length > 0) {
+    if (showSeatGrid && selectedSeats.length > 0) {
       parts.push(selectedSeats.map((s) => s.code ?? s.name).join(", "));
     } else if (
       selectedUnit &&
@@ -177,13 +188,14 @@ const PriceCard = ({
     }
     if (
       quantityConfig &&
-      seatUnits.length === 0 &&
+      !showSeatGrid &&
       timeSlotUnits.length === 0
     ) {
       parts.push(
         `${guests} ${quantityConfig.singular}${guests > 1 ? "s" : ""}`,
       );
     }
+    selectedOptionValues.forEach((v) => parts.push(v.name));
     if (checkIn)
       parts.push(
         checkOut && checkOut !== checkIn ? `${checkIn} – ${checkOut}` : checkIn,
@@ -209,13 +221,14 @@ const PriceCard = ({
       return;
     }
 
-    if (seatUnits.length > 0 && selectedSeats.length === 0) {
+    if (showSeatGrid && selectedSeats.length === 0) {
       setStatus("error");
       setErrorMessage("Please choose at least one seat before adding to cart.");
       return;
     }
 
     if (
+      !showSeatGrid &&
       seatUnits.length === 0 &&
       units &&
       units.length > 0 &&
@@ -228,6 +241,7 @@ const PriceCard = ({
 
     setErrorMessage("");
     try {
+      const optionValueIds = selectedOptionValues.map((v) => v.id);
       const baseItem = {
         id: listing.id,
         name: listing.title,
@@ -238,18 +252,19 @@ const PriceCard = ({
         description: listing.description ?? "",
         image: listing.image,
         location: listing.location,
+        optionValueIds: optionValueIds.length > 0 ? optionValueIds : undefined,
       };
 
-      if (seatUnits.length > 0) {
-        // Each seat is its own bookable resource - one cart line per seat
-        // (now that CartContext's key includes listingUnitId, these no
-        // longer collide into a single merged line).
+      if (showSeatGrid) {
+      
         selectedSeats.forEach((seat) => {
           addToCart(
             {
               ...baseItem,
               name: `${listing.title} — ${seat.code ?? seat.name}`,
-              price: seat.priceOverride ?? listing.price,
+              price:
+                (optionPriceOverride ?? seat.priceOverride ?? listing.price) +
+                optionModifierSum,
               listingUnitId: seat.id,
             },
             1,
@@ -261,11 +276,9 @@ const PriceCard = ({
         addToCart(
           {
             ...baseItem,
-            // The selected unit's own price wins when set (e.g. "Deluxe
-            // Room" costing more than the listing's base price) - falling
-            // back to listing.price always was a real bug: picking a
-            // priced unit silently added the wrong amount to the cart.
-            price: selectedUnit?.priceOverride ?? listing.price,
+            price:
+              (optionPriceOverride ?? selectedUnit?.priceOverride ?? listing.price) +
+              optionModifierSum,
             listingUnitId: selectedUnitId || undefined,
           },
           effectiveQuantity,

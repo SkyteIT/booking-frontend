@@ -12,6 +12,7 @@ import {
 import { Add, DirectionsCar, Hotel, Build, Category } from '@mui/icons-material';
 import { canBookMultiple } from '../contexts/CartContext';
 import type { BookingItem } from '../contexts/CartContext';
+import SnackbarAlert from '../../../common/SnackbarAlert';
 
 interface BookingCardProps {
   item: BookingItem;
@@ -39,10 +40,11 @@ export const BookingCard: React.FC<BookingCardProps> = ({ item, onAddToCart }) =
   const [quantity, setQuantity] = useState(1);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(tomorrow);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleAddToCart = () => {
     if (new Date(endDate) <= new Date(startDate)) {
-      alert('End date must be after start date');
+      setErrorMessage('End date must be after start date');
       return;
     }
     onAddToCart(item, allowsMultiple ? quantity : 1, startDate, endDate);
@@ -128,6 +130,12 @@ export const BookingCard: React.FC<BookingCardProps> = ({ item, onAddToCart }) =
           </Button>
         </Box>
       </CardContent>
+      <SnackbarAlert
+        open={Boolean(errorMessage)}
+        message={errorMessage}
+        severity="error"
+        onClose={() => setErrorMessage('')}
+      />
     </Card>
   );
 };

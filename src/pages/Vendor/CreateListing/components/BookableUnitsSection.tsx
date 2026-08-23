@@ -18,6 +18,7 @@ export type UnitsMode = "none" | "list" | "grid" | "timeslot";
 
 export interface ListRow {
   name: string;
+  description: string;
   priceOverride: string;
   capacity: string;
 }
@@ -48,7 +49,7 @@ type Props = {
   onTimeSlotConfigChange: (config: TimeSlotConfig) => void;
 };
 
-const emptyListRow: ListRow = { name: "", priceOverride: "", capacity: "1" };
+const emptyListRow: ListRow = { name: "", description: "", priceOverride: "", capacity: "1" };
 
 export default function BookableUnitsSection({
   category,
@@ -118,42 +119,56 @@ export default function BookableUnitsSection({
       {mode === "list" && (
         <Stack spacing={2}>
           {listRows.map((row, i) => (
-            <Stack key={i} direction="row" spacing={2} alignItems="center">
+            <Stack
+              key={i}
+              spacing={1}
+              sx={{ p: 1.5, border: "1px solid #E2E8F0", borderRadius: 2 }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <TextField
+                  label="Name"
+                  placeholder="e.g. Deluxe Room"
+                  size="small"
+                  value={row.name}
+                  onChange={(e) => updateRow(i, { name: e.target.value })}
+                  sx={{ flex: 2 }}
+                />
+                <TextField
+                  label="Price override"
+                  placeholder="leave blank to use listing price"
+                  size="small"
+                  type="number"
+                  value={row.priceOverride}
+                  onChange={(e) =>
+                    updateRow(i, { priceOverride: e.target.value })
+                  }
+                  sx={{ flex: 1 }}
+                />
+                <TextField
+                  label="Capacity"
+                  size="small"
+                  type="number"
+                  value={row.capacity}
+                  onChange={(e) => updateRow(i, { capacity: e.target.value })}
+                  sx={{ flex: 1 }}
+                />
+                <IconButton
+                  onClick={() =>
+                    onListRowsChange(listRows.filter((_, idx) => idx !== i))
+                  }
+                  disabled={listRows.length === 1}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Stack>
               <TextField
-                label="Name"
-                placeholder="e.g. Deluxe Room"
+                label="Description (optional)"
+                placeholder="What makes this option different, e.g. Sea view, king bed, 35m², free WiFi"
                 size="small"
-                value={row.name}
-                onChange={(e) => updateRow(i, { name: e.target.value })}
-                sx={{ flex: 2 }}
+                fullWidth
+                value={row.description}
+                onChange={(e) => updateRow(i, { description: e.target.value })}
               />
-              <TextField
-                label="Price override"
-                placeholder="leave blank to use listing price"
-                size="small"
-                type="number"
-                value={row.priceOverride}
-                onChange={(e) =>
-                  updateRow(i, { priceOverride: e.target.value })
-                }
-                sx={{ flex: 1 }}
-              />
-              <TextField
-                label="Capacity"
-                size="small"
-                type="number"
-                value={row.capacity}
-                onChange={(e) => updateRow(i, { capacity: e.target.value })}
-                sx={{ flex: 1 }}
-              />
-              <IconButton
-                onClick={() =>
-                  onListRowsChange(listRows.filter((_, idx) => idx !== i))
-                }
-                disabled={listRows.length === 1}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
             </Stack>
           ))}
           <Button

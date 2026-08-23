@@ -15,6 +15,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getListingById } from "../../../services/Vendor/listingService";
 import {
   getUnits,
+  getBookedUnitIds,
   type ListingUnitDto,
 } from "../../../services/Vendor/listingUnitsService";
 import { mapApiListing } from "../Search/utils/mapApiListing";
@@ -31,10 +32,7 @@ const ViewProduct = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Bookable units + selection state - lifted here so both the main-
-  // section picker (BookingOptions) and the sidebar summary (PriceCard)
-  // read/write the same state, and so we only fetch units once per page
-  // load instead of each child fetching its own copy.
+ 
   const [units, setUnits] = useState<ListingUnitDto[] | null>(null);
   const [unitsLoading, setUnitsLoading] = useState(true);
   const [selectedUnitId, setSelectedUnitId] = useState("");
@@ -46,6 +44,13 @@ const ViewProduct = () => {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
+  // Vendor-defined option groups (Room Type, Ticket Tier, etc.) 
+  const [selectedOptionValueIds, setSelectedOptionValueIds] = useState<
+    Record<string, string>
+  >({});
+  const setSelectedOptionValue = (groupId: string, valueId: string) =>
+    setSelectedOptionValueIds((prev) => ({ ...prev, [groupId]: valueId }));
+  const [bookedUnitIds, setBookedUnitIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -55,6 +60,21 @@ const ViewProduct = () => {
         const data = await getListingById(id);
         const mapped = mapApiListing(data);
         setListing(mapped);
+        // Default each option group to its first value (vendors list the
+        // base/free tier first) so a customer can book at the base price
+        // with zero extra clicks, only touching the selector to upgrade.
+        if (mapped.optionGroups?.length) {
+          setSelectedOptionValueIds(
+            Object.fromEntries(
+              mapped.optionGroups
+                .filter((g) => g.values.length > 0)
+                .map((g) => [
+                  g.id,
+                  [...g.values].sort((a, b) => a.displayOrder - b.displayOrder)[0].id,
+                ]),
+            ),
+          );
+        }
         if (mapped.type === "Event" && mapped.eventDateTime) {
           const eventDate = mapped.eventDateTime.slice(0, 10);
           setCheckIn(eventDate);
@@ -91,6 +111,15 @@ const ViewProduct = () => {
       .catch(() => setUnits([])) // treat as "no units defined" rather than blocking the page
       .finally(() => setUnitsLoading(false));
   }, [id]);
+
+  // Which seats are already taken, for the current date - lets the seat
+  // grid gray out booked seats instead of only rejecting them at checkout.
+  useEffect(() => {
+    if (!id || !checkIn) return;
+    getBookedUnitIds(id, checkIn, checkOut || checkIn)
+      .then(setBookedUnitIds)
+      .catch(() => setBookedUnitIds([]));
+  }, [id, checkIn, checkOut]);
 
   if (loading) {
     return (
@@ -188,6 +217,9 @@ const ViewProduct = () => {
               onCheckOutChange={setCheckOut}
               guests={guests}
               onGuestsChange={setGuests}
+              selectedOptionValueIds={selectedOptionValueIds}
+              onSelectOptionValue={setSelectedOptionValue}
+              bookedUnitIds={bookedUnitIds}
             />
           </Box>
 
@@ -200,6 +232,7 @@ const ViewProduct = () => {
             checkIn={checkIn}
             checkOut={checkOut}
             guests={guests}
+            selectedOptionValueIds={selectedOptionValueIds}
           />
         </Box>
       </Container>

@@ -10,26 +10,18 @@ export interface ApiCategory {
 export interface Listing {
   id: string;
   title: string;
-  category: ListingCategory | string; // admin-chosen display name, NOT the raw type - see `type` below
-  // Raw ListingType (Hotel/Restaurant/Event/CarRental/Activity) from
-  // ListingResponse.type - `category` above is the admin's display
-  // name (e.g. "Hotels & Resorts"), which can't be pattern-matched
-  // reliably. Use this field for any category-specific branching.
+  category: ListingCategory | string; 
   type?: string;
   location: string;
   price: number;
   currency: string;
   priceUnit?: string;
-  // Category pricing model (PerNight/PerHour/PerPerson/PerDay/FixedPrice)
-  // from the backend's ListingResponse.PricingUnit - lets the cart
-  // compute an accurate total estimate matching BookingPricingRules.
+ 
   pricingUnit?: string;
-  // Category-specific bounds for the booking-configuration quantity
-  // control (see PriceCard.tsx) - drives what "quantity" honestly means
-  // per category (rooms/party size/participants) instead of one
-  // generic "guests" field with a fixed 1-6 range everywhere.
+ 
   availableRooms?: number; // Hotel
   roomTypes?: string[];
+  primaryRoomType?: string;
   propertyType?: string;
   checkInTime?: string;
   checkOutTime?: string;
@@ -57,12 +49,14 @@ export interface Listing {
   organizer?: string;
   seatCount?: number;
   ticketTypes?: { type: string; quantity: number; price: number }[];
+  ticketPrice?: number;
   vehicleBrand?: string; // CarRental
   vehicleModel?: string; // CarRental
   vehicleYear?: number; // CarRental
   vehicleTransmission?: string; // CarRental
   vehicleFuelType?: string; // CarRental
   vehicleSeatCount?: number;
+  hourlyRate?: number;
   pickupLocation?: string;
   returnLocation?: string;
   availabilityStatus?: string;
@@ -77,10 +71,36 @@ export interface Listing {
   amenities: string[];
   hasActiveOffer?: boolean;
   offerBadgeText?: string | null;
-  // Backend's authority on what booking-date UI this listing needs (e.g.
-  // Event listings set showStartDate: false + fixedStartDateTime instead
-  // of asking the customer to pick a date at all) - see BookingOptions.tsx.
+
+  customFieldValues?: CustomFieldValue[];
+ 
   bookingSelection?: BookingSelectionConfig;
+
+  optionGroups?: ListingOptionGroup[];
+}
+
+export interface CustomFieldValue {
+  categoryCustomFieldId: string;
+  label: string;
+  value: string;
+}
+
+export interface ListingOptionValue {
+  id: string;
+  name: string;
+  displayOrder: number;
+  priceModifier: number;
+  priceOverride?: number | null;
+  confirmationTypeOverride?: "Instant" | "Request" | null;
+  requiresSeatSelection: boolean;
+}
+
+export interface ListingOptionGroup {
+  id: string;
+  listingId: string;
+  name: string;
+  displayOrder: number;
+  values: ListingOptionValue[];
 }
 
 export interface BookingSelectionConfig {

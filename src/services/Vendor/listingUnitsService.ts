@@ -8,6 +8,7 @@ export interface ListingUnitDto {
   kind: ListingUnitKind;
   name: string;
   code?: string | null;
+  description?: string | null;
   priceOverride?: number | null;
   capacity: number;
   rowIndex?: number | null;
@@ -25,7 +26,7 @@ export const getUnits = async (listingId: string): Promise<ListingUnitDto[]> => 
 
 export const addUnit = async (
   listingId: string,
-  data: { name: string; priceOverride?: number; capacity: number; displayOrder?: number }
+  data: { name: string; description?: string; priceOverride?: number; capacity: number; displayOrder?: number }
 ): Promise<ListingUnitDto> => {
   const res = await api.post<ListingUnitDto>(`/listings/${listingId}/units`, data);
   return res.data;
@@ -56,7 +57,7 @@ export const addUnitsTimeSlots = async (
 export const updateUnit = async (
   listingId: string,
   unitId: string,
-  data: { name?: string; priceOverride?: number; capacity?: number; isActive?: boolean; displayOrder?: number }
+  data: { name?: string; description?: string; priceOverride?: number; capacity?: number; isActive?: boolean; displayOrder?: number }
 ): Promise<ListingUnitDto> => {
   const res = await api.put<ListingUnitDto>(`/listings/${listingId}/units/${unitId}`, data);
   return res.data;
@@ -64,4 +65,17 @@ export const updateUnit = async (
 
 export const deleteUnit = async (listingId: string, unitId: string): Promise<void> => {
   await api.delete(`/listings/${listingId}/units/${unitId}`);
+};
+
+// Distinct unit ids already booked (Pending/Confirmed) for a date range -
+// backs the seat map's "already taken" display.
+export const getBookedUnitIds = async (
+  listingId: string,
+  start: string,
+  end: string
+): Promise<string[]> => {
+  const res = await api.get<string[]>(`/listings/${listingId}/units/booked`, {
+    params: { start, end },
+  });
+  return res.data;
 };

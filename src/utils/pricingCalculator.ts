@@ -20,7 +20,12 @@ export function calculatePricingTotal(
   pricingUnit?: string
 ): number {
   switch (pricingUnit) {
+    // A fixed price is per booking, not per person/unit - a table for 2
+    // costs the same regardless of how many people actually show up.
+    // PerPerson is the pricing unit for "each person pays their own way"
+    // listings instead.
     case "FixedPrice":
+      return price;
     case "PerPerson":
       return price * quantity;
     case "PerHour": {

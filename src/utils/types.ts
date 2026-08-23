@@ -31,6 +31,8 @@ export interface ListingFormData {
     currency?: string;
     tagsInput?: string;
     isActive?: boolean;
+    // "" = use category default, otherwise "FixedPrice" | "PerPerson".
+    pricingUnitOverride?: string;
 
     // Hotel fields
     propertyType?: string;
