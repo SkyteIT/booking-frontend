@@ -16,6 +16,10 @@ import { useAuth } from "../../../context/useAuth";
 import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import api from "../../../services/api";
+import {
+  clearRejectedVendorApplicationAcknowledgement,
+  getMyVendorApplicationStatus,
+} from "../../../services/vendorRegistrationService";
 import "./application.css";
 const Review = () => {
   const navigate = useNavigate();
@@ -30,15 +34,30 @@ const Review = () => {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      setSubmitting(true);
-      setSubmitError(null);
+      const existingApplication = await getMyVendorApplicationStatus();
+      if (
+        existingApplication?.status === "Pending" ||
+        existingApplication?.status === "Approved"
+      ) {
+        navigate("/vendor/application-status", { replace: true });
+        return;
+      }
 
       const formData = new FormData();
 
+      if (!(data.documents.businessLicense instanceof File)) {
+        setSubmitError(
+          "Your business license is required. Please return to Documents and upload it again.",
+        );
+        return;
+      }
+
       formData.append("BusinessName", data.businessInfo.businessName);
       formData.append("BusinessType", data.businessInfo.businessType);
-      formData.append("TaxId", data.businessInfo.taxId || "");
-      formData.append("Website", data.businessInfo.website || "");
+      if (data.businessInfo.taxId.trim())
+        formData.append("TaxId", data.businessInfo.taxId.trim());
+      if (data.businessInfo.website.trim())
+        formData.append("Website", data.businessInfo.website.trim());
       formData.append("Address", data.businessInfo.address);
 
       formData.append("FirstName", data.contactInfo.firstName);
@@ -50,15 +69,16 @@ const Review = () => {
         formData.append("Categories", cat);
       });
 
-      if (data.documents.businessLicense) {
-        formData.append("businessLicense", data.documents.businessLicense);
+      formData.append("businessLicense", data.documents.businessLicense);
+
+      if (data.documents.insuranceCertificate instanceof File) {
+        formData.append(
+          "insuranceCertificate",
+          data.documents.insuranceCertificate,
+        );
       }
 
-      if (data.documents.insuranceCertificate) {
-        formData.append("insuranceCertificate", data.documents.insuranceCertificate);
-      }
-
-      if (data.documents.taxDocument) {
+      if (data.documents.taxDocument instanceof File) {
         formData.append("taxDocument", data.documents.taxDocument);
       }
 
@@ -72,6 +92,7 @@ const Review = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      clearRejectedVendorApplicationAcknowledgement();
       markVendorApplicationSubmitted();
 
       resetApplication();
@@ -81,11 +102,33 @@ const Review = () => {
         navigate("/customer/notifications");
       }, 2000);
     } catch (err) {
-      const serverMsg = isAxiosError(err)
-        ? (err.response?.data as { message?: string; error?: string } | undefined)?.message ??
-          (err.response?.data as { message?: string; error?: string } | undefined)?.error
+      const responseData = isAxiosError(err) ? err.response?.data : undefined;
+      const problem =
+        responseData && typeof responseData === "object"
+          ? (responseData as {
+              message?: string;
+              error?: string;
+              detail?: string;
+              title?: string;
+              errors?: Record<string, string[] | string>;
+            })
+          : undefined;
+      const validationMessages = problem?.errors
+        ? Object.values(problem.errors)
+            .flatMap((value) => (Array.isArray(value) ? value : [value]))
+            .join(" ")
         : undefined;
-      setSubmitError(serverMsg ?? "Couldn't submit your application. Please try again.");
+      const serverMsg =
+        typeof responseData === "string"
+          ? responseData
+          : (problem?.message ??
+            problem?.error ??
+            problem?.detail ??
+            validationMessages ??
+            problem?.title);
+      setSubmitError(
+        serverMsg ?? "Couldn't submit your application. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -95,7 +138,9 @@ const Review = () => {
     <ApplicationLayout activeStep={4}>
       <Container className="vendor-container">
         <Box className="vendor-form-card">
-          <Typography className="vendor-title">Review & Submit Application</Typography>
+          <Typography className="vendor-title">
+            Review & Submit Application
+          </Typography>
 
           <Box className="vendor-summary">
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
@@ -104,27 +149,37 @@ const Review = () => {
 
             <div className="summary-item">
               <span className="summary-label">Business Name</span>
-              <span className="summary-value">{data?.businessInfo?.businessName || "-"}</span>
+              <span className="summary-value">
+                {data?.businessInfo?.businessName || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Business Type</span>
-              <span className="summary-value">{data?.businessInfo?.businessType || "-"}</span>
+              <span className="summary-value">
+                {data?.businessInfo?.businessType || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
-              <span className="summary-label">Tax ID</span>
-              <span className="summary-value">{data?.businessInfo?.taxId || "-"}</span>
+              <span className="summary-label">Tax ID (optional)</span>
+              <span className="summary-value">
+                {data?.businessInfo?.taxId || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Website</span>
-              <span className="summary-value">{data?.businessInfo?.website || "-"}</span>
+              <span className="summary-value">
+                {data?.businessInfo?.website || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Address</span>
-              <span className="summary-value">{data?.businessInfo?.address || "-"}</span>
+              <span className="summary-value">
+                {data?.businessInfo?.address || "-"}
+              </span>
             </div>
           </Box>
 
@@ -137,22 +192,30 @@ const Review = () => {
 
             <div className="summary-item">
               <span className="summary-label">First Name</span>
-              <span className="summary-value">{data?.contactInfo?.firstName || "-"}</span>
+              <span className="summary-value">
+                {data?.contactInfo?.firstName || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Last Name</span>
-              <span className="summary-value">{data?.contactInfo?.lastName || "-"}</span>
+              <span className="summary-value">
+                {data?.contactInfo?.lastName || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Email</span>
-              <span className="summary-value">{data?.contactInfo?.email || "-"}</span>
+              <span className="summary-value">
+                {data?.contactInfo?.email || "-"}
+              </span>
             </div>
 
             <div className="summary-item">
               <span className="summary-label">Phone</span>
-              <span className="summary-value">{data?.contactInfo?.phone || "-"}</span>
+              <span className="summary-value">
+                {data?.contactInfo?.phone || "-"}
+              </span>
             </div>
           </Box>
 
@@ -185,14 +248,18 @@ const Review = () => {
             </div>
 
             <div className="summary-item">
-              <span className="summary-label">Insurance Certificate</span>
+              <span className="summary-label">
+                Insurance Certificate (optional)
+              </span>
               <span className="summary-value">
-                {data?.documents?.insuranceCertificate ? "Uploaded" : "Not uploaded"}
+                {data?.documents?.insuranceCertificate
+                  ? "Uploaded"
+                  : "Not uploaded"}
               </span>
             </div>
 
             <div className="summary-item">
-              <span className="summary-label">Tax Document</span>
+              <span className="summary-label">Tax Document (optional)</span>
               <span className="summary-value">
                 {data?.documents?.taxDocument ? "Uploaded" : "Not uploaded"}
               </span>
@@ -209,7 +276,8 @@ const Review = () => {
               }
               label={
                 <span className="agreement-text">
-                  I certify that all information provided is accurate and I agree to UBE&apos;s{" "}
+                  I certify that all information provided is accurate and I
+                  agree to UBE&apos;s{" "}
                   <span className="agreement-link">Terms of Service</span> and{" "}
                   <span className="agreement-link">Vendor Agreement</span>.
                 </span>

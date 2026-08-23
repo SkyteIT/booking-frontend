@@ -57,7 +57,7 @@ export default function ProfileSettingsSection({ form, onFieldChange, onUploadPh
 					</Button>
 
 					<Typography variant="caption" color="text.secondary">
-						JPG, PNG or GIF (max 5MB)
+						JPG, PNG or GIF (max 10MB)
 					</Typography>
 				</Stack>
 			</Box>

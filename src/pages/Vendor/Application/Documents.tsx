@@ -73,8 +73,8 @@ const Documents = () => {
      CONTINUE
   ======================= */
   const handleContinue = () => {
-    if (!businessLicense || !insuranceCertificate || !taxDocument) {
-      setError("Please upload all required documents");
+    if (!(businessLicense instanceof File)) {
+      setError("Please upload your business license");
       return;
     }
 
@@ -84,11 +84,12 @@ const Documents = () => {
   return (
     <ApplicationLayout activeStep={3}>
       <Container className="vendor-container">
-        <Typography className="vendor-title">Required Documents</Typography>
+        <Typography className="vendor-title">Business Documents</Typography>
 
         <Box className="vendor-form-card">
           <Typography className="category-description">
-            PDF or DOCX only, up to 5MB each.
+            Business license is required. Insurance and tax documents are
+            optional. PDF or DOCX only, up to 5MB each.
           </Typography>
           {/* Hidden Inputs */}
           <input
@@ -123,10 +124,21 @@ const Documents = () => {
               onClick={() =>
                 document.getElementById("businessLicenseInput")?.click()
               }
-              sx={businessLicense ? { borderColor: "success.main", borderStyle: "solid", background: "rgba(16,185,129,0.06)" } : undefined}
+              sx={
+                businessLicense
+                  ? {
+                      borderColor: "success.main",
+                      borderStyle: "solid",
+                      background: "rgba(16,185,129,0.06)",
+                    }
+                  : undefined
+              }
             >
               {businessLicense ? (
-                <CheckCircleIcon className="upload-icon" sx={{ color: "success.main !important" }} />
+                <CheckCircleIcon
+                  className="upload-icon"
+                  sx={{ color: "success.main !important" }}
+                />
               ) : (
                 <DescriptionIcon className="upload-icon" />
               )}
@@ -141,17 +153,28 @@ const Documents = () => {
             <Box
               className="upload-box"
               onClick={() => document.getElementById("insuranceInput")?.click()}
-              sx={insuranceCertificate ? { borderColor: "success.main", borderStyle: "solid", background: "rgba(16,185,129,0.06)" } : undefined}
+              sx={
+                insuranceCertificate
+                  ? {
+                      borderColor: "success.main",
+                      borderStyle: "solid",
+                      background: "rgba(16,185,129,0.06)",
+                    }
+                  : undefined
+              }
             >
               {insuranceCertificate ? (
-                <CheckCircleIcon className="upload-icon" sx={{ color: "success.main !important" }} />
+                <CheckCircleIcon
+                  className="upload-icon"
+                  sx={{ color: "success.main !important" }}
+                />
               ) : (
                 <DescriptionIcon className="upload-icon" />
               )}
               <Typography className="upload-text">
                 {insuranceCertificate
                   ? insuranceCertificate.name
-                  : "Upload Insurance Certificate"}
+                  : "Upload Insurance Certificate (optional)"}
               </Typography>
             </Box>
 
@@ -159,15 +182,28 @@ const Documents = () => {
             <Box
               className="upload-box"
               onClick={() => document.getElementById("taxInput")?.click()}
-              sx={taxDocument ? { borderColor: "success.main", borderStyle: "solid", background: "rgba(16,185,129,0.06)" } : undefined}
+              sx={
+                taxDocument
+                  ? {
+                      borderColor: "success.main",
+                      borderStyle: "solid",
+                      background: "rgba(16,185,129,0.06)",
+                    }
+                  : undefined
+              }
             >
               {taxDocument ? (
-                <CheckCircleIcon className="upload-icon" sx={{ color: "success.main !important" }} />
+                <CheckCircleIcon
+                  className="upload-icon"
+                  sx={{ color: "success.main !important" }}
+                />
               ) : (
                 <DescriptionIcon className="upload-icon" />
               )}
               <Typography className="upload-text">
-                {taxDocument ? taxDocument.name : "Upload Tax Document"}
+                {taxDocument
+                  ? taxDocument.name
+                  : "Upload Tax Document (optional)"}
               </Typography>
             </Box>
           </Box>
