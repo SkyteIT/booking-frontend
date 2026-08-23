@@ -42,7 +42,6 @@ import {
   normalizeVendorApplicationsResponse,
   type VendorApplicationListItem,
 } from "../../services/Admin/vendor";
-import { getListings, type ListingResponse } from "../../services/Vendor/listingService";
 import { useRealtimeHub } from "../../hooks/useRealtimeHub";
 
 interface StatCard {
@@ -82,7 +81,6 @@ type DashboardSnapshot = {
   vendorApplications: VendorApplicationListItem[];
   pendingVendorApplications: VendorApplicationListItem[];
   pendingVendorApplicationsCount: number;
-  listings: ListingResponse[];
 };
 
 type SummarySnapshot = {
@@ -250,7 +248,6 @@ export default function Dashboard() {
     vendorApplications: [],
     pendingVendorApplications: [],
     pendingVendorApplicationsCount: 0,
-    listings: [],
   });
   const [previousSummary, setPreviousSummary] = useState<SummarySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -271,7 +268,7 @@ export default function Dashboard() {
         setLoading(true);
       }
 
-      const [dashboardRes, usersRes, bookingsRes, vendorAppsRes, pendingVendorAppsRes, listingsRes] = await Promise.allSettled([
+      const [dashboardRes, usersRes, bookingsRes, vendorAppsRes, pendingVendorAppsRes] = await Promise.allSettled([
         getDashboardStats(),
         getAllUsers(),
         getAllBookings(),
@@ -282,7 +279,6 @@ export default function Dashboard() {
           pageNumber: 1,
           pageSize: 6,
         }),
-        getListings(),
       ]);
 
       const current = snapshotRef.current;
@@ -304,7 +300,6 @@ export default function Dashboard() {
             };
       const nextPendingVendorApplications = nextPendingVendorResponse.items;
       const nextPendingVendorApplicationsCount = nextPendingVendorResponse.totalCount;
-      const nextListings = listingsRes.status === "fulfilled" ? listingsRes.value : current.listings;
 
       const activeUsers = nextUsers.filter((user) => String(user.status).toLowerCase() === "active").length;
       const approvedVendorCount = nextVendorApplications.filter(
@@ -332,7 +327,6 @@ export default function Dashboard() {
         vendorApplications: nextVendorApplications,
         pendingVendorApplications: nextPendingVendorApplications,
         pendingVendorApplicationsCount: nextPendingVendorApplicationsCount,
-        listings: nextListings,
       });
 
       const hasAnySuccess =
@@ -340,8 +334,7 @@ export default function Dashboard() {
         usersRes.status === "fulfilled" ||
         bookingsRes.status === "fulfilled" ||
         vendorAppsRes.status === "fulfilled" ||
-        pendingVendorAppsRes.status === "fulfilled" ||
-        listingsRes.status === "fulfilled";
+        pendingVendorAppsRes.status === "fulfilled";
 
       setError(hasAnySuccess ? null : "Failed to load dashboard data.");
     } catch {
