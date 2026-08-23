@@ -8,9 +8,11 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   getCategories, createCategory, updateCategory, toggleCategoryStatus, deleteCategory,
-  getBanners, createBanner, updateBanner, deleteBanner,
   getPromotions, createPromotion, deletePromotion,
 } from "../services/contentService";
+import {
+  getBanners, createBanner, updateBanner, deleteBanner,
+} from "../../../../services/bannerService";
 import type { Category, Banner, Promotion } from "../types/contentType";
 import type { ListingType } from "../../../../services/Vendor/listingService";
 

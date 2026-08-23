@@ -13,7 +13,9 @@ const MainLayout = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
+        width: "100%",
         minHeight: "100vh",
+        backgroundColor: "background.default",
       }}
     >
       {/* Dynamic Navbar */}
@@ -25,14 +27,17 @@ const MainLayout = () => {
       <Box
         component="main"
         sx={{
+          display: "flex",
+          flexDirection: "column",
           flexGrow: 1,
-
+          width: "100%",
+          backgroundColor: "background.default",
         }}
       >
         <Outlet />
       </Box>
 
-       <MainFooter />
+      <MainFooter />
     </Box>
   );
 };

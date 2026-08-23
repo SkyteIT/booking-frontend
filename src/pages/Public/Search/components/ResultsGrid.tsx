@@ -1,5 +1,5 @@
 // src/pages/public/search/components/ResultsGrid.tsx
-import { Alert, Box, Grid, Paper, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Grid, Paper, Typography } from "@mui/material";
 import { useEffect, useRef } from "react";
 import ListingCard from "../../../../components/cards/ListingCard";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
@@ -15,25 +15,24 @@ interface Props {
   onLoadMore?: () => void;
 }
 
-export default function ResultsGrid({ listings, loading, error, hasMore, loadingMore, onLoadMore }: Props) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
+export default function ResultsGrid({ listings, loading, error, hasMore = false, loadingMore = false, onLoadMore }: Props) {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!hasMore || loadingMore || !onLoadMore) return;
     const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    if (!sentinel || !hasMore || loadingMore || !onLoadMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) onLoadMore();
+        if (entries[0]?.isIntersecting) {
+          onLoadMore();
+        }
       },
-      { rootMargin: "400px" }
+      { rootMargin: "200px 0px" }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-    // Re-created whenever hasMore/loadingMore change so a paused (loadingMore)
-    // observer doesn't keep firing into a request that's already in flight.
   }, [hasMore, loadingMore, onLoadMore]);
 
   if (loading) {
@@ -90,9 +89,11 @@ export default function ResultsGrid({ listings, loading, error, hasMore, loading
         ))}
       </Grid>
 
-      {hasMore && (
-        <Box ref={sentinelRef} sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          {loadingMore && <LoadingSpinner fullScreen={false} size={28} />}
+      <Box ref={sentinelRef} sx={{ height: 1 }} />
+
+      {loadingMore && (
+        <Box display="flex" justifyContent="center" py={3}>
+          <CircularProgress size={22} />
         </Box>
       )}
     </>
