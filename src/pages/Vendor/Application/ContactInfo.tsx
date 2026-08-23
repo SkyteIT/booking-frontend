@@ -46,6 +46,16 @@ const ContactInfo = (): JSX.Element => {
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  const validatePhone = () => {
+    const result = vendorContactInfoSchema.shape.phone.safeParse(
+      formData.phone.trim(),
+    );
+    setErrors((prev) => ({
+      ...prev,
+      phone: result.success ? "" : result.error.issues[0]?.message || "Invalid phone number",
+    }));
+  };
+
   const handleContinue = () => {
     const result = vendorContactInfoSchema.safeParse(formData);
     if (!result.success) {
@@ -74,9 +84,15 @@ const ContactInfo = (): JSX.Element => {
                   fullWidth
                   value={formData[key]}
                   onChange={(e) => handleChange(key, e.target.value)}
+                  onBlur={key === "phone" ? validatePhone : undefined}
                   error={!!errors[key]}
                   helperText={errors[key]}
-                  inputProps={{ maxLength: MAX_LENGTHS[key] }}
+                  type={key === "email" ? "email" : key === "phone" ? "tel" : "text"}
+                  placeholder={key === "phone" ? "0771234567 or +94771234567" : undefined}
+                  inputProps={{
+                    maxLength: MAX_LENGTHS[key],
+                    inputMode: key === "phone" ? "tel" : undefined,
+                  }}
                 />
               </Box>
             ))}
