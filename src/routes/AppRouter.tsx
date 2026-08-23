@@ -1,5 +1,5 @@
 // src/routes/AppRouter.tsx
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { CartProvider } from "../components/cart/app/contexts/CartContext";
 import { BookingOversightPage } from "../pages/admin/BookingOversightPage";
@@ -69,6 +69,11 @@ import { CartPage } from "../components/cart/app/pages/CartPage";
 import { CheckoutPage } from "../components/cart/app/pages/CheckoutPage";
 import { ConfirmationPage } from "../components/cart/app/pages/ConfirmationPage";
 import { PaymentPage } from "../components/cart/app/pages/PaymentPage";
+import {
+  getMyVendorApplicationStatus,
+  hasAcknowledgedRejectedVendorApplication,
+  type VendorApplicationStatus,
+} from "../services/vendorRegistrationService";
 
 type RoleGateProps = {
   allowedRole: string | string[];
@@ -112,6 +117,55 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function VendorApplicationGate({ children }: { children: ReactNode }) {
+  const [application, setApplication] = useState<
+    { id: string; status: VendorApplicationStatus } | null | undefined
+  >(undefined);
+
+  useEffect(() => {
+    getMyVendorApplicationStatus()
+      .then((result) =>
+        setApplication(
+          result ? { id: result.id, status: result.status } : null,
+        ),
+      )
+      .catch(() => setApplication(null));
+  }, []);
+
+  if (application === undefined) return <LoadingSpinner />;
+  if (
+    application &&
+    (application.status === "Pending" ||
+      application.status === "Approved" ||
+      (application.status === "Rejected" &&
+        !hasAcknowledgedRejectedVendorApplication(application.id)))
+  ) {
+    return <Navigate to="/vendor/application-status" replace />;
+  }
+  return <>{children}</>;
+}
+
+function ApprovedVendorGate({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const [status, setStatus] = useState<
+    VendorApplicationStatus | null | undefined
+  >(undefined);
+  const role = String(user?.role ?? "").toLowerCase();
+
+  useEffect(() => {
+    if (role === "superadmin") return;
+    getMyVendorApplicationStatus()
+      .then((application) => setStatus(application?.status ?? null))
+      .catch(() => setStatus(null));
+  }, [role]);
+
+  if (role === "superadmin") return <>{children}</>;
+  if (status === undefined) return <LoadingSpinner />;
+  if (status !== "Approved")
+    return <Navigate to="/vendor/application-status" replace />;
+  return <>{children}</>;
+}
+
 function AppRouter() {
   return (
     <CartProvider>
@@ -132,7 +186,10 @@ function AppRouter() {
           <Route path="/listing/:id" element={<ViewProduct />} />
         </Route>
 
-        <Route path="/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
+        <Route
+          path="/dashboard"
+          element={<Navigate to="/customer/dashboard" replace />}
+        />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -163,7 +220,9 @@ function AppRouter() {
           path="/vendor"
           element={
             <RoleGate allowedRole="vendor">
-              <VendorLayout />
+              <ApprovedVendorGate>
+                <VendorLayout />
+              </ApprovedVendorGate>
             </RoleGate>
           }
         >
@@ -179,7 +238,10 @@ function AppRouter() {
           <Route path="reviews" element={<VendorReviews />} />
           <Route path="payouts" element={<Payouts />} />
           <Route path="notifications" element={<VendorNotifications />} />
-          <Route path="reports" element={<Navigate to="/vendor/payouts" replace />} />
+          <Route
+            path="reports"
+            element={<Navigate to="/vendor/payouts" replace />}
+          />
           <Route path="settings" element={<Settings />} />
           <Route path="support" element={<VendorSupport />} />
         </Route>
@@ -188,7 +250,9 @@ function AppRouter() {
           path="/vendor/businessinfo"
           element={
             <RequireAuth>
-              <BusinessInfo />
+              <VendorApplicationGate>
+                <BusinessInfo />
+              </VendorApplicationGate>
             </RequireAuth>
           }
         />
@@ -196,7 +260,9 @@ function AppRouter() {
           path="/vendor/contactinfo"
           element={
             <RequireAuth>
-              <ContactInfo />
+              <VendorApplicationGate>
+                <ContactInfo />
+              </VendorApplicationGate>
             </RequireAuth>
           }
         />
@@ -204,7 +270,9 @@ function AppRouter() {
           path="/vendor/categories"
           element={
             <RequireAuth>
-              <Categories />
+              <VendorApplicationGate>
+                <Categories />
+              </VendorApplicationGate>
             </RequireAuth>
           }
         />
@@ -212,7 +280,9 @@ function AppRouter() {
           path="/vendor/documents"
           element={
             <RequireAuth>
-              <Documents />
+              <VendorApplicationGate>
+                <Documents />
+              </VendorApplicationGate>
             </RequireAuth>
           }
         />
@@ -220,7 +290,9 @@ function AppRouter() {
           path="/vendor/review"
           element={
             <RequireAuth>
-              <Review />
+              <VendorApplicationGate>
+                <Review />
+              </VendorApplicationGate>
             </RequireAuth>
           }
         />
@@ -247,21 +319,112 @@ function AppRouter() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<RoleGate allowedRole="admin"><DashboardAdmin /></RoleGate>} />
-          <Route path="users" element={<RoleGate allowedRole="admin"><UserManagementPage /></RoleGate>} />
-          <Route path="role-requests" element={<RoleGate allowedRole="superadmin"><RoleChangeRequestsPage /></RoleGate>} />
-          <Route path="email-requests" element={<RoleGate allowedRole="superadmin"><EmailChangeRequestsPage /></RoleGate>} />
-          <Route path="bookings" element={<RoleGate allowedRole="admin"><BookingOversightPage /></RoleGate>} />
+          <Route
+            path="dashboard"
+            element={
+              <RoleGate allowedRole="admin">
+                <DashboardAdmin />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <RoleGate allowedRole="admin">
+                <UserManagementPage />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="role-requests"
+            element={
+              <RoleGate allowedRole="superadmin">
+                <RoleChangeRequestsPage />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="email-requests"
+            element={
+              <RoleGate allowedRole="superadmin">
+                <EmailChangeRequestsPage />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="bookings"
+            element={
+              <RoleGate allowedRole="admin">
+                <BookingOversightPage />
+              </RoleGate>
+            }
+          />
           <Route path="disputes" element={<DisputesRefundsPage />} />
           <Route path="fraud-review" element={<FraudReviewPage />} />
-          <Route path="vendors" element={<RoleGate allowedRole="admin"><VendorManagement /></RoleGate>} />
-          <Route path="notifications" element={<RoleGate allowedRole="admin"><AdminNotifications /></RoleGate>} />
-          <Route path="finance" element={<RoleGate allowedRole={["admin", "finance"]}><AdminFinancePage /></RoleGate>} />
-          <Route path="content" element={<RoleGate allowedRole="admin"><ContentManagement /></RoleGate>} />
-          <Route path="categories/add" element={<RoleGate allowedRole="admin"><AddCategory /></RoleGate>} />
-          <Route path="banners/add" element={<RoleGate allowedRole="admin"><AddBanner /></RoleGate>} />
-          <Route path="promotions/add" element={<RoleGate allowedRole="admin"><AddPromotion /></RoleGate>} />
-          <Route path="settings" element={<RoleGate allowedRole={["admin", "finance"]}><AdminSettings /></RoleGate>}>
+          <Route
+            path="vendors"
+            element={
+              <RoleGate allowedRole="admin">
+                <VendorManagement />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="notifications"
+            element={
+              <RoleGate allowedRole="admin">
+                <AdminNotifications />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="finance"
+            element={
+              <RoleGate allowedRole={["admin", "finance"]}>
+                <AdminFinancePage />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="content"
+            element={
+              <RoleGate allowedRole="admin">
+                <ContentManagement />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="categories/add"
+            element={
+              <RoleGate allowedRole="admin">
+                <AddCategory />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="banners/add"
+            element={
+              <RoleGate allowedRole="admin">
+                <AddBanner />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="promotions/add"
+            element={
+              <RoleGate allowedRole="admin">
+                <AddPromotion />
+              </RoleGate>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <RoleGate allowedRole={["admin", "finance"]}>
+                <AdminSettings />
+              </RoleGate>
+            }
+          >
             <Route index element={<Navigate to="profile" replace />} />
             <Route path="profile" element={<ProfileSettings />} />
             <Route path="system" element={<SystemSettings />} />
@@ -270,9 +433,19 @@ function AppRouter() {
             <Route path="users-vendor" element={<UsersVendorSettings />} />
             <Route path="security" element={<SecuritySettings />} />
           </Route>
-          <Route path=":section" element={<RoleGate allowedRole="admin"><AdminSectionPlaceholder /></RoleGate>} />
+          <Route
+            path=":section"
+            element={
+              <RoleGate allowedRole="admin">
+                <AdminSectionPlaceholder />
+              </RoleGate>
+            }
+          />
         </Route>
-        <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route
+          path="/admin/*"
+          element={<Navigate to="/admin/dashboard" replace />}
+        />
 
         {/* default fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

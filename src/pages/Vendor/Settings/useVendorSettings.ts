@@ -120,6 +120,16 @@ export function useVendorSettings() {
     setLocalizationForm((prev) => ({ ...prev, [field]: value }));
 
   const handleProfileImageUpload = async (file: File): Promise<void> => {
+    const maxProfileImageSize = 10 * 1024 * 1024;
+    if (file.size > maxProfileImageSize) {
+      setSnackbar({
+        open: true,
+        message: "Profile picture must not exceed 10MB",
+        severity: "error",
+      });
+      return;
+    }
+
     try {
       const updatedProfile = await uploadVendorProfileImage(file);
       setProfileForm((prev) => ({
@@ -129,6 +139,11 @@ export function useVendorSettings() {
       notifyDashboardRefresh();
     } catch (error) {
       console.error("Image upload failed:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to upload profile picture",
+        severity: "error",
+      });
     }
   };
 
