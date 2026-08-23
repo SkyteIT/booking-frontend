@@ -234,16 +234,18 @@ const normalizeListing = (raw: any): ListingResponse => {
 };
 
 export const getVendorListings = async (): Promise<ListingResponse[]> => {
-  const res = await api.get<ListingResponse[]>("/listings/me");
-  return res.data.map((item: any) => normalizeListing(item));
+  const res = await api.get<any>("/listings/me");
+  const list = Array.isArray(res.data) ? res.data : res.data?.value || [];
+  return list.map((item: any) => normalizeListing(item));
 };
 
 export const getListings = async (): Promise<ListingResponse[]> => {
-  const res = await api.get<ListingResponse[]>("/listings", {
+  const res = await api.get<any>("/listings", {
     headers: { "Content-Type": "application/json" },
     skipAuthRedirect: true,
   });
-  return res.data.map((item: any) => normalizeListing(item));
+  const list = Array.isArray(res.data) ? res.data : res.data?.value || [];
+  return list.map((item: any) => normalizeListing(item));
 };
 
 export const getListingById = async (id: string): Promise<ListingResponse> => {
