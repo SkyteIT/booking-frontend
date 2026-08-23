@@ -145,27 +145,6 @@ function VendorApplicationGate({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function ApprovedVendorGate({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const [status, setStatus] = useState<
-    VendorApplicationStatus | null | undefined
-  >(undefined);
-  const role = String(user?.role ?? "").toLowerCase();
-
-  useEffect(() => {
-    if (role === "superadmin") return;
-    getMyVendorApplicationStatus()
-      .then((application) => setStatus(application?.status ?? null))
-      .catch(() => setStatus(null));
-  }, [role]);
-
-  if (role === "superadmin") return <>{children}</>;
-  if (status === undefined) return <LoadingSpinner />;
-  if (status !== "Approved")
-    return <Navigate to="/vendor/application-status" replace />;
-  return <>{children}</>;
-}
-
 function AppRouter() {
   return (
     <CartProvider>
@@ -220,9 +199,7 @@ function AppRouter() {
           path="/vendor"
           element={
             <RoleGate allowedRole="vendor">
-              <ApprovedVendorGate>
-                <VendorLayout />
-              </ApprovedVendorGate>
+              <VendorLayout />
             </RoleGate>
           }
         >
