@@ -1,8 +1,4 @@
-// Interactive date/unit/quantity selection, living in the main content
-// column (next to photos/description) instead of the narrow sticky
-// sidebar - a real seat grid or fleet list needs room to breathe.
-// PriceCard just reads the selection made here and shows a summary +
-// Add to cart.
+
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import EventSeatOutlinedIcon from "@mui/icons-material/EventSeatOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
@@ -16,6 +12,7 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  FormHelperText,
   InputAdornment,
   Chip,
 } from "@mui/material";
@@ -41,9 +38,6 @@ interface BookingOptionsProps {
   unitsLoading: boolean;
   selectedUnitId: string;
   onSelectUnit: (id: string) => void;
-  // Seat-map events sell distinct seats, not a quantity of one thing - a
-  // customer buying 3 tickets picks 3 actual seats, so selection here is
-  // multi-select rather than reusing the single selectedUnitId above.
   selectedSeatIds: string[];
   onToggleSeat: (id: string) => void;
   checkIn: string;
@@ -52,6 +46,11 @@ interface BookingOptionsProps {
   onCheckOutChange: (v: string) => void;
   guests: number;
   onGuestsChange: (n: number) => void;
+  
+  selectedOptionValueIds: Record<string, string>;
+  onSelectOptionValue: (groupId: string, valueId: string) => void;
+ 
+  bookedUnitIds: string[];
 }
 
 const BookingOptions = ({
@@ -68,6 +67,9 @@ const BookingOptions = ({
   onCheckOutChange,
   guests,
   onGuestsChange,
+  selectedOptionValueIds,
+  onSelectOptionValue,
+  bookedUnitIds,
 }: BookingOptionsProps) => {
   if (unitsLoading) {
     return <LoadingSpinner fullScreen={false} size={28} py={4} />;
@@ -77,6 +79,19 @@ const BookingOptions = ({
   const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
   const genericUnits = units?.filter((u) => u.kind === "Generic") ?? [];
   const quantityConfig = getQuantityConfig(listing);
+
+  // Which option value is selected in each group, so the seat grid can be
+  // tied to a specific tier (e.g. "VIP" requires a seat, "General
+  // Admission" is just a quantity) instead of always showing whenever the
+  // listing happens to have Seat-kind units.
+  const hasOptionGroups = (listing.optionGroups?.length ?? 0) > 0;
+  const allOptionValues = listing.optionGroups?.flatMap((g) => g.values) ?? [];
+  const selectedOptionValues = Object.values(selectedOptionValueIds)
+    .map((valueId) => allOptionValues.find((v) => v.id === valueId))
+    .filter((v): v is NonNullable<typeof v> => Boolean(v));
+  const showSeatGrid =
+    seatUnits.length > 0 &&
+    (!hasOptionGroups || selectedOptionValues.some((v) => v.requiresSeatSelection));
   // The backend already knows exactly what date UI each listing type
   // needs (BookingSelectionConfigDto) - an Event with a fixed date sets
   // showStartDate: false, so there's nothing for the customer to pick.
@@ -259,17 +274,20 @@ const BookingOptions = ({
             {genericUnits.map((u) => (
               <MenuItem key={u.id} value={u.id}>
                 {u.name}
-                {u.priceOverride ? ` — $${u.priceOverride}` : ""}
+                {u.priceOverride ? ` — ${listing.currency} ${u.priceOverride}` : ""}
               </MenuItem>
             ))}
           </Select>
+          {(() => {
+            const selectedUnit = genericUnits.find((u) => u.id === selectedUnitId);
+            return selectedUnit?.description ? (
+              <FormHelperText sx={{ mx: 0 }}>{selectedUnit.description}</FormHelperText>
+            ) : null;
+          })()}
         </FormControl>
       )}
 
-      {/* Seat map (events/concerts) - real 2D grid aligned to each
-          seat's actual rowIndex/columnIndex, now with room to show a
-          large venue instead of being squeezed into a 360px sidebar. */}
-      {seatUnits.length > 0 && (
+      {showSeatGrid && (
         <Box sx={{ mb: 3 }}>
           <Box
             sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}
@@ -324,10 +342,11 @@ const BookingOptions = ({
           >
             {seatUnits.map((u) => {
               const isSelected = selectedSeatIds.includes(u.id);
+              const isBooked = bookedUnitIds.includes(u.id);
               const atLimit =
                 Boolean(quantityConfig) &&
                 selectedSeatIds.length >= (quantityConfig?.max ?? Infinity);
-              const disabled = !isSelected && atLimit;
+              const disabled = isBooked || (!isSelected && atLimit);
               return (
                 <Box
                   key={u.id}
@@ -335,9 +354,11 @@ const BookingOptions = ({
                   type="button"
                   disabled={disabled}
                   title={
-                    disabled
-                      ? `Up to ${quantityConfig?.max} seats`
-                      : (u.code ?? u.name)
+                    isBooked
+                      ? "Already booked"
+                      : !isSelected && atLimit
+                        ? `Up to ${quantityConfig?.max} seats`
+                        : (u.code ?? u.name)
                   }
                   onClick={() => onToggleSeat(u.id)}
                   sx={{
@@ -348,23 +369,26 @@ const BookingOptions = ({
                     borderRadius: "8px",
                     border: "1px solid",
                     borderColor: isSelected ? "primary.main" : "divider",
-                    bgcolor: isSelected
-                      ? "primary.main"
-                      : "rgba(0,119,182,0.04)",
+                    bgcolor: isBooked
+                      ? "rgba(15,27,45,0.08)"
+                      : isSelected
+                        ? "primary.main"
+                        : "rgba(0,119,182,0.04)",
                     color: isSelected
                       ? "primary.contrastText"
                       : "text.secondary",
                     fontSize: "0.7rem",
                     fontWeight: 600,
                     cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.4 : 1,
+                    opacity: isBooked ? 0.5 : disabled ? 0.4 : 1,
+                    textDecoration: isBooked ? "line-through" : "none",
                     boxShadow: isSelected
                       ? "0 6px 14px rgba(0,119,182,0.35)"
                       : "none",
                     transition: "all 0.15s ease",
                     "&:hover": {
-                      borderColor: "primary.main",
-                      transform: "translateY(-1px)",
+                      borderColor: disabled ? "divider" : "primary.main",
+                      transform: disabled ? "none" : "translateY(-1px)",
                     },
                   }}
                 >
@@ -441,9 +465,57 @@ const BookingOptions = ({
         </Box>
       )}
 
-      {/* Quantity - not shown for seat/time-slot listings (inherently 1)
-          or Car Rental (no guest/quantity concept in real rental flows). */}
-      {seatUnits.length === 0 &&
+    
+      {(listing.optionGroups?.length ?? 0) > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
+          {[...listing.optionGroups!]
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map((group) => {
+              const sortedValues = [...group.values].sort(
+                (a, b) => a.displayOrder - b.displayOrder,
+              );
+              const selectedValueId = selectedOptionValueIds[group.id] ?? "";
+              return (
+                <FormControl
+                  key={group.id}
+                  fullWidth
+                  size="small"
+                  sx={{ maxWidth: 480 }}
+                >
+                  <InputLabel>{group.name}</InputLabel>
+                  <Select
+                    value={selectedValueId}
+                    label={group.name}
+                    onChange={(e) =>
+                      onSelectOptionValue(group.id, e.target.value)
+                    }
+                    sx={{
+                      borderRadius: "12px",
+                      backgroundColor: "rgba(0,119,182,0.04)",
+                    }}
+                  >
+                    {sortedValues.map((value) => (
+                      <MenuItem key={value.id} value={value.id}>
+                        {value.name}
+                        {value.priceOverride != null
+                          ? ` — ${listing.currency} ${value.priceOverride}/${listing.priceUnit ?? "unit"}`
+                          : value.priceModifier
+                            ? ` (${value.priceModifier > 0 ? "+" : ""}${listing.currency} ${value.priceModifier})`
+                            : ""}
+                        {value.confirmationTypeOverride === "Instant"
+                          ? " · Instant confirm"
+                          : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              );
+            })}
+        </Box>
+      )}
+
+    
+      {!showSeatGrid &&
         timeSlotUnits.length === 0 &&
         quantityConfig && (
           <FormControl fullWidth size="small" sx={{ maxWidth: 480 }}>

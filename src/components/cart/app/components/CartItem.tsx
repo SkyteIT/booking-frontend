@@ -12,6 +12,7 @@ import {
 //import { CartItem as CartItemType, canBookMultiple } from '../contexts/CartContext';
 import { canBookMultiple } from '../contexts/CartContext';
 import type { CartItem as CartItemType } from '../contexts/CartContext';
+import SnackbarAlert from '../../../common/SnackbarAlert';
 
 
 
@@ -26,12 +27,13 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdate, onRemove }) 
   const [quantity, setQuantity] = useState(item.quantity);
   const [startDate, setStartDate] = useState(item.startDate);
   const [endDate, setEndDate] = useState(item.endDate);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const allowsMultiple = canBookMultiple(item.category);
 
   const handleSave = () => {
     if (new Date(endDate) <= new Date(startDate)) {
-      alert('End date must be after start date');
+      setErrorMessage('End date must be after start date');
       return;
     }
     onUpdate(item.id, allowsMultiple ? quantity : 1, startDate, endDate);
@@ -275,6 +277,12 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdate, onRemove }) 
           ${item.totalPrice.toFixed(2)}
         </Typography>
       </Box>
+      <SnackbarAlert
+        open={Boolean(errorMessage)}
+        message={errorMessage}
+        severity="error"
+        onClose={() => setErrorMessage('')}
+      />
     </Box>
   );
 };

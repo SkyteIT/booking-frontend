@@ -113,6 +113,7 @@ export const PaymentPage: React.FC = () => {
         startDateTime: item.startDate,
         endDateTime: item.endDate,
         listingUnitId: item.listingUnitId ?? null,
+        optionValueIds: item.optionValueIds ?? null,
       }));
 
       const result = await checkout(items, idempotencyKey);

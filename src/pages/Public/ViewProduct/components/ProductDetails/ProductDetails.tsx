@@ -66,6 +66,9 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
         ...(listing.roomTypes?.length
           ? [{ label: "Room types", value: listing.roomTypes.join(", ") }]
           : []),
+        ...(listing.primaryRoomType
+          ? [{ label: "Room type", value: listing.primaryRoomType }]
+          : []),
         ...(listing.checkInTime
           ? [{ label: "Check-in time", value: listing.checkInTime }]
           : []),
@@ -77,6 +80,14 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
       return [
         ...(listing.cuisineType
           ? [{ label: "Cuisine", value: listing.cuisineType }]
+          : []),
+        ...(listing.averageCost
+          ? [
+              {
+                label: "Average cost",
+                value: `${listing.currency} ${listing.averageCost}`,
+              },
+            ]
           : []),
         ...(listing.tableCapacity
           ? [
@@ -145,11 +156,22 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
               },
             ]
           : []),
+        ...(listing.eventType
+          ? [{ label: "Event type", value: listing.eventType }]
+          : []),
         ...(listing.organizer
           ? [{ label: "Organizer", value: listing.organizer }]
           : []),
         ...(listing.seatCount
           ? [{ label: "Capacity", value: String(listing.seatCount) }]
+          : []),
+        ...(listing.ticketPrice
+          ? [
+              {
+                label: "Ticket price",
+                value: `${listing.currency} ${listing.ticketPrice}`,
+              },
+            ]
           : []),
         ...(listing.ticketTypes?.length
           ? [
@@ -172,6 +194,14 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
           : []),
         ...(listing.returnLocation
           ? [{ label: "Return", value: listing.returnLocation }]
+          : []),
+        ...(listing.hourlyRate
+          ? [
+              {
+                label: "Hourly rate",
+                value: `${listing.currency} ${listing.hourlyRate}`,
+              },
+            ]
           : []),
         ...(listing.availabilityStatus
           ? [{ label: "Status", value: listing.availabilityStatus }]
@@ -311,6 +341,32 @@ const ProductDetails = ({ listing }: ProductDetailsProps) => {
                     : "Rental details"}
           </Typography>
           <SpecGrid specs={categorySpecs} />
+        </>
+      )}
+
+      {/* Additional details — admin-configured custom fields for this
+          listing's category (CategoryCustomField). Shown for any category
+          that has them, not just a fixed set of types. */}
+      {!!listing.customFieldValues?.length && (
+        <>
+          <Divider sx={{ mb: 3 }} />
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 700,
+              mb: 2,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Additional details
+          </Typography>
+          <SpecGrid
+            specs={listing.customFieldValues.map((field) => ({
+              label: field.label,
+              value: field.value,
+            }))}
+          />
         </>
       )}
 
