@@ -146,7 +146,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({
           )}
 
           <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            ${item.totalPrice}
+            {item.currency} {item.totalPrice}
           </Typography>
         </Box>
       </Box>

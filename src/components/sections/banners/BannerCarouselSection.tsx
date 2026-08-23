@@ -1,6 +1,7 @@
 import PhotoOutlinedIcon from "@mui/icons-material/PhotoOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import {
   Alert,
   Box,
@@ -10,7 +11,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePlacementBanners } from "../../../hooks/usePlacementBanners";
 import type { BannerPlacement } from "../../../services/bannerService";
 
@@ -22,28 +23,26 @@ type BannerCarouselSectionProps = {
   showHeader?: boolean;
 };
 
-const AUTO_ROTATE_MS = 2000;
+const AUTO_ROTATE_MS = 4500;
 
-const BannerSkeleton = () => (
+const BannerSkeleton = ({ height }: { height: number }) => (
   <Paper
     elevation={0}
     sx={{
       width: "100%",
-      mx: "auto",
-      borderRadius: { xs: "18px", md: "24px" },
+      height,
+      borderRadius: { xs: "20px", md: "28px" },
       overflow: "hidden",
       border: "1px solid rgba(15, 23, 42, 0.08)",
       background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(241,247,252,0.98) 100%)",
       boxShadow: "0 14px 36px rgba(15, 23, 42, 0.08)",
+      position: "relative",
     }}
   >
-    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1.15fr" }, gap: 0 }}>
-      <Skeleton variant="rectangular" sx={{ minHeight: { xs: 34, md: 30 }, borderRadius: "12px" }} />
-      <Box sx={{ p: { xs: 0.8, sm: 1, md: 1.15 }, display: "flex", flexDirection: "column", gap: 0.5 }}>
-        <Skeleton width="38%" height={10} />
-        <Skeleton width="80%" height={18} />
-        <Skeleton width="62%" height={10} />
-      </Box>
+    <Skeleton variant="rectangular" sx={{ width: "100%", height: "100%" }} />
+    <Box sx={{ position: "absolute", left: 28, bottom: 28, width: "45%" }}>
+      <Skeleton width="55%" height={14} sx={{ mb: 1 }} />
+      <Skeleton width="90%" height={28} />
     </Box>
   </Paper>
 );
@@ -57,20 +56,25 @@ export default function BannerCarouselSection({
 }: BannerCarouselSectionProps) {
   const { banners, loading, error } = usePlacementBanners(placement);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Auto-rotate pauses the moment someone's mouse, finger, or keyboard
+  // focus is on the banner - it should never slide out from under a
+  // person who's actually reading it or about to click it.
+  const [isPaused, setIsPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [placement, banners.length]);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (banners.length <= 1 || isPaused) return;
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % banners.length);
     }, AUTO_ROTATE_MS);
 
     return () => window.clearInterval(timer);
-  }, [banners.length]);
+  }, [banners.length, isPaused]);
 
   const activeBanner = useMemo(() => {
     if (banners.length === 0) return null;
@@ -78,6 +82,7 @@ export default function BannerCarouselSection({
   }, [activeIndex, banners]);
 
   const hasMultipleSlides = banners.length > 1;
+  const bannerHeight = compact ? { xs: 200, md: 260 } : { xs: 260, md: 360 };
 
   const goToSlide = (index: number) => {
     if (banners.length === 0) return;
@@ -92,7 +97,7 @@ export default function BannerCarouselSection({
   return (
     <Box
       sx={{
-        py: compact ? { xs: 0.35, md: 0.4 } : { xs: 0.6, md: 0.8 },
+        py: compact ? { xs: 1, md: 1.5 } : { xs: 2, md: 3 },
         background: "linear-gradient(180deg, rgba(8, 24, 43, 0.012) 0%, rgba(17, 115, 212, 0.024) 100%)",
       }}
     >
@@ -102,7 +107,7 @@ export default function BannerCarouselSection({
         sx={{ px: { xs: 1.5, sm: 2.5, md: 3 }, width: "100%", mx: "auto" }}
       >
         {showHeader && (title || subtitle) ? (
-          <Box sx={{ mb: 1.5 }}>
+          <Box sx={{ mb: 2 }}>
             {placement ? (
               <Typography
                 sx={{
@@ -141,31 +146,40 @@ export default function BannerCarouselSection({
         ) : null}
 
         {loading ? (
-          <BannerSkeleton />
+          <BannerSkeleton height={typeof bannerHeight.md === "number" ? bannerHeight.md : 300} />
         ) : error ? (
           <Alert severity="error" sx={{ borderRadius: "16px", mx: "auto", width: "100%" }}>
             {error}
           </Alert>
         ) : activeBanner ? (
           <Box
+            ref={containerRef}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocus={() => setIsPaused(true)}
+            onBlur={(e) => {
+              if (!containerRef.current?.contains(e.relatedTarget as Node)) setIsPaused(false);
+            }}
+            onTouchStart={() => setIsPaused(true)}
             sx={{
               position: "relative",
               width: "100%",
+              height: bannerHeight,
               mx: "auto",
               overflow: "hidden",
-              borderRadius: { xs: "18px", md: "24px" },
+              borderRadius: { xs: "20px", md: "28px" },
               border: "1px solid rgba(15, 23, 42, 0.08)",
-              boxShadow: "0 14px 36px rgba(15, 23, 42, 0.12)",
-              background:
-                "linear-gradient(135deg, rgba(10, 26, 45, 0.98) 0%, rgba(14, 57, 92, 0.96) 44%, rgba(17, 115, 212, 0.95) 100%)",
+              boxShadow: "0 20px 48px rgba(6, 34, 64, 0.22)",
+              background: "linear-gradient(160deg, #062038 0%, #0a3a63 45%, #0077b6 100%)",
             }}
           >
             <Box
               sx={{
                 display: "flex",
                 width: `${Math.max(1, banners.length) * 100}%`,
+                height: "100%",
                 transform: `translateX(-${activeIndex * (100 / Math.max(1, banners.length))}%)`,
-                transition: "transform 550ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition: "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
                 "@media (prefers-reduced-motion: reduce)": {
                   transition: "none",
                 },
@@ -173,74 +187,109 @@ export default function BannerCarouselSection({
             >
               {banners.map((banner) => (
                 <Box
-                key={banner.id}
-                sx={{
+                  key={banner.id}
+                  {...(banner.actionUrl
+                    ? {
+                        component: "a",
+                        href: banner.actionUrl,
+                        target: banner.openInNewTab ? "_blank" : undefined,
+                        rel: banner.openInNewTab ? "noopener noreferrer" : undefined,
+                      }
+                    : {})}
+                  sx={{
+                    position: "relative",
                     flex: `0 0 ${100 / Math.max(1, banners.length)}%`,
                     minWidth: `${100 / Math.max(1, banners.length)}%`,
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", md: "0.95fr 1.05fr" },
-                    alignItems: "stretch",
-                    minHeight: 150,
-                    height: 150,
+                    height: "100%",
+                    display: "block",
+                    textDecoration: "none",
+                    color: "inherit",
+                    cursor: banner.actionUrl ? "pointer" : "default",
                   }}
                 >
+                  {/* Full-bleed image */}
+                  {banner.imageUrl ? (
+                    <Box
+                      component="img"
+                      src={banner.imageUrl}
+                      alt=""
+                      sx={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "grid",
+                        placeItems: "center",
+                        color: "rgba(255,255,255,0.6)",
+                      }}
+                    >
+                      <PhotoOutlinedIcon sx={{ fontSize: 44 }} />
+                    </Box>
+                  )}
+
+                  {/* Scrim - darkens the lower half so the overlaid text stays
+                      legible against any photo, without flattening the image
+                      with an opaque panel. */}
                   <Box
                     sx={{
-                      position: "relative",
-                      background: "rgba(255,255,255,0.08)",
-                      minHeight: { xs: 120, md: "100%" },
-                      overflow: "hidden",
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(0deg, rgba(4,16,30,0.88) 0%, rgba(4,16,30,0.5) 38%, rgba(4,16,30,0.05) 68%, rgba(4,16,30,0) 100%)",
+                    }}
+                  />
+
+                  {/* Copy, overlaid bottom-left */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      left: 0,
+                      right: { xs: 0, md: "18%" },
+                      bottom: 0,
+                      p: { xs: 2.5, sm: 3.5, md: 5 },
+                      color: "#fff",
                     }}
                   >
-                    {banner.imageUrl ? (
-                      <Box
-                        component="img"
-                        src={banner.imageUrl}
-                        alt={banner.title}
+                    {banner.bannerType ? (
+                      <Typography
                         sx={{
-                          display: "block",
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "fill",
-                          objectPosition: "center",
-                          background: "rgba(255,255,255,0.04)",
-                        }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          display: "grid",
-                          placeItems: "center",
+                          display: "inline-block",
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.14em",
+                          textTransform: "uppercase",
                           color: "#fff",
+                          bgcolor: "rgba(255,255,255,0.16)",
+                          border: "1px solid rgba(255,255,255,0.28)",
+                          borderRadius: "999px",
+                          px: 1.4,
+                          py: 0.4,
+                          mb: 1.4,
+                          backdropFilter: "blur(6px)",
                         }}
                       >
-                        <PhotoOutlinedIcon sx={{ fontSize: 32, opacity: 0.7 }} />
-                      </Box>
-                    )}
-                  </Box>
+                        {banner.bannerType}
+                      </Typography>
+                    ) : null}
 
-                  <Box
-                    sx={{
-                      minWidth: 0,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      px: { xs: 1.25, sm: 1.5, md: 2.2 },
-                      py: { xs: 1.1, md: 1.4 },
-                      color: "#fff",
-                      background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.06) 100%)",
-                    }}
-                  >
                     <Typography
                       sx={{
                         fontFamily: "'Syne', sans-serif",
                         fontWeight: 800,
-                        letterSpacing: "-0.035em",
-                        fontSize: { xs: "1.25rem", sm: "1.5rem", md: "2rem" },
-                        lineHeight: 1.04,
+                        letterSpacing: "-0.03em",
+                        fontSize: { xs: "1.5rem", sm: "1.9rem", md: "2.6rem" },
+                        lineHeight: 1.05,
                         color: "#fff",
+                        textShadow: "0 2px 18px rgba(0,0,0,0.35)",
                         overflow: "hidden",
                         display: "-webkit-box",
                         WebkitBoxOrient: "vertical",
@@ -252,18 +301,43 @@ export default function BannerCarouselSection({
 
                     <Typography
                       sx={{
-                        mt: 0.7,
-                        color: "rgba(255,255,255,0.9)",
-                        fontSize: { xs: "0.9rem", sm: "0.95rem", md: "1.05rem" },
-                        lineHeight: 1.5,
+                        mt: 1,
+                        maxWidth: 520,
+                        color: "rgba(255,255,255,0.88)",
+                        fontSize: { xs: "0.88rem", sm: "0.95rem", md: "1.08rem" },
+                        lineHeight: 1.55,
                         overflow: "hidden",
                         display: "-webkit-box",
                         WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 4,
+                        WebkitLineClamp: 2,
                       }}
                     >
                       {banner.description}
                     </Typography>
+
+                    {banner.actionUrl ? (
+                      <Box
+                        sx={{
+                          mt: { xs: 1.75, md: 2.5 },
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 0.75,
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#fff",
+                          bgcolor: "rgba(255,255,255,0.14)",
+                          border: "1px solid rgba(255,255,255,0.32)",
+                          borderRadius: "999px",
+                          px: 2,
+                          py: 0.9,
+                          backdropFilter: "blur(8px)",
+                          transition: "background-color 160ms ease, transform 160ms ease",
+                        }}
+                      >
+                        Explore
+                        <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
+                      </Box>
+                    ) : null}
                   </Box>
                 </Box>
               ))}
@@ -276,14 +350,14 @@ export default function BannerCarouselSection({
                   aria-label="Previous banner"
                   sx={{
                     position: "absolute",
-                    left: { xs: 6, md: 10 },
+                    left: { xs: 8, md: 16 },
                     top: "50%",
                     transform: "translateY(-50%)",
-                    bgcolor: "rgba(255,255,255,0.14)",
+                    bgcolor: "rgba(4,16,30,0.32)",
                     color: "#fff",
-                    border: "1px solid rgba(255,255,255,0.18)",
+                    border: "1px solid rgba(255,255,255,0.22)",
                     backdropFilter: "blur(10px)",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.24)" },
+                    "&:hover": { bgcolor: "rgba(4,16,30,0.5)" },
                   }}
                 >
                   <ChevronLeftIcon />
@@ -294,14 +368,14 @@ export default function BannerCarouselSection({
                   aria-label="Next banner"
                   sx={{
                     position: "absolute",
-                    right: { xs: 6, md: 10 },
+                    right: { xs: 8, md: 16 },
                     top: "50%",
                     transform: "translateY(-50%)",
-                    bgcolor: "rgba(255,255,255,0.14)",
+                    bgcolor: "rgba(4,16,30,0.32)",
                     color: "#fff",
-                    border: "1px solid rgba(255,255,255,0.18)",
+                    border: "1px solid rgba(255,255,255,0.22)",
                     backdropFilter: "blur(10px)",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.24)" },
+                    "&:hover": { bgcolor: "rgba(4,16,30,0.5)" },
                   }}
                 >
                   <ChevronRightIcon />
@@ -310,18 +384,11 @@ export default function BannerCarouselSection({
                 <Box
                   sx={{
                     position: "absolute",
-                    left: "50%",
-                    bottom: 10,
-                    transform: "translateX(-50%)",
+                    right: { xs: 16, md: 28 },
+                    bottom: { xs: 16, md: 24 },
                     display: "flex",
                     alignItems: "center",
-                    gap: 0.8,
-                    px: 1.2,
-                    py: 0.7,
-                    borderRadius: 999,
-                    bgcolor: "rgba(7, 20, 35, 0.38)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    backdropFilter: "blur(10px)",
+                    gap: 0.9,
                   }}
                 >
                   {banners.map((banner, index) => (
@@ -332,14 +399,14 @@ export default function BannerCarouselSection({
                       aria-label={`Go to banner ${index + 1}`}
                       onClick={() => goToSlide(index)}
                       sx={{
-                        width: activeIndex === index ? 18 : 8,
+                        width: activeIndex === index ? 22 : 8,
                         height: 8,
                         p: 0,
                         border: 0,
                         borderRadius: 999,
                         cursor: "pointer",
                         transition: "all 220ms ease",
-                        backgroundColor: activeIndex === index ? "#fff" : "rgba(255,255,255,0.45)",
+                        backgroundColor: activeIndex === index ? "#fff" : "rgba(255,255,255,0.4)",
                       }}
                     />
                   ))}

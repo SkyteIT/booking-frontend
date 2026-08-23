@@ -191,6 +191,25 @@ export interface ListingResponse {
   carRentalDetails?: CarRentalDetailsDto;
   activityDetails?: ActivityDetailsDto;
   eventDetails?: EventDetailsDto;
+
+  bookingSelection?: BookingSelectionConfigDto;
+}
+
+// Matches Ube.Application.Features.Listings.BookingSelectionConfigDto -
+// the backend's per-listing-type authority on what booking UI to show,
+// so the frontend doesn't have to re-derive it from `type` guesses.
+export interface BookingSelectionConfigDto {
+  startLabel: string;
+  endLabel?: string;
+  showStartDate: boolean;
+  showStartTime: boolean;
+  showEndDate: boolean;
+  showEndTime: boolean;
+  endMustBeAfterStart: boolean;
+  quantityLabel: string;
+  unitLabel?: string;
+  showUnitSelection: boolean;
+  fixedStartDateTime?: string;
 }
 
 const unwrapValues = <T>(
@@ -239,6 +258,7 @@ const normalizeListing = (response: any): ListingResponse => {
     carRentalDetails: raw?.carRentalDetails ?? raw?.details?.carRentalDetails,
     activityDetails: raw?.activityDetails ?? raw?.details?.activityDetails,
     eventDetails: raw?.eventDetails ?? raw?.details?.eventDetails,
+    bookingSelection: raw?.bookingSelection ?? undefined,
   };
 };
 
