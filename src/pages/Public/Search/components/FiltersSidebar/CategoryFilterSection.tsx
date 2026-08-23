@@ -7,26 +7,27 @@ import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumb
 import HikingOutlinedIcon from "@mui/icons-material/HikingOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import type { ReactNode } from "react";
-import type { ListingCategory } from "../../utils/types";
 import {
   filterTitleSx,
   getOptionButtonStateSx,
   optionButtonBaseSx,
 } from "./styles";
 
-const categoryIconMap: Record<ListingCategory, ReactNode> = {
-  Hotel: <ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Restaurant: <RestaurantOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Event: <ConfirmationNumberOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  Activity: <HikingOutlinedIcon sx={{ fontSize: "1rem" }} />,
-  CarRental: <DirectionsCarOutlinedIcon sx={{ fontSize: "1rem" }} />,
+const getCategoryIcon = (name: string): ReactNode => {
+  const clean = name.trim().toLowerCase();
+  if (clean.includes("hotel")) return <ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />;
+  if (clean.includes("restaurant")) return <RestaurantOutlinedIcon sx={{ fontSize: "1rem" }} />;
+  if (clean.includes("event")) return <ConfirmationNumberOutlinedIcon sx={{ fontSize: "1rem" }} />;
+  if (clean.includes("activity") || clean.includes("activities")) return <HikingOutlinedIcon sx={{ fontSize: "1rem" }} />;
+  if (clean.includes("car")) return <DirectionsCarOutlinedIcon sx={{ fontSize: "1rem" }} />;
+  return <ApartmentOutlinedIcon sx={{ fontSize: "1rem" }} />;
 };
 
 interface CategoryFilterSectionProps {
-  categories: ListingCategory[];
-  selectedCategories: ListingCategory[];
+  categories: { id: string; name: string }[];
+  selectedCategories: string[];
   onClearCategories: () => void;
-  onToggleCategory: (category: ListingCategory) => void;
+  onToggleCategory: (categoryName: string) => void;
 }
 
 const CategoryFilterSection = ({
@@ -54,20 +55,20 @@ const CategoryFilterSection = ({
         </Button>
 
         {categories.map((category) => {
-          const isSelected = selectedCategories.includes(category);
+          const isSelected = selectedCategories.includes(category.name);
 
           return (
             <Button
-              key={category}
+              key={category.id}
               variant="text"
-              onClick={() => onToggleCategory(category)}
+              onClick={() => onToggleCategory(category.name)}
               sx={{
                 ...optionButtonBaseSx,
                 ...getOptionButtonStateSx(isSelected),
               }}
-              startIcon={categoryIconMap[category]}
+              startIcon={getCategoryIcon(category.name)}
             >
-              {category}
+              {category.name}
             </Button>
           );
         })}

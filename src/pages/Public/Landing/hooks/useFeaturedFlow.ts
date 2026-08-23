@@ -71,7 +71,7 @@ export function useFeaturedFlow(featuredListings: ListingResponse[]) {
         loc: l.location || "Location TBA",
         rating: l.averageRating > 0 ? l.averageRating.toFixed(1) : "New",
         price: `${l.currency} ${l.price}`,
-        hasOffer: l.hasActiveOffer,
+        hasOffer: !!l.hasActiveOffer,
         offerLabel: l.offerBadgeText,
       })),
     [featuredListings]

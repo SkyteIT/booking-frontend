@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Box, Container, Button, Typography, CircularProgress, Alert } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { getListingById } from "../../../services/Vendor/listingService";
+import { getUnits, type ListingUnitDto } from "../../../services/Vendor/listingUnitsService";
 import type { Listing } from "../search/utils/types";
+import BookingOptions from "./components/BookingOptions/BookingOptions";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
 import ProductDetails from "./components/ProductDetails/ProductDetails";
 import PriceCard from "./components/PriceCard/PriceCard";
@@ -14,6 +16,14 @@ const ViewProduct = () => {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Bookable units + selection state
+  const [units, setUnits] = useState<ListingUnitDto[] | null>(null);
+  const [unitsLoading, setUnitsLoading] = useState(true);
+  const [selectedUnitId, setSelectedUnitId] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(1);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -58,10 +68,17 @@ const ViewProduct = () => {
           rating: data.rating,
           reviews: data.bookingsCount,
           image: data.primaryImage || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
-          isAvailable: data.isActive
+          isAvailable: data.isActive,
+          images: data.images || [],
+          amenities: data.hotelDetails?.amenities || [],
+          description: data.description || "",
+          cancellationPolicy: data.cancellationPolicy || "",
+          vendorName: data.vendorName || "",
+          type: categoryLabel,
         };
         
         setListing(mapped);
+        setGuests(mapped.type === "Activity" && mapped.minGroupSize && mapped.minGroupSize > 1 ? mapped.minGroupSize : 1);
         setError(null);
       } catch (err) {
         console.error("Error fetching listing:", err);
@@ -72,6 +89,19 @@ const ViewProduct = () => {
     };
 
     fetchListing();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    setUnitsLoading(true);
+    getUnits(id)
+      .then((data) => {
+        const active = data.filter((u) => u.isActive);
+        setUnits(active);
+        if (active.length > 0) setSelectedUnitId(active[0].id);
+      })
+      .catch(() => setUnits([])) // treat as "no units defined" rather than blocking the page
+      .finally(() => setUnitsLoading(false));
   }, [id]);
 
   if (loading) {
@@ -139,10 +169,30 @@ const ViewProduct = () => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <ImageGallery listing={listing} />
             <ProductDetails listing={listing} />
+            <BookingOptions
+              listing={listing}
+              units={units}
+              unitsLoading={unitsLoading}
+              selectedUnitId={selectedUnitId}
+              onSelectUnit={setSelectedUnitId}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onCheckInChange={setCheckIn}
+              onCheckOutChange={setCheckOut}
+              guests={guests}
+              onGuestsChange={setGuests}
+            />
           </Box>
 
           {/* Right column: price card */}
-          <PriceCard listing={listing} />
+          <PriceCard
+            listing={listing}
+            units={units}
+            selectedUnitId={selectedUnitId}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+          />
         </Box>
       </Container>
     </Box>

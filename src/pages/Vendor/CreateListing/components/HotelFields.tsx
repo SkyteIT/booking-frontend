@@ -84,6 +84,20 @@ export default function HotelFields({
           placeholder="e.g., Deluxe"
           {...register("roomType")}
         />
+
+        <TextField
+          fullWidth
+          type="number"
+          label="Price per Night (LKR)"
+          placeholder="e.g., 25000"
+          {...register("pricePerNight", {
+            required: "Price per night is required",
+            valueAsNumber: true,
+            min: { value: 1, message: "Price must be greater than 0" },
+          })}
+          error={!!errors.pricePerNight}
+          helperText={errors.pricePerNight?.message}
+        />
       </Box>
 
       <Box sx={{ mb: 3 }}>
@@ -179,6 +193,13 @@ export default function HotelFields({
           )}
         />
       </Box>
+
+      <TextField
+        fullWidth
+        label="Cancellation Policy"
+        placeholder="e.g., Free cancellation within 24 hours"
+        {...register("cancellationPolicy")}
+      />
     </Box>
   );
 }

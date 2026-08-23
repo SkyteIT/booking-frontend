@@ -52,6 +52,7 @@ const CreateListing = () => {
     watch,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ListingFormData>({
     defaultValues: {
@@ -77,12 +78,17 @@ const CreateListing = () => {
         if (isEditMode && id) {
           const listingData: ListingResponse = await getListingById(id);
 
-          const typeMap: Record<number, ListingCategory> = {
+          const typeMap: Record<string | number, ListingCategory> = {
             0: "Hotel",
             1: "Restaurant",
             2: "Event",
             3: "CarRental",
             4: "Activity",
+            "Hotel": "Hotel",
+            "Restaurant": "Restaurant",
+            "Event": "Event",
+            "CarRental": "CarRental",
+            "Activity": "Activity",
           };
 
           // Map backend response to form data
@@ -90,12 +96,8 @@ const CreateListing = () => {
             listingData.type !== undefined
               ? listingData.type
               : (listingData as any).Type;
-          // Handle if type comes as string or number
-          const typeNum =
-            typeof typeValueFromApi === "string"
-              ? parseInt(typeValueFromApi)
-              : typeValueFromApi;
-          const categoryValue = typeMap[typeNum as number] || "Hotel";
+          
+          const categoryValue = typeMap[typeValueFromApi] || "Hotel";
 
           const initialFormData: any = {
             title: listingData.title || (listingData as any).Title || "",
@@ -104,12 +106,14 @@ const CreateListing = () => {
             location:
               listingData.location || (listingData as any).Location || "",
             price: listingData.basePrice || (listingData as any).BasePrice || 0,
+            categoryId: listingData.categoryId,
             category: categoryValue,
             status:
               (listingData.status || (listingData as any).Status) === "Live" ||
               (listingData.status || (listingData as any).Status) === "Active"
                 ? "Active"
                 : "Inactive",
+            isActive: listingData.isActive,
             isAvailable:
               listingData.isAvailable !== undefined
                 ? listingData.isAvailable
@@ -256,31 +260,56 @@ const CreateListing = () => {
   }, [id, isEditMode, navigate, reset]);
 
   const formData = watch();
+  const categoryId = watch("categoryId");
   const selectedCategory = watch("category");
+
+  // Sync category string type based on category GUID
+  useEffect(() => {
+    if (categoryId && categories.length > 0) {
+      const selectedCat = categories.find((c) => c.id === categoryId);
+      if (selectedCat && selectedCat.type) {
+        setValue("category", selectedCat.type as ListingCategory);
+      }
+    }
+  }, [categoryId, categories, setValue]);
 
   const onSubmit = async (data: ListingFormData) => {
     try {
       const type = data.category;
 
-      let categoryId = "00000000-0000-0000-0000-000000000000";
-      const categoryMatch = categories.find(
-        (c) =>
-          c.name.toLowerCase().includes(data.category.toLowerCase()) ||
-          data.category
-            .toLowerCase()
-            .includes(c.name.toLowerCase().replace("s", "")),
-      );
-
-      if (categoryMatch) {
-        categoryId = categoryMatch.id;
-      } else if (categories.length > 0) {
-        // Fallback or maintain existing ID if in edit mode (complex to pass ID here without extra state)
-        categoryId = categories[0].id;
+      let categoryId = data.categoryId || "00000000-0000-0000-0000-000000000000";
+      if (!data.categoryId && categories.length > 0) {
+        const categoryMatch = categories.find(
+          (c) =>
+            c.name.toLowerCase().includes(data.category.toLowerCase()) ||
+            data.category
+              .toLowerCase()
+              .includes(c.name.toLowerCase().replace("s", "")),
+        );
+        if (categoryMatch) {
+          categoryId = categoryMatch.id;
+        } else {
+          categoryId = categories[0].id;
+        }
       }
 
       if (!vendorId) {
         alert("Vendor profile not loaded. Please try again.");
         return;
+      }
+
+      // Map category-specific price input to base price
+      let resolvedPrice = 0;
+      if (type === "Hotel") {
+        resolvedPrice = Number(data.pricePerNight) || 0;
+      } else if (type === "Restaurant") {
+        resolvedPrice = Number(data.averageCost) || 0;
+      } else if (type === "Activity") {
+        resolvedPrice = Number(data.activityPrice) || 0;
+      } else if (type === "Event") {
+        resolvedPrice = Number(data.ticketTypes?.[0]?.price) || 0;
+      } else if (type === "CarRental") {
+        resolvedPrice = Number(data.dailyRate) || 0;
       }
 
       const request: CreateListingRequest = {
@@ -289,11 +318,12 @@ const CreateListing = () => {
         type: ListingType[type as keyof typeof ListingType],
         title: data.title,
         description: data.description || "",
-        price: Number(data.price) || 0,
-        basePrice: Number(data.price) || 0,
-        currency: "LKR",
+        price: resolvedPrice,
+        basePrice: resolvedPrice,
+        currency: data.currency || "LKR",
         location: data.location,
         status: data.status || "Active",
+        isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
         isAvailable:
           data.isAvailable !== undefined ? Boolean(data.isAvailable) : true,
         images: data.imageUrls
@@ -303,9 +333,7 @@ const CreateListing = () => {
               .filter((u) => u !== "")
           : Array.isArray(data.images) && data.images.length > 0
             ? data.images
-            : [
-                "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000",
-              ],
+            : [],
         tags:
           typeof data.tags === "string"
             ? (data.tags as string)
@@ -319,7 +347,7 @@ const CreateListing = () => {
 
       if (type === "Hotel") {
         request.hotelDetails = {
-          pricePerNight: Number(data.pricePerNight) || Number(data.price) || 0,
+          pricePerNight: Number(data.pricePerNight) || 0,
           availableRooms: Number(data.numberOfRooms) || 0,
           amenities: data.amenities || [],
           checkInTime: data.checkInTime || "14:00",
@@ -382,11 +410,15 @@ const CreateListing = () => {
         };
       }
 
+      // Collect uploaded files from input element
+      const fileInput = document.getElementById("image-upload") as HTMLInputElement | null;
+      const files = fileInput?.files ? Array.from(fileInput.files) : [];
+
       if (isEditMode && id) {
-        await updateListing(id, request);
+        await updateListing(id, request, files);
         alert("Listing updated successfully!");
       } else {
-        await createListing(request);
+        await createListing(request, files);
         alert("Listing published successfully!");
       }
       navigate("/vendor/listings");

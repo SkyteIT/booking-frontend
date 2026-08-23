@@ -111,8 +111,19 @@ export interface CreateListingRequest {
   eventDetails?: EventDetailsDto;
 }
 
-export const createListing = async (data: CreateListingRequest) => {
-  const res = await api.post("/listings", data);
+export const createListing = async (data: CreateListingRequest, files?: File[]) => {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(data));
+  if (files && files.length > 0) {
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+  }
+  const res = await api.post("/listings", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return res.data;
 };
 
@@ -243,8 +254,19 @@ export const getListingById = async (id: string): Promise<ListingResponse> => {
   return normalizeListing(res.data);
 };
 
-export const updateListing = async (id: string, data: CreateListingRequest) => {
-  const res = await api.put(`/listings/${id}`, data);
+export const updateListing = async (id: string, data: CreateListingRequest, files?: File[]) => {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(data));
+  if (files && files.length > 0) {
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+  }
+  const res = await api.put(`/listings/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return res.data;
 };
 
