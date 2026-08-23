@@ -21,7 +21,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate, useParams } from "react-router-dom";
-import { getBannerById, updateBanner, PLACEMENT_OPTIONS, uploadBannerImage } from "../services/contentService";
+import { getBannerById, updateBanner, PLACEMENT_OPTIONS, uploadBannerImage } from "../../../../services/bannerService";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const cardStyle = {
@@ -31,6 +31,24 @@ const cardStyle = {
   background: "linear-gradient(160deg, #FFFFFF 0%, #F0F8FE 100%)",
   boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
   mb: 0,
+};
+
+const getServerErrorMessage = (err: any, fallback: string) => {
+  const responseData = err?.response?.data;
+  const flattenedErrors =
+    responseData?.errors && typeof responseData.errors === "object"
+      ? Object.values(responseData.errors).flat().filter(Boolean).join(" ")
+      : "";
+
+  return (
+    responseData?.detail ||
+    flattenedErrors ||
+    responseData?.error ||
+    responseData?.message ||
+    responseData?.title ||
+    err?.message ||
+    fallback
+  );
 };
 
 interface EditBannerProps {
@@ -48,7 +66,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
-    placement: "" as "" | number,
+    placement: "" as "" | "Home" | "Explore",
     startDate: "",
     endDate: "",
     status: true,
@@ -68,11 +86,10 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     getBannerById(id)
       .then((banner) => {
         if (!banner) return;
-        const placementNum = PLACEMENT_OPTIONS.find((p) => p.label === banner.placement)?.value ?? 1;
         setForm({
           title: banner.title,
           subtitle: banner.description,
-          placement: placementNum,
+          placement: banner.placement,
           startDate: banner.startDate,
           endDate: banner.endDate,
           status: banner.status === "Active",
@@ -116,12 +133,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
       setImageUrl(uploadedUrl);
       setErrors((prev) => ({ ...prev, imageUrl: "" }));
     } catch (err: any) {
-      const serverMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        err?.message ||
-        "Failed to upload image.";
+      const serverMsg = getServerErrorMessage(err, "Failed to upload image.");
       setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
     } finally {
       setUploadingImage(false);
@@ -151,7 +163,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
         title: form.title,
         subtitle: form.subtitle || undefined,
         imageUrl: imageUrl.trim(),
-        placement: form.placement as number,
+        placement: form.placement || "Home",
         startDate: form.startDate,
         endDate: form.endDate,
         status: form.status ? "Active" : "Inactive",
@@ -159,12 +171,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
       if (onSaved) onSaved();
       else navigate("/admin/content");
     } catch (err: any) {
-      const serverMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        err?.message ||
-        "Failed to save. Please try again.";
+      const serverMsg = getServerErrorMessage(err, "Failed to save. Please try again.");
       setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
     } finally {
       setSaving(false);
@@ -260,7 +267,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               required
               sx={{ mb: 2 }}
               value={form.placement}
-              onChange={(e) => handleChange("placement", Number(e.target.value))}
+              onChange={(e) => handleChange("placement", e.target.value)}
               error={!!errors.placement}
               helperText={errors.placement}
             >

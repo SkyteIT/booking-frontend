@@ -3,6 +3,8 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  height: 100%;
+  background-color: #f6f8fb !important;
 }
 
 /* Base canvas is a hair off pure white so it matches page-level sections
@@ -10,7 +12,16 @@ html {
    like the sticky navbar. Deliberately overrides MUI CssBaseline's body bg. */
 html,
 body {
+  height: 100%;
+  margin: 0;
   background-color: #f6f8fb !important;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background-color: #f6f8fb;
 }
 
 a {

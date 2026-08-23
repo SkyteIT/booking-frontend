@@ -19,7 +19,7 @@ function resolveHubUrl(hubPath: string) {
 
 export function useRealtimeHub(handlers: RealtimeHandlerMap, options?: UseRealtimeHubOptions) {
   const enabled = options?.enabled ?? true;
-  const hubPath = options?.hubPath ?? "/hubs/updates";
+  const hubPath = options?.hubPath ?? "/api/hubs/updates";
   const handlersRef = useRef(handlers);
   const [state, setState] = useState<HubConnectionState>(HubConnectionState.Disconnected);
 
