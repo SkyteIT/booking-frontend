@@ -57,6 +57,7 @@ export default function AddBanner() {
     startDate: "",
     endDate: "",
     status: true,
+    actionUrl: "",
     openInNewTab: false,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -132,6 +133,8 @@ export default function AddBanner() {
         startDate: form.startDate,
         endDate: form.endDate,
         status: form.status,
+        actionUrl: form.actionUrl.trim() || undefined,
+        openInNewTab: form.openInNewTab,
       });
       navigate("/admin/content");
     } catch (err: any) {
@@ -406,11 +409,22 @@ export default function AddBanner() {
               <Typography fontWeight={600}>4. Link & Behaviour</Typography>
             </Box>
 
+            <TextField
+              label="Action URL"
+              placeholder="https://example.com/promo"
+              fullWidth
+              sx={{ mb: 2, ...textFieldSx }}
+              value={form.actionUrl}
+              onChange={(e) => handleChange("actionUrl", e.target.value)}
+              helperText="Where the banner takes people when clicked. Leave blank for a non-clickable banner."
+            />
+
             <FormControlLabel
               control={
                 <Switch
                   checked={form.openInNewTab}
                   onChange={(e) => handleChange("openInNewTab", e.target.checked)}
+                  disabled={!form.actionUrl.trim()}
                 />
               }
               label="Open link in new tab"
