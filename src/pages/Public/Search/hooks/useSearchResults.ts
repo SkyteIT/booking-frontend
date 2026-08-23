@@ -171,8 +171,7 @@ export const useSearchResults = () => {
   const setQuery = useCallback(
     (value: string) => {
       const next = new URLSearchParams(searchParams);
-      if (value.trim()) next.set("q", value.trim());
-      else next.delete("q");
+      value.trim() ? next.set("q", value.trim()) : next.delete("q");
       setSearchParams(next);
     },
     [searchParams, setSearchParams]
@@ -182,8 +181,7 @@ export const useSearchResults = () => {
     (value: string) => {
       const next = new URLSearchParams(searchParams);
       const n = value.replace(/[^0-9]/g, "");
-      if (n) next.set("minPrice", n);
-      else next.delete("minPrice");
+      n ? next.set("minPrice", n) : next.delete("minPrice");
       setSearchParams(next);
     },
     [searchParams, setSearchParams]
@@ -193,8 +191,7 @@ export const useSearchResults = () => {
     (value: string) => {
       const next = new URLSearchParams(searchParams);
       const n = value.replace(/[^0-9]/g, "");
-      if (n) next.set("maxPrice", n);
-      else next.delete("maxPrice");
+      n ? next.set("maxPrice", n) : next.delete("maxPrice");
       setSearchParams(next);
     },
     [searchParams, setSearchParams]
@@ -210,8 +207,7 @@ export const useSearchResults = () => {
         ? current.filter((category) => category !== categoryName)
         : [...current, categoryName];
 
-      if (updated.length > 0) next.set("category", updated.join(","));
-      else next.delete("category");
+      updated.length > 0 ? next.set("category", updated.join(",")) : next.delete("category");
 
       setSearchParams(next);
     },
@@ -227,8 +223,7 @@ export const useSearchResults = () => {
   const setMinRating = useCallback(
     (rating?: number) => {
       const next = new URLSearchParams(searchParams);
-      if (rating !== undefined) next.set("minRating", String(rating));
-      else next.delete("minRating");
+      rating !== undefined ? next.set("minRating", String(rating)) : next.delete("minRating");
       setSearchParams(next);
     },
     [searchParams, setSearchParams]
@@ -236,8 +231,7 @@ export const useSearchResults = () => {
 
   const toggleHasOffer = useCallback(() => {
     const next = new URLSearchParams(searchParams);
-    if (filters.hasOffer) next.delete("hasOffer");
-    else next.set("hasOffer", "true");
+    filters.hasOffer ? next.delete("hasOffer") : next.set("hasOffer", "true");
     setSearchParams(next);
   }, [searchParams, setSearchParams, filters.hasOffer]);
 
@@ -257,7 +251,6 @@ export const useSearchResults = () => {
     filteredListings: listings,
     loading,
     loadingMore,
-    totalCount,
     hasMore,
     loadMore,
     error,

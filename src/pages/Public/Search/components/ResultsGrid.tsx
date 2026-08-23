@@ -1,10 +1,9 @@
 // src/pages/public/search/components/ResultsGrid.tsx
-import { Alert, Box, CircularProgress, Grid, Paper, Typography } from "@mui/material";
+import { Alert, Box, Grid, Paper, Typography } from "@mui/material";
 import { useEffect, useRef } from "react";
 import ListingCard from "../../../../components/cards/ListingCard";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import type { SearchListing } from "../../../../services/searchService";
-import { hashSeed, imageForCategory } from "../../../../utils/categoryImages";
 
 interface Props {
   listings: SearchListing[];
@@ -15,24 +14,25 @@ interface Props {
   onLoadMore?: () => void;
 }
 
-export default function ResultsGrid({ listings, loading, error, hasMore = false, loadingMore = false, onLoadMore }: Props) {
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+export default function ResultsGrid({ listings, loading, error, hasMore, loadingMore, onLoadMore }: Props) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!hasMore || loadingMore || !onLoadMore) return;
     const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore || loadingMore || !onLoadMore) return;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
-          onLoadMore();
-        }
+        if (entries[0]?.isIntersecting) onLoadMore();
       },
-      { rootMargin: "200px 0px" }
+      { rootMargin: "400px" }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
+    // Re-created whenever hasMore/loadingMore change so a paused (loadingMore)
+    // observer doesn't keep firing into a request that's already in flight.
   }, [hasMore, loadingMore, onLoadMore]);
 
   if (loading) {
@@ -66,8 +66,22 @@ export default function ResultsGrid({ listings, loading, error, hasMore = false,
     );
   }
 
-  const selectImageForListing = (listing: SearchListing) =>
-    listing.thumbnailUrl || imageForCategory(listing.categoryName, hashSeed(listing.id));
+  const selectImageForListing = (listing: SearchListing) => {
+    if (listing.thumbnailUrl) return listing.thumbnailUrl;
+
+    const title = (listing.title || "").toLowerCase();
+    const cat = (listing.categoryName || "").toLowerCase();
+
+    if (title.includes("portrait")) return "https://source.unsplash.com/800x600/?portrait,photography";
+    if (title.includes("product")) return "https://source.unsplash.com/800x600/?product,photography";
+    if (title.includes("event")) return "https://source.unsplash.com/800x600/?event,photography,concert";
+    if (cat.includes("photography")) return "https://source.unsplash.com/800x600/?photography";
+    if (cat.includes("car")) return "https://source.unsplash.com/800x600/?car,rental";
+
+    // fallback by category name or generic travel
+    const q = encodeURIComponent(listing.categoryName || "travel");
+    return `https://source.unsplash.com/800x600/?${q}`;
+  };
 
   return (
     <>
@@ -89,11 +103,9 @@ export default function ResultsGrid({ listings, loading, error, hasMore = false,
         ))}
       </Grid>
 
-      <Box ref={sentinelRef} sx={{ height: 1 }} />
-
-      {loadingMore && (
-        <Box display="flex" justifyContent="center" py={3}>
-          <CircularProgress size={22} />
+      {hasMore && (
+        <Box ref={sentinelRef} sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          {loadingMore && <LoadingSpinner fullScreen={false} size={28} />}
         </Box>
       )}
     </>

@@ -6,15 +6,14 @@ import ResultsGrid from "../components/ResultsGrid";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import SearchToolbar from "../components/SearchToolbar";
 import { useSearchResults } from "../hooks/useSearchResults";
-import BannerCarouselSection from "../../../../components/sections/banners/BannerCarouselSection";
 
 const SearchResultsScreen = () => {
   const {
     filters,
+    listings = [],
     filteredListings,
     loading,
     loadingMore,
-    totalCount,
     hasMore,
     loadMore,
     error,
@@ -33,26 +32,17 @@ const SearchResultsScreen = () => {
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        width: "100%",
         backgroundColor: "background.default",
         backgroundImage:
           "radial-gradient(ellipse 90% 65% at 50% -10%, rgba(0,119,182,0.16), transparent 70%)",
         backgroundRepeat: "no-repeat",
+        minHeight: "70vh",
         pt: { xs: 16, md: 18 },
         pb: { xs: 4, md: 6 },
       }}
     >
-      <Container maxWidth={false} disableGutters sx={{ width: "100%", maxWidth: 1600, mx: "auto", px: { xs: 2, md: 4 } }}>
-        <BannerCarouselSection
-          placement="Explore"
-          showHeader={false}
-          compact
-        />
-
-        <SearchToolbar query={filters.q} total={totalCount} onQueryChange={setQuery} />
+      <Container maxWidth="lg">
+        <SearchToolbar query={filters.q} total={listings.length} onQueryChange={setQuery} />
 
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: "12px" }}>
@@ -62,31 +52,22 @@ const SearchResultsScreen = () => {
 
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 3 }}>
-            <Box
-              sx={{
-                position: { md: "sticky" },
-                top: { md: 96 },
-                maxHeight: { md: "calc(100vh - 112px)" },
-                overflowY: { md: "auto" },
-              }}
-            >
-              <FiltersSidebar
-                categories={categories}
-                selectedCategories={filters.categories}
-                minPrice={filters.minPrice}
-                maxPrice={filters.maxPrice}
-                minRating={filters.minRating}
-                ratingOptions={ratingOptions}
-                hasOffer={filters.hasOffer}
-                onClearAll={clearFilters}
-                onClearCategories={clearCategories}
-                onToggleCategory={toggleCategory}
-                onMinPriceChange={setMinPrice}
-                onMaxPriceChange={setMaxPrice}
-                onMinRatingChange={setMinRating}
-                onToggleHasOffer={toggleHasOffer}
-              />
-            </Box>
+            <FiltersSidebar
+              categories={categories}
+              selectedCategories={filters.categories}
+              minPrice={filters.minPrice}
+              maxPrice={filters.maxPrice}
+              minRating={filters.minRating}
+              ratingOptions={ratingOptions}
+              hasOffer={filters.hasOffer}
+              onClearAll={clearFilters}
+              onClearCategories={clearCategories}
+              onToggleCategory={toggleCategory}
+              onMinPriceChange={setMinPrice}
+              onMaxPriceChange={setMaxPrice}
+              onMinRatingChange={setMinRating}
+              onToggleHasOffer={toggleHasOffer}
+            />
           </Grid>
 
           <Grid size={{ xs: 12, md: 9 }}>
