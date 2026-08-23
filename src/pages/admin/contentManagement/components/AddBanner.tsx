@@ -12,11 +12,12 @@ import {
   IconButton,
   Chip,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useNavigate } from "react-router-dom";
-import { createBanner, PLACEMENT_OPTIONS, uploadBannerImage } from "../services/contentService";
+import { createBanner, PLACEMENT_OPTIONS, uploadBannerImage } from "../../../../services/bannerService";
 
 const cardStyle = {
   p: 3,
@@ -27,13 +28,32 @@ const cardStyle = {
   mb: 0,
 };
 
+const getServerErrorMessage = (err: any, fallback: string) => {
+  const responseData = err?.response?.data;
+  const flattenedErrors =
+    responseData?.errors && typeof responseData.errors === "object"
+      ? Object.values(responseData.errors).flat().filter(Boolean).join(" ")
+      : "";
+
+  return (
+    responseData?.detail ||
+    flattenedErrors ||
+    responseData?.error ||
+    responseData?.message ||
+    responseData?.title ||
+    err?.message ||
+    fallback
+  );
+};
+
 export default function AddBanner() {
+  const theme = useTheme();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
-    placement: "" as "" | number,
+    placement: "" as "" | "Home" | "Explore",
     startDate: "",
     endDate: "",
     status: true,
@@ -78,12 +98,7 @@ export default function AddBanner() {
       setImageUrl(uploadedUrl);
       setErrors((prev) => ({ ...prev, imageUrl: "" }));
     } catch (err: any) {
-      const serverMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        err?.message ||
-        "Failed to upload image.";
+      const serverMsg = getServerErrorMessage(err, "Failed to upload image.");
       setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
     } finally {
       setUploadingImage(false);
@@ -113,18 +128,14 @@ export default function AddBanner() {
         title: form.title,
         subtitle: form.subtitle || undefined,
         imageUrl: imageUrl.trim(),
-        placement: form.placement as number,
+        placement: form.placement || "Home",
         startDate: form.startDate,
         endDate: form.endDate,
+        status: form.status,
       });
       navigate("/admin/content");
     } catch (err: any) {
-      const serverMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        err?.message ||
-        "Failed to save. Please try again.";
+      const serverMsg = getServerErrorMessage(err, "Failed to save. Please try again.");
       setErrors((prev) => ({ ...prev, imageUrl: serverMsg }));
     } finally {
       setSaving(false);
@@ -138,6 +149,39 @@ export default function AddBanner() {
   const previewStatus = form.status ? "Active" : "Inactive";
   const today = new Date().toISOString().split("T")[0];
   const isScheduled = form.startDate && form.startDate > today;
+  const textFieldSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 2,
+      backgroundColor: alpha(theme.palette.primary.main, 0.03),
+      transition: "background-color 160ms ease, box-shadow 160ms ease",
+      "& fieldset": {
+        borderColor: alpha(theme.palette.primary.main, 0.22),
+      },
+      "&:hover fieldset": {
+        borderColor: theme.palette.primary.main,
+      },
+      "&.Mui-focused": {
+        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.08)}`,
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: theme.palette.primary.main,
+        borderWidth: 1.5,
+      },
+    },
+    "& .MuiInputLabel-root": {
+      color: theme.palette.primary.dark,
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: theme.palette.primary.main,
+    },
+    "& .MuiInputBase-input": {
+      color: theme.palette.text.primary,
+    },
+    "& .MuiFormHelperText-root": {
+      marginLeft: 0,
+    },
+  };
 
   return (
     <Box>
@@ -200,7 +244,7 @@ export default function AddBanner() {
               placeholder="e.g., Summer Sale 2024"
               fullWidth
               required
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, ...textFieldSx }}
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
               error={!!errors.title}
@@ -213,6 +257,7 @@ export default function AddBanner() {
               fullWidth
               multiline
               rows={3}
+              sx={textFieldSx}
               value={form.subtitle}
               onChange={(e) => handleChange("subtitle", e.target.value)}
             />
@@ -231,9 +276,9 @@ export default function AddBanner() {
               select
               fullWidth
               required
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, ...textFieldSx }}
               value={form.placement}
-              onChange={(e) => handleChange("placement", Number(e.target.value))}
+              onChange={(e) => handleChange("placement", e.target.value)}
               error={!!errors.placement}
               helperText={errors.placement}
             >
@@ -251,6 +296,7 @@ export default function AddBanner() {
                 fullWidth
                 required
                 InputLabelProps={{ shrink: true }}
+                sx={textFieldSx}
                 value={form.startDate}
                 onChange={(e) => handleChange("startDate", e.target.value)}
                 error={!!errors.startDate}
@@ -262,6 +308,7 @@ export default function AddBanner() {
                 fullWidth
                 required
                 InputLabelProps={{ shrink: true }}
+                sx={textFieldSx}
                 value={form.endDate}
                 onChange={(e) => handleChange("endDate", e.target.value)}
                 error={!!errors.endDate}

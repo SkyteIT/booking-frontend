@@ -14,6 +14,7 @@ import CategoryFanSection from "./components/CategoryFanSection";
 import FeaturedFlowSection from "./components/FeaturedFlowSection";
 import StepsSection from "./components/StepsSection";
 import CtaSection from "./components/CtaSection";
+import BannerCarouselSection from "../../../components/sections/banners/BannerCarouselSection";
 
 const UbeLanding = () => {
   const navigate = useNavigate();
@@ -103,6 +104,11 @@ const UbeLanding = () => {
         setFlowIndex={setFlowIndex}
         dragMoved={dragMoved}
         onOpenListing={openListing}
+      />
+
+      <BannerCarouselSection
+        placement="Home"
+        showHeader={false}
       />
 
       <StepsSection />
