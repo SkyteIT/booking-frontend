@@ -53,8 +53,16 @@ export const ConfirmationPage: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const totalPaid = result.payments.reduce((sum, p) => sum + p.amount, 0);
-  const currency = result.payments[0]?.currency ?? result.bookings[0]?.currency ?? 'LKR';
+  // Summed per currency rather than blindly across all payments - a
+  // checkout can include listings priced in different currencies, and
+  // adding those amounts together under one label would show a wrong
+  // number (each is a real amount in its own currency, not fungible).
+  const totalsByCurrency = result.payments.reduce<Record<string, number>>((totals, p) => {
+    const key = p.currency || 'LKR';
+    totals[key] = (totals[key] ?? 0) + p.amount;
+    return totals;
+  }, {});
+  const currencyTotals = Object.entries(totalsByCurrency);
 
   return (
     <Box
@@ -161,13 +169,17 @@ export const ConfirmationPage: React.FC = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Total Paid
-            </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
-              {currency} {totalPaid.toFixed(2)}
-            </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            {currencyTotals.map(([currency, amount], index) => (
+              <Box key={currency} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {index === 0 ? 'Total Paid' : ''}
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                  {currency} {amount.toFixed(2)}
+                </Typography>
+              </Box>
+            ))}
           </Box>
         </Paper>
 

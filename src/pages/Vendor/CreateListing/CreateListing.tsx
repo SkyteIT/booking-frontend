@@ -184,7 +184,7 @@ const CreateListing = () => {
             initialFormData.activityType =
               activity.activityType || activity.ActivityType || "";
             const dur = activity.durationHours || activity.DurationHours;
-            initialFormData.duration = dur ? `${dur} hours` : "";
+            initialFormData.duration = dur ? String(dur) : "";
             initialFormData.difficultyLevel =
               activity.difficultyLevel || activity.DifficultyLevel || "Easy";
             initialFormData.activityPrice =
@@ -210,7 +210,7 @@ const CreateListing = () => {
               "T",
             );
             initialFormData.eventDate = dateTime?.[0] || "";
-            initialFormData.eventTime = dateTime?.[1] || "";
+            initialFormData.eventTime = dateTime?.[1]?.substring(0, 5) || "";
             initialFormData.seatCount = event.seatCount || event.SeatCount || 0;
             initialFormData.eventType =
               event.eventType || event.EventType || "";
@@ -272,6 +272,21 @@ const CreateListing = () => {
       }
     }
   }, [categoryId, categories, setValue]);
+
+  const to12HourAndPeriod = (time24?: string): { time: string; period: string } => {
+    if (!time24) return { time: "06:00", period: "AM" };
+    const cleanTime = time24.split(" ")[0];
+    const parts = cleanTime.split(":");
+    let hours = Number(parts[0]);
+    const minutes = parts[1] || "00";
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    return {
+      time: `${hours}:${minutes}`,
+      period
+    };
+  };
 
   const onSubmit = async (data: ListingFormData) => {
     try {
@@ -346,21 +361,29 @@ const CreateListing = () => {
       };
 
       if (type === "Hotel") {
+        const checkIn = to12HourAndPeriod(data.checkInTime || "14:00");
+        const checkOut = to12HourAndPeriod(data.checkOutTime || "12:00");
         request.hotelDetails = {
           pricePerNight: Number(data.pricePerNight) || 0,
           availableRooms: Number(data.numberOfRooms) || 0,
           amenities: data.amenities || [],
-          checkInTime: data.checkInTime || "14:00",
-          checkOutTime: data.checkOutTime || "12:00",
+          checkInTime: `${checkIn.time} ${checkIn.period}`,
+          checkOutTime: `${checkOut.time} ${checkOut.period}`,
           roomTypes: data.roomTypes || [],
           propertyType: data.propertyType || "",
           primaryRoomType: data.roomType || "",
         };
       } else if (type === "Restaurant") {
+        const opening = to12HourAndPeriod(data.openingTime);
+        const closing = to12HourAndPeriod(data.closingTime);
         request.restaurantDetails = {
           cuisineType: data.cuisineType || "",
           averageCost: Number(data.averageCost) || 0,
-          openingHours: `${data.openingTime || "06:00"} - ${data.closingTime || "23:00"}`,
+          openingTime: opening.time,
+          openingPeriod: opening.period,
+          closingTime: closing.time,
+          closingPeriod: closing.period,
+          openingHours: `${opening.time} ${opening.period} - ${closing.time} ${closing.period}`,
           tableCapacity: Number(data.seatingCapacity) || 0,
           tableTypes: data.tableTypes || [],
           reservationRules: data.reservationRules || "",
@@ -368,9 +391,7 @@ const CreateListing = () => {
       } else if (type === "Activity") {
         request.activityDetails = {
           activityType: data.activityType || "",
-          durationHours: parseInt(
-            String(data.duration)?.replace(/\D/g, "") || "0",
-          ),
+          durationHours: Number(data.duration) || 0,
           difficultyLevel: data.difficultyLevel || "Easy",
           price: Number(data.activityPrice) || 0,
           minGroupSize: Number(data.minGroupSize) || 1,
@@ -385,7 +406,13 @@ const CreateListing = () => {
         request.eventDetails = {
           eventName: data.title,
           organizer: data.organizer || "",
-          dateAndTime: `${data.eventDate || "2026-05-10"}T${data.eventTime || "19:00:00"}`,
+          dateAndTime: `${data.eventDate || "2026-05-10"}T${
+            data.eventTime
+              ? data.eventTime.length === 5
+                ? `${data.eventTime}:00`
+                : data.eventTime
+              : "19:00:00"
+          }`,
           seatCount: Number(data.seatCount) || 0,
           ticketPrice: Number(data.ticketTypes?.[0]?.price) || 0,
           eventType: data.eventType || "",

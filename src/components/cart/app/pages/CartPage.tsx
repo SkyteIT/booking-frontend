@@ -27,10 +27,7 @@ export const CartPage: React.FC = () => {
 
   const handleCheckout = () => {
     if (selectedCart.length === 0) return;
-    // Same guard PriceCard already uses before adding to cart - checkout
-    // itself needs a real account too, and failing fast here (before the
-    // guest fills out two pages of forms) beats letting the backend 401
-    // on the final "Confirm Payment" click.
+    
     if (!isAuthenticated) {
       navigate('/login?next=/cart');
       return;
@@ -38,23 +35,14 @@ export const CartPage: React.FC = () => {
     navigate('/checkout');
   };
 
-  // Same gap as CartContext's canBookMultiple: no "allows multiple" flag
-  // exists on the real admin-managed Category yet, so this still matches
-  // literal names. See .claude/BACKEND-TODO-cart.md.
+  
   const canIncreaseQuantity = (category: string) => category !== 'hotel' && category !== 'car';
 
-  // Order summary reflects only the selected lines - the whole point of
-  // selection is to check out a subset, so the total shown must match
-  // what checkout will actually charge.
   const subtotal = getSelectedTotal();
-  const tax = subtotal * 0.1;
-  const serviceFee = selectedCart.length > 0 ? 25 : 0;
-  const total = subtotal + tax + serviceFee;
+  const currency = cart[0]?.currency ?? 'LKR';
   const allSelected = cart.length > 0 && selectedCart.length === cart.length;
 
-  // Tabs are derived from whatever real categories are actually in the
-  // cart (item.category now comes straight from the admin-managed category
-  // list, see CartContext's BookingItem) instead of a fixed hardcoded set.
+ 
   const cartCategories = Array.from(new Set(cart.map((item) => item.category)));
   const categories = ['All', ...cartCategories];
   const filteredCart = activeTab === 'All' ? cart : cart.filter((item) => item.category === activeTab);
@@ -124,8 +112,8 @@ export const CartPage: React.FC = () => {
                 item={item}
                 selected={isItemSelected(item)}
                 onToggleSelected={() => toggleItemSelected(item)}
-                onRemove={() => removeFromCart(item.id)}
-                onQuantityChange={(q) => updateCartItem(item.id, q, item.startDate, item.endDate)}
+                onRemove={() => removeFromCart(item)}
+                onQuantityChange={(q) => updateCartItem(item, q, item.startDate, item.endDate)}
                 canIncreaseQuantity={canIncreaseQuantity(item.category)}
               />
             ))}
@@ -141,10 +129,8 @@ export const CartPage: React.FC = () => {
 
           <Box sx={{ width: { xs: '100%', lg: 380 } }}>
             <CartOrderSummary
+              currency={currency}
               subtotal={subtotal}
-              tax={tax}
-              serviceFee={serviceFee}
-              total={total}
               selectedCount={selectedCart.length}
               onCheckout={handleCheckout}
             />

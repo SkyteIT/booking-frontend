@@ -14,9 +14,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { useCart } from "../../components/cart/app/contexts/CartContext";
-import type { BookingItem } from "../../components/cart/app/contexts/CartContext";
-
 interface ListingCardProps {
   id?: string | number;
   image: string;
@@ -41,7 +38,6 @@ const ListingCard = ({
   title,
   category,
   price,
-  priceNumber = 0,
   rating,
   location,
   badge,
@@ -49,7 +45,6 @@ const ListingCard = ({
   onClick,
 }: ListingCardProps) => {
   const navigate = useNavigate();
-  const { addToCart } = useCart();
 
 
   const handleClick = () => {
@@ -63,24 +58,11 @@ const ListingCard = ({
 
 
 
-   const handleBookNow = (e: React.MouseEvent) => {
-    e.stopPropagation(); // prevent card click when clicking Book Now
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-
-    const item: BookingItem = {
-      id:String(id),
-      name: title,
-      category,
-      price: priceNumber,
-      priceUnit: "per night",
-      description: "",
-      image,
-      location,
-    };
-
-    addToCart(item, 1, today, tomorrow);
-    alert(`${title} added to cart!`);
+  const handleBookNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Let customers choose dates, units, and quantity on the listing
+    // details page before anything is added to their cart.
+    handleClick();
   };
 
 

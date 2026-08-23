@@ -14,6 +14,7 @@ import CategoryFanSection from "./components/CategoryFanSection";
 import FeaturedFlowSection from "./components/FeaturedFlowSection";
 import StepsSection from "./components/StepsSection";
 import CtaSection from "./components/CtaSection";
+import BannerCarouselSection from "../../../components/sections/banners/BannerCarouselSection";
 
 const UbeLanding = () => {
   const navigate = useNavigate();
@@ -37,9 +38,9 @@ const UbeLanding = () => {
   useRevealOnScroll();
   useStageTilt(stageRef);
 
-  const chips = categories.map((c, i) => ({
+  const chips = categories.slice(0, CHIP_POS.length).map((c, i) => ({
     ...c,
-    ...CHIP_POS[i % CHIP_POS.length],
+    ...CHIP_POS[i],
     bg: GRADIENTS[i % GRADIENTS.length],
   }));
   const fanCards = categories.map((c, i) => ({
@@ -103,6 +104,11 @@ const UbeLanding = () => {
         setFlowIndex={setFlowIndex}
         dragMoved={dragMoved}
         onOpenListing={openListing}
+      />
+
+      <BannerCarouselSection
+        placement="Home"
+        showHeader={false}
       />
 
       <StepsSection />

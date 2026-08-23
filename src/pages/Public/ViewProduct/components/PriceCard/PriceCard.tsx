@@ -13,7 +13,10 @@ import ToastAlert from "../../../../../components/common/ToastAlert";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../../../components/cart/app/contexts/CartContext";
 import { useAuth } from "../../../../../context/useAuth";
-import { getListingOffers, type ListingOfferDto } from "../../../../../services/Vendor/listingOfferService";
+import {
+  getListingOffers,
+  type ListingOfferDto,
+} from "../../../../../services/Vendor/listingOfferService";
 import type { ListingUnitDto } from "../../../../../services/Vendor/listingUnitsService";
 import { getPriceQuote } from "../../../../../services/Vendor/seasonalPricingService";
 import { businessDateToday } from "../../../../../utils/businessDate";
@@ -25,12 +28,21 @@ interface PriceCardProps {
   listing: Listing;
   units: ListingUnitDto[] | null;
   selectedUnitId: string;
+  selectedSeatIds: string[];
   checkIn: string;
   checkOut: string;
   guests: number;
 }
 
-const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }: PriceCardProps) => {
+const PriceCard = ({
+  listing,
+  units,
+  selectedUnitId,
+  selectedSeatIds,
+  checkIn,
+  checkOut,
+  guests,
+}: PriceCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
@@ -40,13 +52,45 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   const seatUnits = units?.filter((u) => u.kind === "Seat") ?? [];
   const timeSlotUnits = units?.filter((u) => u.kind === "TimeSlot") ?? [];
   const selectedUnit = units?.find((u) => u.id === selectedUnitId);
-  const displayPrice = selectedUnit?.priceOverride ?? listing.price;
+  const selectedSeats = seatUnits.filter((u) => selectedSeatIds.includes(u.id));
+  const displayPrice =
+    seatUnits.length > 0
+      ? (selectedSeats[0]?.priceOverride ?? listing.price)
+      : (selectedUnit?.priceOverride ?? listing.price);
   const quantityConfig = getQuantityConfig(listing);
-  const effectiveQuantity = seatUnits.length > 0 || timeSlotUnits.length > 0 || !quantityConfig ? 1 : guests;
+  const effectiveQuantity =
+    seatUnits.length > 0
+      ? selectedSeats.length
+      : timeSlotUnits.length > 0 || !quantityConfig
+        ? 1
+        : guests;
 
+  // Seats can each carry their own priceOverride (e.g. front-row vs back-row
+  // pricing), so the seat-map total is a per-seat sum, not one price × count.
   const estimatedTotal =
     checkIn && checkOut
-      ? calculatePricingTotal(displayPrice, effectiveQuantity, checkIn, checkOut || checkIn, listing.pricingUnit)
+      ? seatUnits.length > 0
+        ? selectedSeats.length > 0
+          ? selectedSeats.reduce(
+              (sum, seat) =>
+                sum +
+                calculatePricingTotal(
+                  seat.priceOverride ?? listing.price,
+                  1,
+                  checkIn,
+                  checkOut || checkIn,
+                  listing.pricingUnit,
+                ),
+              0,
+            )
+          : null
+        : calculatePricingTotal(
+            displayPrice,
+            effectiveQuantity,
+            checkIn,
+            checkOut || checkIn,
+            listing.pricingUnit,
+          )
       : null;
 
   // Seasonal pricing rules live server-side only - the client-side
@@ -56,9 +100,16 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   // on the network. Keyed by the inputs it was fetched for, so a quote
   // from stale inputs is never shown against the current selection -
   // avoids a synchronous reset in the effect body.
+  // Seat maps skip the server quote entirely - it only accepts one unitId,
+  // and a per-seat seasonal quote would need its own multi-unit endpoint.
+  // The per-seat local sum above is used for seat-map listings instead.
   const quoteKey =
-    checkIn && checkOut ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}` : null;
-  const [quote, setQuote] = useState<{ key: string; total: number } | null>(null);
+    checkIn && checkOut && seatUnits.length === 0
+      ? `${listing.id}|${checkIn}|${checkOut}|${selectedUnitId}|${effectiveQuantity}`
+      : null;
+  const [quote, setQuote] = useState<{ key: string; total: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!quoteKey || !checkIn || !checkOut) return;
@@ -70,12 +121,21 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
         unitId: selectedUnitId || undefined,
         quantity: effectiveQuantity,
       })
-        .then((result) => setQuote({ key: quoteKey, total: result.totalAmount }))
+        .then((result) =>
+          setQuote({ key: quoteKey, total: result.totalAmount }),
+        )
         .catch(() => {});
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [quoteKey, listing.id, checkIn, checkOut, selectedUnitId, effectiveQuantity]);
+  }, [
+    quoteKey,
+    listing.id,
+    checkIn,
+    checkOut,
+    selectedUnitId,
+    effectiveQuantity,
+  ]);
 
   const serverQuote = quote && quote.key === quoteKey ? quote.total : null;
   const displayedTotal = serverQuote ?? estimatedTotal;
@@ -92,7 +152,9 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
       .then((offers) => {
         if (cancelled) return;
         const today = businessDateToday();
-        const current = offers.find((o) => o.isActive && o.startDate <= today && o.endDate >= today);
+        const current = offers.find(
+          (o) => o.isActive && o.startDate <= today && o.endDate >= today,
+        );
         setActiveOffer(current ?? null);
       })
       .catch(() => setActiveOffer(null));
@@ -105,13 +167,27 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
   // reads as a summary instead of just a bare price.
   const selectionSummary = (() => {
     const parts: string[] = [];
-    if (selectedUnit && (seatUnits.length > 0 || timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))) {
+    if (seatUnits.length > 0 && selectedSeats.length > 0) {
+      parts.push(selectedSeats.map((s) => s.code ?? s.name).join(", "));
+    } else if (
+      selectedUnit &&
+      (timeSlotUnits.length > 0 || units?.some((u) => u.kind === "Generic"))
+    ) {
       parts.push(selectedUnit.name);
     }
-    if (quantityConfig && seatUnits.length === 0 && timeSlotUnits.length === 0) {
-      parts.push(`${guests} ${quantityConfig.singular}${guests > 1 ? "s" : ""}`);
+    if (
+      quantityConfig &&
+      seatUnits.length === 0 &&
+      timeSlotUnits.length === 0
+    ) {
+      parts.push(
+        `${guests} ${quantityConfig.singular}${guests > 1 ? "s" : ""}`,
+      );
     }
-    if (checkIn) parts.push(checkOut && checkOut !== checkIn ? `${checkIn} – ${checkOut}` : checkIn);
+    if (checkIn)
+      parts.push(
+        checkOut && checkOut !== checkIn ? `${checkIn} – ${checkOut}` : checkIn,
+      );
     return parts.join(" · ");
   })();
 
@@ -123,11 +199,28 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
 
     if (!checkIn || !checkOut) {
       setStatus("error");
-      setErrorMessage("Please select both dates.");
+      setErrorMessage(
+        listing.type === "Hotel"
+          ? "Please select check-in and check-out dates."
+          : listing.type === "CarRental"
+            ? "Please select pickup and return dates."
+            : "Please select a booking date.",
+      );
       return;
     }
 
-    if (units && units.length > 0 && !selectedUnitId) {
+    if (seatUnits.length > 0 && selectedSeats.length === 0) {
+      setStatus("error");
+      setErrorMessage("Please choose at least one seat before adding to cart.");
+      return;
+    }
+
+    if (
+      seatUnits.length === 0 &&
+      units &&
+      units.length > 0 &&
+      !selectedUnitId
+    ) {
       setStatus("error");
       setErrorMessage("Please make a selection before adding to cart.");
       return;
@@ -135,27 +228,51 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
 
     setErrorMessage("");
     try {
-      addToCart(
-        {
-          id: listing.id,
-          name: listing.title,
-          category: listing.category as string,
-          // The selected unit's own price wins when set (e.g. "Deluxe
-          // Room" costing more than the listing's base price) - falling
-          // back to listing.price always was a real bug: picking a
-          // priced unit silently added the wrong amount to the cart.
-          price: selectedUnit?.priceOverride ?? listing.price,
-          priceUnit: listing.priceUnit ?? "per day",
-          pricingUnit: listing.pricingUnit,
-          description: listing.description ?? "",
-          image: listing.image,
-          location: listing.location,
-          listingUnitId: selectedUnitId || undefined,
-        },
-        effectiveQuantity,
-        checkIn,
-        checkOut
-      );
+      const baseItem = {
+        id: listing.id,
+        name: listing.title,
+        category: listing.category as string,
+        currency: listing.currency,
+        priceUnit: listing.priceUnit ?? "per day",
+        pricingUnit: listing.pricingUnit,
+        description: listing.description ?? "",
+        image: listing.image,
+        location: listing.location,
+      };
+
+      if (seatUnits.length > 0) {
+        // Each seat is its own bookable resource - one cart line per seat
+        // (now that CartContext's key includes listingUnitId, these no
+        // longer collide into a single merged line).
+        selectedSeats.forEach((seat) => {
+          addToCart(
+            {
+              ...baseItem,
+              name: `${listing.title} — ${seat.code ?? seat.name}`,
+              price: seat.priceOverride ?? listing.price,
+              listingUnitId: seat.id,
+            },
+            1,
+            checkIn,
+            checkOut,
+          );
+        });
+      } else {
+        addToCart(
+          {
+            ...baseItem,
+            // The selected unit's own price wins when set (e.g. "Deluxe
+            // Room" costing more than the listing's base price) - falling
+            // back to listing.price always was a real bug: picking a
+            // priced unit silently added the wrong amount to the cart.
+            price: selectedUnit?.priceOverride ?? listing.price,
+            listingUnitId: selectedUnitId || undefined,
+          },
+          effectiveQuantity,
+          checkIn,
+          checkOut,
+        );
+      }
       setStatus("success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
@@ -189,7 +306,7 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
             variant="h4"
             sx={{ fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}
           >
-            ${displayPrice}
+            {listing.currency} {displayPrice}
           </Typography>
           <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.85)" }}>
             /{listing.priceUnit}
@@ -213,69 +330,97 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
             backgroundColor: "rgba(0,119,182,0.06)",
           }}
         >
-          <CalendarMonthOutlinedIcon sx={{ fontSize: "1.2rem", color: "primary.main", mt: 0.2 }} />
+          <CalendarMonthOutlinedIcon
+            sx={{ fontSize: "1.2rem", color: "primary.main", mt: 0.2 }}
+          />
           <Box>
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.25, color: "text.primary" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, mb: 0.25, color: "text.primary" }}
+            >
               Your selection
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {selectionSummary || "Choose your options below"}
             </Typography>
             {displayedTotal !== null && (
-              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}>
-                Estimated total: ${displayedTotal.toFixed(2)}
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, mt: 0.75, color: "primary.main" }}
+              >
+                Estimated total: {listing.currency} {displayedTotal.toFixed(2)}
               </Typography>
             )}
           </Box>
         </Box>
 
-      {/* Active vendor offer, if one is running right now */}
-      {activeOffer && (
-        <>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2.5 }}>
-            <LocalOfferIcon sx={{ fontSize: "1rem", color: "#E85D3D", mt: 0.2 }} />
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {activeOffer.title}
-                {activeOffer.discountType === "PercentageDiscount" && ` — ${activeOffer.discountValue}% off`}
-                {activeOffer.discountType === "FixedAmountDiscount" && ` — ${activeOffer.discountValue} off`}
-              </Typography>
-              {activeOffer.description && (
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {activeOffer.description}
+        {/* Active vendor offer, if one is running right now */}
+        {activeOffer && (
+          <>
+            <Divider sx={{ mb: 2 }} />
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                mb: 2.5,
+              }}
+            >
+              <LocalOfferIcon
+                sx={{ fontSize: "1rem", color: "#E85D3D", mt: 0.2 }}
+              />
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {activeOffer.title}
+                  {activeOffer.discountType === "PercentageDiscount" &&
+                    ` — ${activeOffer.discountValue}% off`}
+                  {activeOffer.discountType === "FixedAmountDiscount" &&
+                    ` — ${activeOffer.discountValue} off`}
                 </Typography>
-              )}
+                {activeOffer.description && (
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {activeOffer.description}
+                  </Typography>
+                )}
+              </Box>
             </Box>
-          </Box>
-        </>
-      )}
+          </>
+        )}
 
-      {/* Real cancellation policy, if the vendor set one */}
-      {listing.cancellationPolicy && (
-        <>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2.5 }}>
-            <CheckCircleOutlineIcon sx={{ fontSize: "1rem", color: "primary.main", mt: 0.2 }} />
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {listing.cancellationPolicy}
-            </Typography>
-          </Box>
-        </>
-      )}
+        {/* Real cancellation policy, if the vendor set one */}
+        {listing.cancellationPolicy && (
+          <>
+            <Divider sx={{ mb: 2 }} />
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                mb: 2.5,
+              }}
+            >
+              <CheckCircleOutlineIcon
+                sx={{ fontSize: "1rem", color: "primary.main", mt: 0.2 }}
+              />
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                {listing.cancellationPolicy}
+              </Typography>
+            </Box>
+          </>
+        )}
 
-      <ToastAlert
-        open={status === "success"}
-        onClose={() => setStatus("idle")}
-        severity="success"
-        message="Added to your cart"
-      />
-      <ToastAlert
-        open={status === "error"}
-        onClose={() => setStatus("idle")}
-        severity="error"
-        message={errorMessage}
-      />
+        <ToastAlert
+          open={status === "success"}
+          onClose={() => setStatus("idle")}
+          severity="success"
+          message="Added to your cart"
+        />
+        <ToastAlert
+          open={status === "error"}
+          onClose={() => setStatus("idle")}
+          severity="error"
+          message={errorMessage}
+        />
 
         <Button
           fullWidth
@@ -293,8 +438,12 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
               ? "linear-gradient(160deg, #005a8d, #0077b6)"
               : undefined,
             "&:hover": {
-              background: listing.isAvailable ? "linear-gradient(160deg, #004a75, #005a8d)" : undefined,
-              boxShadow: listing.isAvailable ? "0 12px 28px rgba(0,119,182,0.32)" : "none",
+              background: listing.isAvailable
+                ? "linear-gradient(160deg, #004a75, #005a8d)"
+                : undefined,
+              boxShadow: listing.isAvailable
+                ? "0 12px 28px rgba(0,119,182,0.32)"
+                : "none",
             },
             "&.Mui-disabled": { color: "rgba(15,27,45,0.4)" },
           }}
@@ -304,7 +453,12 @@ const PriceCard = ({ listing, units, selectedUnitId, checkIn, checkOut, guests }
 
         <Typography
           variant="caption"
-          sx={{ display: "block", textAlign: "center", color: "text.secondary", mt: 1.25 }}
+          sx={{
+            display: "block",
+            textAlign: "center",
+            color: "text.secondary",
+            mt: 1.25,
+          }}
         >
           You won't be charged yet
         </Typography>

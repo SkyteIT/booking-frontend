@@ -8,6 +8,7 @@ import MainFooter from "../../../components/footer/MainFooter";
 import CustomerNavbar from "../../../components/navbars/CustomerNavbar";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
+  acknowledgeRejectedVendorApplication,
   getMyVendorApplicationStatus,
   type MyVendorApplicationStatusDto,
 } from "../../../services/vendorRegistrationService";
@@ -122,7 +123,14 @@ export default function ApplicationStatus() {
                 </Button>
               )}
               {status.status === "Rejected" && (
-                <Button component={Link} to="/vendor/businessinfo" variant="outlined">
+                <Button
+                  component={Link}
+                  to="/vendor/businessinfo"
+                  variant="outlined"
+                  onClick={() =>
+                    acknowledgeRejectedVendorApplication(status.id)
+                  }
+                >
                   Apply again
                 </Button>
               )}

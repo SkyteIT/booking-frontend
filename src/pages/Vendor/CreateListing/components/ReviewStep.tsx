@@ -11,7 +11,13 @@ import {
 import type { UseFormRegister } from "react-hook-form";
 import type { CategoryDto } from "../../../../services/Vendor/listingService";
 import type { ListingFormData } from "../../../../utils/types";
-import type { ListRow, GridConfig, TimeSlotConfig, UnitsMode } from "./BookableUnitsSection";
+import type {
+  ListRow,
+  GridConfig,
+  TimeSlotConfig,
+  UnitsMode,
+} from "./BookableUnitsSection";
+import { formatTimeAmPm } from "./timeOptions";
 
 interface ReviewStepProps {
   data: ListingFormData;
@@ -24,15 +30,17 @@ interface ReviewStepProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   isEditMode: boolean;
+  pendingImageCount: number;
 }
 
 function unitsSummary(
   mode: UnitsMode,
   listRows: ListRow[],
   gridConfig: GridConfig,
-  timeSlotConfig: TimeSlotConfig
+  timeSlotConfig: TimeSlotConfig,
 ): string {
-  if (mode === "none") return "No bookable units configured — this listing is booked as a whole.";
+  if (mode === "none")
+    return "No bookable units configured — this listing is booked as a whole.";
   if (mode === "list") {
     const named = listRows.filter((r) => r.name.trim());
     return named.length > 0
@@ -46,7 +54,7 @@ function unitsSummary(
       ? `${rows * columns} seats will be generated (${rows} rows × ${columns} columns).`
       : "Grid mode selected, but rows/columns not set.";
   }
-  return `Time slots from ${timeSlotConfig.startTime} to ${timeSlotConfig.endTime}, every ${timeSlotConfig.slotDurationMinutes} min, capacity ${timeSlotConfig.capacityPerSlot} per slot.`;
+  return `Time slots from ${formatTimeAmPm(timeSlotConfig.startTime)} to ${formatTimeAmPm(timeSlotConfig.endTime)}, every ${timeSlotConfig.slotDurationMinutes} min, capacity ${timeSlotConfig.capacityPerSlot} per slot.`;
 }
 
 export default function ReviewStep({
@@ -60,11 +68,11 @@ export default function ReviewStep({
   onSubmit,
   isSubmitting,
   isEditMode,
+  pendingImageCount,
 }: ReviewStepProps) {
-  const categoryName = categories.find((c) => c.id === data.categoryId)?.name ?? data.category;
-  const imageCount = data.imageUrls
-    ? data.imageUrls.split(",").map((u) => u.trim()).filter(Boolean).length
-    : 0;
+  const categoryName =
+    categories.find((c) => c.id === data.categoryId)?.name ?? data.category;
+  const imageCount = (data.images?.length ?? 0) + pendingImageCount;
 
   return (
     <Box>
@@ -94,7 +102,11 @@ export default function ReviewStep({
             <Typography variant="subtitle2" color="text.secondary">
               Base Price
             </Typography>
-            <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }}>
+            <Typography
+              variant="h6"
+              color="primary.main"
+              sx={{ fontWeight: 700 }}
+            >
               LKR {data.price || 0}
             </Typography>
           </Box>
@@ -116,7 +128,9 @@ export default function ReviewStep({
         Images
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {imageCount > 0 ? `${imageCount} image(s) provided.` : "No images provided yet."}
+        {imageCount > 0
+          ? `${imageCount} image(s) provided.`
+          : "No images provided yet."}
       </Typography>
 
       <Divider sx={{ my: 2 }} />

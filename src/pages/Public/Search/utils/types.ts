@@ -18,6 +18,7 @@ export interface Listing {
   type?: string;
   location: string;
   price: number;
+  currency: string;
   priceUnit?: string;
   // Category pricing model (PerNight/PerHour/PerPerson/PerDay/FixedPrice)
   // from the backend's ListingResponse.PricingUnit - lets the cart
@@ -27,20 +28,44 @@ export interface Listing {
   // control (see PriceCard.tsx) - drives what "quantity" honestly means
   // per category (rooms/party size/participants) instead of one
   // generic "guests" field with a fixed 1-6 range everywhere.
-  availableRooms?: number;   // Hotel
-  tableCapacity?: number;    // Restaurant
-  minGroupSize?: number;     // Activity
-  maxGroupSize?: number;     // Activity
+  availableRooms?: number; // Hotel
+  roomTypes?: string[];
+  propertyType?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  tableCapacity?: number; // Restaurant
+  cuisineType?: string;
+  averageCost?: number;
+  openingHours?: string;
+  tableTypes?: string[];
+  reservationRules?: string;
+  minGroupSize?: number; // Activity
+  maxGroupSize?: number; // Activity
+  activityType?: string;
+  durationHours?: number;
+  difficultyLevel?: string;
+  minAge?: number;
+  maxAge?: number;
+  safetyRequirements?: string;
+  availabilitySchedule?: string;
   // Event venue + Car Rental vehicle specs - real data the backend
   // already returns but the product page never surfaced.
-  venueName?: string;        // Event
-  venueAddress?: string;     // Event
-  eventType?: string;        // Event
-  vehicleBrand?: string;     // CarRental
-  vehicleModel?: string;     // CarRental
-  vehicleYear?: number;      // CarRental
+  venueName?: string; // Event
+  venueAddress?: string; // Event
+  eventType?: string; // Event
+  eventDateTime?: string;
+  organizer?: string;
+  seatCount?: number;
+  ticketTypes?: { type: string; quantity: number; price: number }[];
+  vehicleBrand?: string; // CarRental
+  vehicleModel?: string; // CarRental
+  vehicleYear?: number; // CarRental
   vehicleTransmission?: string; // CarRental
-  vehicleFuelType?: string;  // CarRental
+  vehicleFuelType?: string; // CarRental
+  vehicleSeatCount?: number;
+  pickupLocation?: string;
+  returnLocation?: string;
+  availabilityStatus?: string;
   rating: number;
   reviews: number;
   image: string;
@@ -52,6 +77,24 @@ export interface Listing {
   amenities: string[];
   hasActiveOffer?: boolean;
   offerBadgeText?: string | null;
+  // Backend's authority on what booking-date UI this listing needs (e.g.
+  // Event listings set showStartDate: false + fixedStartDateTime instead
+  // of asking the customer to pick a date at all) - see BookingOptions.tsx.
+  bookingSelection?: BookingSelectionConfig;
+}
+
+export interface BookingSelectionConfig {
+  startLabel: string;
+  endLabel?: string;
+  showStartDate: boolean;
+  showStartTime: boolean;
+  showEndDate: boolean;
+  showEndTime: boolean;
+  endMustBeAfterStart: boolean;
+  quantityLabel: string;
+  unitLabel?: string;
+  showUnitSelection: boolean;
+  fixedStartDateTime?: string;
 }
 
 export interface SearchFilters {

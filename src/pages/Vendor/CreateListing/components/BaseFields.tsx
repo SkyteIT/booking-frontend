@@ -1,10 +1,17 @@
-import { Box, MenuItem, Switch, TextField, Typography, FormControlLabel } from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import InfoIcon from "@mui/icons-material/Info";
+import {
+  Box,
+  MenuItem,
+  Switch,
+  TextField,
+  Typography,
+  FormControlLabel,
+} from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
 import type { CategoryDto } from "../../../../services/Vendor/listingService";
 import type { ListingFormData } from "../../../../utils/types";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import InfoIcon from "@mui/icons-material/Info";
 
 interface BaseFieldsProps {
   register: UseFormRegister<ListingFormData>;
@@ -13,10 +20,21 @@ interface BaseFieldsProps {
   categories: CategoryDto[];
 }
 
-export default function BaseFields({ register, control, errors, categories }: BaseFieldsProps) {
+export default function BaseFields({
+  register,
+  control,
+  errors,
+  categories,
+}: BaseFieldsProps) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 3 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gap: 3,
+        }}
+      >
         <TextField
           fullWidth
           label="Listing Title"
@@ -72,7 +90,10 @@ export default function BaseFields({ register, control, errors, categories }: Ba
 
       {/* Listing Images Upload Section */}
       <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: "text.primary" }}>
+        <Typography
+          variant="subtitle2"
+          sx={{ mb: 1, fontWeight: 600, color: "text.primary" }}
+        >
           Listing Images (Max 10 images)
         </Typography>
 
@@ -93,7 +114,9 @@ export default function BaseFields({ register, control, errors, categories }: Ba
           }}
           onClick={() => document.getElementById("image-upload")?.click()}
         >
-          <CloudUploadIcon sx={{ fontSize: 40, color: "text.secondary", mb: 1 }} />
+          <CloudUploadIcon
+            sx={{ fontSize: 40, color: "text.secondary", mb: 1 }}
+          />
           <Typography variant="body2" color="text.secondary">
             Click or drag images to upload (0/10)
           </Typography>
@@ -104,7 +127,7 @@ export default function BaseFields({ register, control, errors, categories }: Ba
             multiple
             hidden
             accept="image/*"
-            {...register("images" as any)}
+            {...register("images")}
           />
         </Box>
 
@@ -121,8 +144,9 @@ export default function BaseFields({ register, control, errors, categories }: Ba
         >
           <InfoIcon sx={{ color: "#0077B6", fontSize: 20, mt: 0.2 }} />
           <Typography variant="caption" color="text.secondary">
-            Minimum 1200×800px recommended. First image will be used as the cover photo.
-            Supported formats: JPG, PNG, WebP. Maximum file size: 5MB per image.
+            Minimum 1200×800px recommended. First image will be used as the
+            cover photo. Supported formats: JPG, PNG, WebP. Maximum file size:
+            5MB per image.
           </Typography>
         </Box>
 
@@ -136,7 +160,14 @@ export default function BaseFields({ register, control, errors, categories }: Ba
         />
       </Box>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 3, alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gap: 3,
+          alignItems: "center",
+        }}
+      >
         <TextField
           fullWidth
           label="Tags"
@@ -183,4 +214,3 @@ export default function BaseFields({ register, control, errors, categories }: Ba
     </Box>
   );
 }
-

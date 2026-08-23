@@ -1,4 +1,5 @@
 // src/pages/vendor/CreateListing/components/ActivityFields.tsx — UPDATED
+import CheckIcon from "@mui/icons-material/Check";
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
 import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import { Controller } from "react-hook-form";
@@ -46,11 +47,27 @@ const ActivityFields = ({ register, control, errors }: ActivityFieldsProps) => {
         />
         <TextField
           fullWidth
-          label="Duration"
-          placeholder="e.g., 2 hours, Full Day"
-          {...register("duration", { required: "Duration is required" })}
+          type="number"
+          label="Duration (Hours)"
+          placeholder="e.g., 2"
+          {...register("duration", {
+            required: "Duration is required",
+            min: { value: 1, message: "Duration must be at least 1 hour" },
+          })}
           error={!!errors.duration}
           helperText={errors.duration?.message}
+        />
+        <TextField
+          fullWidth
+          type="number"
+          label="Ticket Price per Booking"
+          placeholder="e.g., 5000"
+          {...register("activityPrice", {
+            required: "Ticket price is required",
+            min: { value: 0, message: "Price cannot be negative" },
+          })}
+          error={!!errors.activityPrice}
+          helperText={errors.activityPrice?.message}
         />
         <TextField
           fullWidth
@@ -98,21 +115,26 @@ const ActivityFields = ({ register, control, errors }: ActivityFieldsProps) => {
               useFlexGap
               sx={{ gap: 1 }}
             >
-              {includedServices.map((item) => (
-                <Chip
-                  key={item}
-                  label={item}
-                  clickable
-                  variant={field.value?.includes(item) ? "filled" : "outlined"}
-                  color={field.value?.includes(item) ? "primary" : "default"}
-                  onClick={() => {
-                    const newValue = field.value?.includes(item)
-                      ? field.value.filter((v: string) => v !== item)
-                      : [...(field.value ?? []), item];
-                    field.onChange(newValue);
-                  }}
-                />
-              ))}
+              {includedServices.map((item) => {
+                const selected = field.value?.includes(item) ?? false;
+                return (
+                  <Chip
+                    key={item}
+                    label={item}
+                    icon={selected ? <CheckIcon /> : undefined}
+                    clickable
+                    variant={selected ? "filled" : "outlined"}
+                    aria-pressed={selected}
+                    sx={selectableChipSx(selected)}
+                    onClick={() => {
+                      const newValue = field.value?.includes(item)
+                        ? field.value.filter((v: string) => v !== item)
+                        : [...(field.value ?? []), item];
+                      field.onChange(newValue);
+                    }}
+                  />
+                );
+              })}
             </Stack>
           )}
         />
@@ -138,5 +160,17 @@ const ActivityFields = ({ register, control, errors }: ActivityFieldsProps) => {
     </Box>
   );
 };
+
+const selectableChipSx = (selected: boolean) => ({
+  fontWeight: selected ? 700 : 500,
+  borderColor: selected ? "#0F5A8A" : "rgba(15, 90, 138, 0.35)",
+  backgroundColor: selected ? "#0F5A8A" : "#fff",
+  color: selected ? "#fff" : "#0F5A8A",
+  boxShadow: selected ? "0 3px 10px rgba(15, 90, 138, 0.28)" : "none",
+  "& .MuiChip-icon": { color: selected ? "#fff" : "inherit" },
+  "&:hover": {
+    backgroundColor: selected ? "#0C4A73" : "rgba(15, 90, 138, 0.08)",
+  },
+});
 
 export default ActivityFields;

@@ -1,8 +1,10 @@
 // src/pages/vendor/CreateListing/components/RestaurantFields.tsx
+import CheckIcon from "@mui/icons-material/Check";
 import { Box, TextField, Typography, Chip, Stack } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { UseFormRegister, Control, FieldErrors } from "react-hook-form";
 import type { ListingFormData } from "../../../../utils/types";
+import AmPmTimeField from "./AmPmTimeField";
 
 interface RestaurantFieldsProps {
   register: UseFormRegister<ListingFormData>;
@@ -73,22 +75,31 @@ const RestaurantFields = ({
           helperText={errors.averageCost?.message}
         />
 
-        <TextField
-          fullWidth
-          type="time"
-          label="Opening Time"
-          InputLabelProps={{ shrink: true }}
-          {...register("openingTime", { required: true })}
-          error={!!errors.openingTime}
+        <Controller
+          name="openingTime"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <AmPmTimeField
+              label="Opening Time"
+              value={field.value}
+              onChange={field.onChange}
+              error={!!errors.openingTime}
+            />
+          )}
         />
-
-        <TextField
-          fullWidth
-          type="time"
-          label="Closing Time"
-          InputLabelProps={{ shrink: true }}
-          {...register("closingTime", { required: true })}
-          error={!!errors.closingTime}
+        <Controller
+          name="closingTime"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <AmPmTimeField
+              label="Closing Time"
+              value={field.value}
+              onChange={field.onChange}
+              error={!!errors.closingTime}
+            />
+          )}
         />
       </Box>
 
@@ -115,9 +126,11 @@ const RestaurantFields = ({
                   <Chip
                     key={type}
                     label={type}
+                    icon={selected ? <CheckIcon /> : undefined}
                     clickable
                     variant={selected ? "filled" : "outlined"}
-                    color={selected ? "primary" : "default"}
+                    aria-pressed={selected}
+                    sx={selectableChipSx(selected)}
                     onClick={() => {
                       const current = field.value ?? [];
                       const newValue = current.includes(type)
@@ -147,5 +160,17 @@ const RestaurantFields = ({
     </Box>
   );
 };
+
+const selectableChipSx = (selected: boolean) => ({
+  fontWeight: selected ? 700 : 500,
+  borderColor: selected ? "#0F5A8A" : "rgba(15, 90, 138, 0.35)",
+  backgroundColor: selected ? "#0F5A8A" : "#fff",
+  color: selected ? "#fff" : "#0F5A8A",
+  boxShadow: selected ? "0 3px 10px rgba(15, 90, 138, 0.28)" : "none",
+  "& .MuiChip-icon": { color: selected ? "#fff" : "inherit" },
+  "&:hover": {
+    backgroundColor: selected ? "#0C4A73" : "rgba(15, 90, 138, 0.08)",
+  },
+});
 
 export default RestaurantFields;

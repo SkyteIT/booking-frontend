@@ -8,6 +8,7 @@ export interface BookingItem {
   name: string;
   category: string; // real category name/id from the admin-managed category list (services/categoryService.ts), not a fixed set
   price: number;
+  currency: string; // e.g. "LKR" - the listing's real currency, from ListingResponse.currency
   image: string;
   description: string;
   priceUnit: string; // e.g., "per day", "per hour", "per night"
@@ -24,19 +25,11 @@ export interface CartItem extends BookingItem {
   totalPrice: number;
 }
 
-// A cart line isn't uniquely identified by `id` alone - the same listing
-// can appear twice with different date ranges (addToCart's own merge
-// check already keys on id+startDate+endDate). Selection needs a key
-// that's actually unique per line, or selecting one date-range of a
-// listing would silently select every other date-range of it too.
-const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate'>): string =>
-  `${item.id}::${item.startDate}::${item.endDate}`;
 
-// Helper function to check if item allows multiple quantities.
-// NOTE: matches literal category names because the real admin-managed
-// Category (services/categoryService.ts) has no "allows multiple" flag —
-// this needs a backend field to become category-driven instead of
-// name-matched. See .claude/BACKEND-TODO-cart.md.
+const getCartItemKey = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>): string =>
+  `${item.id}::${item.startDate}::${item.endDate}::${item.listingUnitId ?? ""}`;
+
+
 export const canBookMultiple = (category: string): boolean => {
   return category === 'tool' || category === 'other';
 };
@@ -44,8 +37,14 @@ export const canBookMultiple = (category: string): boolean => {
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: BookingItem, quantity: number, startDate: string, endDate: string) => void;
-  removeFromCart: (id: string) => void;
-  updateCartItem: (id: string, quantity: number, startDate: string, endDate: string) => void;
+ 
+  removeFromCart: (item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>) => void;
+  updateCartItem: (
+    item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>,
+    quantity: number,
+    startDate: string,
+    endDate: string
+  ) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemsCount: () => number;
@@ -113,7 +112,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       (cartItem) =>
         cartItem.id === item.id &&
         cartItem.startDate === startDate &&
-        cartItem.endDate === endDate
+        cartItem.endDate === endDate &&
+        cartItem.listingUnitId === item.listingUnitId
     );
 
     if (existingItemIndex > -1) {
@@ -157,28 +157,30 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  const removeFromCart = (id: string) => {
-    setCart(cart.filter((item) => item.id !== id));
+  const removeFromCart = (item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>) => {
+    const key = getCartItemKey(item);
+    setCart(cart.filter((cartItem) => getCartItemKey(cartItem) !== key));
   };
 
   const updateCartItem = (
-    id: string,
+    item: Pick<CartItem, 'id' | 'startDate' | 'endDate' | 'listingUnitId'>,
     quantity: number,
     startDate: string,
     endDate: string
   ) => {
-    const updatedCart = cart.map((item) => {
-      if (item.id === id) {
-        const totalPrice = calculateItemTotal(item.price, quantity, startDate, endDate, item.pricingUnit);
+    const key = getCartItemKey(item);
+    const updatedCart = cart.map((cartItem) => {
+      if (getCartItemKey(cartItem) === key) {
+        const totalPrice = calculateItemTotal(cartItem.price, quantity, startDate, endDate, cartItem.pricingUnit);
         return {
-          ...item,
+          ...cartItem,
           quantity,
           startDate,
           endDate,
           totalPrice,
         };
       }
-      return item;
+      return cartItem;
     });
     setCart(updatedCart);
   };

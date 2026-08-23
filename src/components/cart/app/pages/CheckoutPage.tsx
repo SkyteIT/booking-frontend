@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '../../../../context/useAuth';
 import { checkoutSchema } from '../../../../utils/validationSchemas';
 import { zodErrorToFieldErrors } from '../../../../utils/zodUtils';
+import ToastAlert from '../../../common/ToastAlert';
 import { useCart } from '../contexts/CartContext';
 
 const fieldSx = {
@@ -51,6 +52,7 @@ export const CheckoutPage: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showBookingToast, setShowBookingToast] = useState(false);
 
   useEffect(() => {
     // Reached directly via URL rather than the Cart page's own guarded
@@ -94,14 +96,21 @@ export const CheckoutPage: React.FC = () => {
   const handleContinueToPayment = () => {
     if (validate()) {
       sessionStorage.setItem('checkoutData', JSON.stringify(formData));
-      navigate('/payment');
+      setShowBookingToast(true);
     }
   };
 
+  const handleBookingToastClose = () => {
+    setShowBookingToast(false);
+    navigate('/payment');
+  };
+
+  // Matches what PaymentPage (and the backend's CheckoutAsync) actually
+  // charges - no tax or service fee is added anywhere server-side, so
+  // showing fabricated ones here just contradicted the very next screen.
   const subtotal = getSelectedTotal();
-  const tax = subtotal * 0.1;
-  const serviceFee = 25;
-  const total = subtotal + tax + serviceFee;
+  const total = subtotal;
+  const currency = selectedCart[0]?.currency ?? 'LKR';
 
   return (
     <Box
@@ -388,35 +397,17 @@ export const CheckoutPage: React.FC = () => {
                   ORDER SUMMARY
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                  ${total.toFixed(2)}
+                  {currency} {total.toFixed(2)}
                 </Typography>
               </Box>
 
               <Box sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.5 }}>
                   <Typography variant="body2" color="text.secondary">
                     Items ({selectedCart.length})
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    ${subtotal.toFixed(2)}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Tax
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    ${tax.toFixed(2)}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.5 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Service Fee
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    ${serviceFee.toFixed(2)}
+                    {currency} {subtotal.toFixed(2)}
                   </Typography>
                 </Box>
 
@@ -427,6 +418,7 @@ export const CheckoutPage: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={handleContinueToPayment}
+                  disabled={showBookingToast}
                   sx={{
                     borderRadius: '999px',
                     textTransform: 'none',
@@ -470,6 +462,14 @@ export const CheckoutPage: React.FC = () => {
           </Box>
         </Box>
       </Container>
+
+      <ToastAlert
+        open={showBookingToast}
+        onClose={handleBookingToastClose}
+        severity="success"
+        duration={1800}
+        message={`${selectedCart.length} booking${selectedCart.length === 1 ? '' : 's'} ready. Taking you to secure payment...`}
+      />
     </Box>
   );
 };
