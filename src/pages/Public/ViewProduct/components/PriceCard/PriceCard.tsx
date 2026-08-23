@@ -1,9 +1,4 @@
-// Sticky summary card: price, a one-line recap of what's selected in
-// BookingOptions (the main-section picker), and an Add to Cart action.
-// Adds to CartContext (the localStorage cart the whole Cart -> Checkout
-// -> Payment flow actually reads from). All interactive selection
-// (dates, seats/units, quantity) lives in BookingOptions now - this
-// card only reads that state via props and submits it.
+
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
