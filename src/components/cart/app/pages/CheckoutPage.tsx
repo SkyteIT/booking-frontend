@@ -105,10 +105,12 @@ export const CheckoutPage: React.FC = () => {
     navigate('/payment');
   };
 
+  // Matches what PaymentPage (and the backend's CheckoutAsync) actually
+  // charges - no tax or service fee is added anywhere server-side, so
+  // showing fabricated ones here just contradicted the very next screen.
   const subtotal = getSelectedTotal();
-  const tax = subtotal * 0.1;
-  const serviceFee = 25;
-  const total = subtotal + tax + serviceFee;
+  const total = subtotal;
+  const currency = selectedCart[0]?.currency ?? 'LKR';
 
   return (
     <Box
@@ -395,35 +397,17 @@ export const CheckoutPage: React.FC = () => {
                   ORDER SUMMARY
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                  ${total.toFixed(2)}
+                  {currency} {total.toFixed(2)}
                 </Typography>
               </Box>
 
               <Box sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.5 }}>
                   <Typography variant="body2" color="text.secondary">
                     Items ({selectedCart.length})
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    ${subtotal.toFixed(2)}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Tax
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    ${tax.toFixed(2)}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.5 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Service Fee
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    ${serviceFee.toFixed(2)}
+                    {currency} {subtotal.toFixed(2)}
                   </Typography>
                 </Box>
 

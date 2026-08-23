@@ -60,6 +60,7 @@ export function mapApiListing(api: ListingResponse): Listing {
     type: api.type,
     location: api.location || "Online",
     price: api.price,
+    currency: api.currency || "LKR",
     priceUnit: priceUnitByCategory[typeLabel] ?? "unit",
     pricingUnit: api.pricingUnit ?? undefined,
     availableRooms: api.hotelDetails?.availableRooms,
@@ -109,5 +110,6 @@ export function mapApiListing(api: ListingResponse): Listing {
     amenities: amenitiesFor(api),
     hasActiveOffer: api.hasActiveOffer,
     offerBadgeText: api.offerBadgeText,
+    bookingSelection: api.bookingSelection,
   };
 }

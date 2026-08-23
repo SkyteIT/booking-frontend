@@ -70,6 +70,7 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
     startDate: "",
     endDate: "",
     status: true,
+    actionUrl: "",
     openInNewTab: false,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -93,7 +94,8 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
           startDate: banner.startDate,
           endDate: banner.endDate,
           status: banner.status === "Active",
-          openInNewTab: false,
+          actionUrl: banner.actionUrl ?? "",
+          openInNewTab: banner.openInNewTab ?? false,
         });
         setImagePreview(banner.imageUrl || null);
         setImageUrl(banner.imageUrl || "");
@@ -167,6 +169,8 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
         startDate: form.startDate,
         endDate: form.endDate,
         status: form.status ? "Active" : "Inactive",
+        actionUrl: form.actionUrl.trim() || undefined,
+        openInNewTab: form.openInNewTab,
       });
       if (onSaved) onSaved();
       else navigate("/admin/content");
@@ -387,11 +391,21 @@ export default function EditBanner({ bannerId, open, onClose, onSaved }: EditBan
               </Box>
               <Typography fontWeight={600}>4. Link & Behaviour</Typography>
             </Box>
+            <TextField
+              label="Action URL"
+              placeholder="https://example.com/promo"
+              fullWidth
+              sx={{ mb: 2 }}
+              value={form.actionUrl}
+              onChange={(e) => handleChange("actionUrl", e.target.value)}
+              helperText="Where the banner takes people when clicked. Leave blank for a non-clickable banner."
+            />
             <FormControlLabel
               control={
                 <Switch
                   checked={form.openInNewTab}
                   onChange={(e) => handleChange("openInNewTab", e.target.checked)}
+                  disabled={!form.actionUrl.trim()}
                 />
               }
               label="Open link in new tab"
