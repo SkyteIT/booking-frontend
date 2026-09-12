@@ -12,6 +12,7 @@ import { useVendorApplication } from "../../../context/useVendorApplication";
 import ApplicationLayout from "../../../layouts/VendorLayout/ApplicationLayout";
 import "./application.css";
 import { fetchCategories, type ApiCategory } from "../../../services/categoryService";
+import { vendorCategoriesSchema } from "../../../utils/validationSchemas";
 
 const Categories = (): JSX.Element => {
   const navigate = useNavigate();
@@ -82,10 +83,13 @@ const Categories = (): JSX.Element => {
   };
 
   const handleContinue = () => {
-    if (selectedCategories.length === 0) {
-      setError("Please select at least one category");
+    const result = vendorCategoriesSchema.safeParse(selectedCategories);
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? "Select at least one category");
       return;
     }
+    setData((prev) => ({ ...prev, categories: result.data }));
+    setError("");
     navigate("/vendor/documents");
   };
 

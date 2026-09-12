@@ -20,13 +20,13 @@ const api = axios.create({
   //headers: { "Content-Type": "application/json" },
 });
 
+const isPublicAuthRequest = (url = "") =>
+  /\/(?:api\/)?auth\/(?:login|register|google-login|forgot-password|reset-password|verify-email|2fa\/(?:enroll\/start|enroll\/confirm|verify))(?:[?#]|$)/.test(url);
+
 // Attach token to outgoing requests
 api.interceptors.request.use((config) => {
   const token = tokenStorage.getToken();
   const requestUrl = config.url ?? "";
-  const isPublicAuthRequest =
-    /\/auth\/(login|register|google-login)/.test(requestUrl) ||
-    /\/api\/auth\/(login|register|google-login)/.test(requestUrl);
 
   if (config.data instanceof FormData) {
     config.headers = config.headers ?? {};
@@ -34,7 +34,7 @@ api.interceptors.request.use((config) => {
     delete config.headers["content-type"];
   }
 
-  if (token && !isPublicAuthRequest) {
+  if (token && !isPublicAuthRequest(requestUrl)) {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -53,6 +53,7 @@ api.interceptors.response.use(
       error.response &&
       error.response.status === 401 &&
       !originalRequest._retry &&
+      !isPublicAuthRequest(originalRequest.url) &&
       !originalRequest.skipAuthRedirect
     ) {
       originalRequest._retry = true;

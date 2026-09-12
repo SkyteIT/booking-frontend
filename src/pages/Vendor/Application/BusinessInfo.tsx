@@ -64,9 +64,10 @@ const BusinessInfo = (): JSX.Element => {
       return;
     }
     setErrors({});
+    setFormData(result.data);
     setData((prev) => ({
       ...prev,
-      businessInfo: formData,
+      businessInfo: result.data,
     }));
     navigate("/vendor/contactinfo");
   };

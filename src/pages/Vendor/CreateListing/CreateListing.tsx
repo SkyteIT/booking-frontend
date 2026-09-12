@@ -26,7 +26,7 @@ import SnackbarAlert from "../../../components/common/SnackbarAlert";
 import {
   createListing,
   updateListing,
-  getCategories,
+  getVendorListingCategories,
   getEditableListingById,
 } from "../../../services/Vendor/listingService";
 import type {
@@ -431,7 +431,7 @@ const CreateListing = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const cats = await getCategories();
+        const cats = await getVendorListingCategories();
         setCategories(cats);
 
         if (isEditMode && id) {
@@ -550,7 +550,7 @@ const CreateListing = () => {
     };
 
     fetchInitialData();
-  }, [id, isEditMode, navigate, reset]);
+  }, [id, isEditMode, navigate, reset, setValue]);
 
   const formData = watch();
   const watchedCategory = watch("category");
@@ -613,7 +613,7 @@ const CreateListing = () => {
       // listing cannot be published as that category.
       const categoryExists = categories.some((c) => c.id === data.categoryId);
       if (!categoryExists) {
-        showMessage("Please select a valid category.", "error");
+        showMessage("Select a category from your approved vendor application.", "error");
         return;
       }
 
@@ -905,6 +905,7 @@ const CreateListing = () => {
                   type="button"
                   variant="contained"
                   onClick={handleNext}
+                  disabled={categories.length === 0}
                   sx={{
                     borderRadius: "10px",
                     px: 4,

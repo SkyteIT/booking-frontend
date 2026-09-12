@@ -53,6 +53,10 @@ const Documents = () => {
       setError("Only PDF or DOCX files are allowed");
       return;
     }
+    if (file.size === 0) {
+      setError("The selected file is empty");
+      return;
+    }
     if (file.size > MAX_SIZE) {
       setError("File must not exceed 5MB");
       return;

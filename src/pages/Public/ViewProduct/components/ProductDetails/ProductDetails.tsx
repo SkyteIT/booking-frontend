@@ -18,9 +18,9 @@ function SpecGrid({ specs }: { specs: { label: string; value: string }[] }) {
     <Box
       sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, mb: 1 }}
     >
-      {specs.map((s) => (
+      {specs.map((s, index) => (
         <Box
-          key={s.label}
+          key={`${s.label}-${index}`}
           sx={{
             border: "1px solid",
             borderColor: "divider",
@@ -49,7 +49,15 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails = ({ listing }: ProductDetailsProps) => {
-  const categorySpecs: { label: string; value: string }[] = (() => {
+  // These fields already have their own sections on this detail page.
+  const separatelyDisplayed = new Set([
+    "About this listing", "Amenities", "Included services", "Insurance", "Cancellation policy",
+    ...(listing.type === "Event" ? ["Venue", "Venue address"] : []),
+    ...(listing.type === "CarRental" ? ["Brand", "Model", "Year", "Transmission", "Fuel"] : []),
+  ]);
+  const categorySpecs: { label: string; value: string }[] = listing.options?.filter(
+    (option) => !separatelyDisplayed.has(option.label),
+  ) ?? (() => {
     if (listing.type === "Hotel")
       return [
         ...(listing.propertyType

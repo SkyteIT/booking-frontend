@@ -1,4 +1,5 @@
 import api from "./api";
+import type { ListingResponse } from "./Vendor/listingService";
 
 export interface SearchParams {
   searchTerm?: string;
@@ -18,6 +19,7 @@ export interface SearchParams {
 // ever sends (it sends price/averageRating/isActive), so every listing
 // silently rendered "$undefined" and a 0 rating until this was caught.
 export interface SearchListing {
+  details?: ListingResponse;
   id: string;
   title: string;
   categoryName: string;
@@ -44,12 +46,8 @@ type SearchListingPayload = Partial<SearchListing> & {
   images?: string[] | null;
 };
 
-export interface SearchListingsResult {
-  items: SearchListing[];
-  totalCount: number;
-}
-
 const normalizeSearchListing = (listing: SearchListingPayload): SearchListing => ({
+  details: listing.details,
   id: String(listing.id ?? ""),
   title: listing.title ?? "",
   categoryName: listing.categoryName ?? "",

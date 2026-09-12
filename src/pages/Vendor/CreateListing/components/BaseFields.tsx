@@ -1,4 +1,4 @@
-import { Box, MenuItem, Switch, TextField, Typography } from "@mui/material";
+import { Alert, Box, MenuItem, Switch, TextField, Typography } from "@mui/material";
 import { Controller } from "react-hook-form";
 import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
 import type { CategoryDto } from "../../../../services/Vendor/listingService";
@@ -20,7 +20,12 @@ export default function BaseFields({
   selectedCategoryId,
 }: BaseFieldsProps) {
   return (
-    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
+    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 3 }}>
+      {categories.length === 0 && (
+        <Alert severity="warning" sx={{ gridColumn: "1 / -1" }}>
+          No active categories from your approved application are available. Contact support before creating a listing.
+        </Alert>
+      )}
       <TextField
         fullWidth
         label="Title"
@@ -47,12 +52,15 @@ export default function BaseFields({
         helperText={
           errors.categoryId?.message ??
           (categories.length === 0
-            ? "No categories exist yet — ask an admin to create one before publishing."
-            : "Determines which detail fields appear below")
+            ? "No approved categories are available. Contact support to check your vendor application."
+            : "Only categories selected in your approved vendor application are available.")
         }
         error={!!errors.categoryId}
-        value={selectedCategoryId ?? ""}
-        {...register("categoryId", { required: "Select a category" })}
+        value={categories.some((category) => category.id === selectedCategoryId) ? selectedCategoryId : ""}
+        {...register("categoryId", {
+          required: "Select a category",
+          validate: (value) => categories.some((category) => category.id === value) || "Select a category from your approved application",
+        })}
       >
         {categories.map((cat) => (
           <MenuItem key={cat.id} value={cat.id}>
