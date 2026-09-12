@@ -94,7 +94,7 @@ const ListingCard = ({
           image={image}
           alt={title}
           sx={{ height: 200, objectFit: "cover" }}
-          onError={(e: any) => {
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src =
               "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800";

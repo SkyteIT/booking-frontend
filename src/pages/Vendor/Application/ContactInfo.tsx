@@ -63,9 +63,10 @@ const ContactInfo = (): JSX.Element => {
       return;
     }
     setErrors({});
+    setFormData(result.data);
     setData((prev) => ({
       ...prev,
-      contactInfo: formData,
+      contactInfo: result.data,
     }));
     navigate("/vendor/categories");
   };

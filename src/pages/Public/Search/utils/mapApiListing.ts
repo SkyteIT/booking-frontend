@@ -3,6 +3,7 @@ import type {
   ListingType,
 } from "../../../../services/Vendor/listingService";
 import type { Listing } from "./types";
+import { getListingOptions } from "../../../../utils/listingOptions";
 
 // ListingType's string values already match the labels we want to show —
 // this used to be keyed by the enum's numeric value (0/1/2/...), which
@@ -54,6 +55,7 @@ export function mapApiListing(api: ListingResponse): Listing {
       : [];
 
   return {
+    options: getListingOptions(api),
     id: api.id,
     title: api.title,
     category,

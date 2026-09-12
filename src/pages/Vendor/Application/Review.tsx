@@ -20,6 +20,11 @@ import {
   clearRejectedVendorApplicationAcknowledgement,
   getMyVendorApplicationStatus,
 } from "../../../services/vendorRegistrationService";
+import {
+  vendorBusinessInfoSchema,
+  vendorCategoriesSchema,
+  vendorContactInfoSchema,
+} from "../../../utils/validationSchemas";
 import "./application.css";
 const Review = () => {
   const navigate = useNavigate();
@@ -34,6 +39,28 @@ const Review = () => {
     setSubmitError(null);
     setSubmitting(true);
     try {
+      const businessResult = vendorBusinessInfoSchema.safeParse(data.businessInfo);
+      if (!businessResult.success) {
+        setSubmitError(
+          `Business information is incomplete: ${businessResult.error.issues[0]?.message ?? "check the required fields"}.`,
+        );
+        return;
+      }
+
+      const contactResult = vendorContactInfoSchema.safeParse(data.contactInfo);
+      if (!contactResult.success) {
+        setSubmitError(
+          `Contact information is incomplete: ${contactResult.error.issues[0]?.message ?? "check the required fields"}.`,
+        );
+        return;
+      }
+
+      const categoriesResult = vendorCategoriesSchema.safeParse(data.categories);
+      if (!categoriesResult.success) {
+        setSubmitError(categoriesResult.error.issues[0]?.message ?? "Select a service category.");
+        return;
+      }
+
       const existingApplication = await getMyVendorApplicationStatus();
       if (
         existingApplication?.status === "Pending" ||
@@ -52,20 +79,26 @@ const Review = () => {
         return;
       }
 
-      formData.append("BusinessName", data.businessInfo.businessName);
-      formData.append("BusinessType", data.businessInfo.businessType);
-      if (data.businessInfo.taxId.trim())
-        formData.append("TaxId", data.businessInfo.taxId.trim());
-      if (data.businessInfo.website.trim())
-        formData.append("Website", data.businessInfo.website.trim());
-      formData.append("Address", data.businessInfo.address);
+      const applicationData = {
+        businessInfo: businessResult.data,
+        contactInfo: contactResult.data,
+        categories: categoriesResult.data,
+      };
 
-      formData.append("FirstName", data.contactInfo.firstName);
-      formData.append("LastName", data.contactInfo.lastName);
-      formData.append("Email", data.contactInfo.email);
-      formData.append("Phone", data.contactInfo.phone);
+      formData.append("BusinessName", applicationData.businessInfo.businessName);
+      formData.append("BusinessType", applicationData.businessInfo.businessType);
+      if (applicationData.businessInfo.taxId)
+        formData.append("TaxId", applicationData.businessInfo.taxId);
+      if (applicationData.businessInfo.website)
+        formData.append("Website", applicationData.businessInfo.website);
+      formData.append("Address", applicationData.businessInfo.address);
 
-      data.categories.forEach((cat: string) => {
+      formData.append("FirstName", applicationData.contactInfo.firstName);
+      formData.append("LastName", applicationData.contactInfo.lastName);
+      formData.append("Email", applicationData.contactInfo.email);
+      formData.append("Phone", applicationData.contactInfo.phone);
+
+      applicationData.categories.forEach((cat: string) => {
         formData.append("Categories", cat);
       });
 

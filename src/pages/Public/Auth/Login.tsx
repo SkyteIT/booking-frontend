@@ -52,6 +52,7 @@ function Login(): JSX.Element {
   };
 
   const onSubmit = async (data: LoginFormData) => {
+    setError("");
     try {
       const authResponse = await loginRequest(data.email, data.password);
 
@@ -66,6 +67,11 @@ function Login(): JSX.Element {
       }
 
       const currentUser = await refreshUser();
+
+      if (!currentUser) {
+        setError("Unable to load your account. Please try signing in again.");
+        return;
+      }
 
       setSuccessSnackbar(true);
 
@@ -85,6 +91,7 @@ function Login(): JSX.Element {
   };
 
   const handleGoogleLogin = async (credential?: string) => {
+    setError("");
     if (!credential) {
       setError("Google login failed. Please try again.");
       return;
@@ -101,6 +108,11 @@ function Login(): JSX.Element {
       }
 
       const currentUser = await refreshUser();
+
+      if (!currentUser) {
+        setError("Unable to load your account. Please try signing in again.");
+        return;
+      }
 
       setSuccessSnackbar(true);
 

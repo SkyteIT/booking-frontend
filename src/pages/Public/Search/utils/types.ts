@@ -8,6 +8,7 @@ export interface ApiCategory {
 }
 
 export interface Listing {
+  options?: { label: string; value: string }[];
   id: string;
   title: string;
   category: ListingCategory | string; // admin-chosen display name, NOT the raw type - see `type` below

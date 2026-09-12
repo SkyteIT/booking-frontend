@@ -160,6 +160,11 @@ export const getCategories = async (): Promise<CategoryDto[]> => {
   return res.data;
 };
 
+export const getVendorListingCategories = async (): Promise<CategoryDto[]> => {
+  const res = await api.get<CategoryDto[]>("/vendor/listing-categories");
+  return res.data;
+};
+
 // Matches Ube.Application.Features.Listings.ListingResponse
 export interface ListingResponse {
   id: string;
@@ -193,6 +198,17 @@ export interface ListingResponse {
   eventDetails?: EventDetailsDto;
 
   bookingSelection?: BookingSelectionConfigDto;
+  customFieldValues?: { categoryCustomFieldId: string; label: string; value: string }[];
+  bookableUnits?: {
+    id: string;
+    name: string;
+    kind: string;
+    capacity: number;
+    priceOverride?: number | null;
+    slotStartTime?: string | null;
+    slotDuration?: string | null;
+    isActive: boolean;
+  }[];
 }
 
 // Matches Ube.Application.Features.Listings.BookingSelectionConfigDto -
@@ -259,6 +275,9 @@ const normalizeListing = (response: any): ListingResponse => {
     activityDetails: raw?.activityDetails ?? raw?.details?.activityDetails,
     eventDetails: raw?.eventDetails ?? raw?.details?.eventDetails,
     bookingSelection: raw?.bookingSelection ?? undefined,
+    pricingUnit: raw?.pricingUnit ?? undefined,
+    customFieldValues: unwrapValues(raw?.customFieldValues),
+    bookableUnits: unwrapValues(raw?.bookableUnits),
   };
 };
 

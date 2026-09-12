@@ -18,6 +18,27 @@ export const passwordSchema = z
   .regex(/\d/, "Password must contain a number")
   .regex(/[\W_]/, "Password must contain a special character");
 
+const personNameSchema = (label: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required`)
+    .min(2, `${label} must be at least 2 characters`)
+    .max(100, `${label} is too long`)
+    .regex(
+      /^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u,
+      `${label} can only contain letters, spaces, apostrophes, periods, and hyphens`,
+    );
+
+export const sriLankanPhoneSchema = z
+  .string()
+  .trim()
+  .min(1, "Phone is required")
+  .regex(
+    /^(0\d{9}|\+94\d{9})$/,
+    "Phone must be 10 digits starting with 0, or start with +94",
+  );
+
 //  Login Schema
 export const loginSchema = z.object({
   email: emailSchema,
@@ -34,7 +55,7 @@ export const registerSchema = z.object({
     .min(1, "Full name is required")
     .min(3, "Name must be at least 3 characters")
     .max(50, "Name is too long")
-    .regex(/^[a-zA-Z\s\-']+$/, "Name can only contain letters, spaces, hyphens, and apostrophes")
+    .regex(/^[\p{L}\p{M}\s.'-]+$/u, "Name can only contain letters, spaces, apostrophes, periods, and hyphens")
     .regex(/\s/, "Please enter both first and last name"),
   email: emailSchema,
   password: passwordSchema,
@@ -171,12 +192,14 @@ export type PaymentFormData = z.infer<typeof paymentSchema>;
 export const vendorBusinessInfoSchema = z.object({
   businessName: z
     .string()
+    .trim()
     .min(1, "Business name is required")
     .min(3, "Business name must be at least 3 characters")
     .max(200, "Business name is too long"),
 
   businessType: z
     .string()
+    .trim()
     .min(1, "Business type is required")
     .max(200, "Business type is too long"),
 
@@ -188,12 +211,13 @@ export const vendorBusinessInfoSchema = z.object({
       (value) => value === "" || /^[A-Za-z0-9-]{4,100}$/.test(value),
       "Tax ID must be 4-100 alphanumeric characters"
     )
-    .optional(),
+    .optional()
+    .default(""),
 
   website: z
     .string()
+    .trim()
     .max(300, "Website URL is too long")
-    .optional()
     .or(z.literal(""))
     .refine(
       (value) =>
@@ -204,6 +228,7 @@ export const vendorBusinessInfoSchema = z.object({
 
   address: z
     .string()
+    .trim()
     .min(1, "Business address is required")
     .min(5, "Address is too short")
     .max(500, "Address is too long"),
@@ -214,13 +239,22 @@ export type VendorBusinessInfoFormData = z.infer<typeof vendorBusinessInfoSchema
 //  Vendor Application - Contact Info step (previously only checked
 //  "required", not real email/phone format - a real gap, not a style choice)
 export const vendorContactInfoSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(100, "First name is too long"),
-  lastName: z.string().min(1, "Last name is required").max(100, "Last name is too long"),
+  firstName: personNameSchema("First name"),
+  lastName: personNameSchema("Last name"),
   email: emailSchema,
-  phone: z.string().min(1, "Phone is required").regex(/^(0\d{9}|\+94\d{9})$/, "Phone must be 10 digits starting with 0, or start with +94"),
+  phone: sriLankanPhoneSchema,
 });
 
 export type VendorContactInfoFormData = z.infer<typeof vendorContactInfoSchema>;
+
+export const vendorCategoriesSchema = z
+  .array(z.string().trim().min(1))
+  .min(1, "Select at least one service category")
+  .max(20, "Select no more than 20 service categories")
+  .refine(
+    (categories) => new Set(categories).size === categories.length,
+    "Service categories must not contain duplicates",
+  );
 
 //  Booking Filter Schema
 export const bookingFilterSchema = z.object({
